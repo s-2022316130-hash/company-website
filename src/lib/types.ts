@@ -5,15 +5,47 @@ import type { PhotoKey } from "@/config/photos";
  * descriptions can be stored alongside English ones (the optional *Bn fields).
  */
 
-export type StockStatus =
+/**
+ * Physical stock, which is separate from being in the catalogue. "catalogue-only" means the part is
+ * listed so customers can find and ask for it, but the shop has not confirmed it is on the shelf.
+ */
+export type InventoryStatus =
   | "in-stock"
   | "low-stock"
   | "out-of-stock"
   | "available-on-request"
-  | "call-for-availability";
+  | "call-to-confirm"
+  | "catalogue-only";
+
+/** live: shown. draft: hidden from the site. demo: placeholder data, labelled as such. */
+export type ProductStatus = "live" | "draft" | "demo";
 
 /** Only set to something other than "unknown" when the store has verified it. */
-export type ProductType = "genuine" | "oem" | "aftermarket" | "compatible" | "unknown";
+export type Authenticity = "genuine" | "oem" | "aftermarket" | "compatible" | "unknown";
+
+/**
+ * How sure the listed fitment is:
+ * verified             checked against the part itself
+ * manufacturer-listed  the manufacturer's own source names this part, size or spec for the model
+ * store-confirmed      the shop has confirmed the fit
+ * needs-confirmation   a reasonable part type for the model; the exact fit must be confirmed
+ */
+export type CompatibilityConfidence = "verified" | "manufacturer-listed" | "store-confirmed" | "needs-confirmation";
+
+export type SourceType =
+  | "official-bangladesh"
+  | "official-manufacturer"
+  | "historical-catalogue"
+  | "retailer-reference"
+  | "store-supplied"
+  | "demo";
+
+/** Where a catalogue record comes from, so it can be re-verified later. */
+export interface ProductSource {
+  type: SourceType;
+  name: string;
+  url?: string;
+}
 
 /**
  * model-specific: fits the models listed in compatibleModels.
@@ -78,6 +110,8 @@ export interface MotorcycleModel {
   description?: string;
   /** Extra spellings customers type, e.g. "fz v4". */
   aliases?: string[];
+  /** Model family as the manufacturer groups it, e.g. "Pulsar". */
+  family?: string;
   /** Official per-variant specifications, where they have been collected. */
   variants?: VariantSpec[];
   /** Maintenance facts from the official owner's manual, where it has been read. */
@@ -178,8 +212,10 @@ export interface Subcategory {
   aliases?: string[];
   /** Shown in "Popular parts". */
   popular?: boolean;
-  /** Representative photo of this part type. */
+  /** Photo that actually shows this part type. Leave unset rather than use a loosely related photo. */
   image?: PhotoKey;
+  /** Line illustration used for products when there is no accurate photo. */
+  art?: PartArtKind;
 }
 
 export interface CategoryGroup {
@@ -203,6 +239,8 @@ export interface ProductImage {
 export interface ProductSpec {
   label: string;
   value: string;
+  /** URL of the official page the value comes from. Required for anything not supplied by the shop. */
+  source?: string;
 }
 
 export interface Product {
@@ -234,15 +272,27 @@ export interface Product {
   compareAtPrice?: number;
   currency?: "BDT";
 
-  stockStatus: StockStatus;
+  inventoryStatus: InventoryStatus;
   quantityAvailable?: number;
+  productStatus: ProductStatus;
 
-  productType: ProductType;
+  authenticity: Authenticity;
 
   fitment: Fitment;
-  /** Motorcycle model ids. Compatible brands are derived from these. */
+  /**
+   * Motorcycle model ids. Compatible brands are derived from these. For a universal item
+   * (e.g. an oil grade) these are the models whose manufacturer recommends it.
+   */
   compatibleModels: string[];
+  /**
+   * Official variant names the part is limited to, e.g. ["Pulsar 150 TD", "Pulsar 150 TD ABS"].
+   * A compatible model with none of its variants listed here fits in every variant.
+   */
+  compatibleVariants?: string[];
+  compatibilityConfidence: CompatibilityConfidence;
+  source: ProductSource;
 
+  /** Only facts from a cited source; never estimated. */
   specifications?: ProductSpec[];
   features?: string[];
   tags?: string[];
@@ -250,16 +300,14 @@ export interface Product {
 
   isFeatured?: boolean;
   isPopular?: boolean;
+  /** Routine wear part (pads, filters, cables…), used to order popular-part lists. */
+  isFastMoving?: boolean;
   isNew?: boolean;
+  /** Fitment or sourcing notes shown on the product page. */
+  notes?: string[];
 
   createdAt?: string;
   updatedAt?: string;
-
-  /**
-   * True for demo catalogue records that are not confirmed store inventory.
-   * Demo products carry a visible label, are excluded from the sitemap and set to noindex.
-   */
-  isSample?: boolean;
 }
 
 /** The image a product actually displays, after falling back through the photo chain. */
@@ -271,6 +319,53 @@ export interface DisplayImage {
   position?: string;
 }
 
+/** Line illustration of a part type, used when no accurate photo exists. See components/parts/PartArt. */
+export type PartArtKind =
+  | "brake-pad"
+  | "brake-shoe"
+  | "lever"
+  | "hose"
+  | "switch"
+  | "fastener"
+  | "panel"
+  | "seal"
+  | "piston"
+  | "gasket"
+  | "valve"
+  | "gear"
+  | "clutch-plate"
+  | "battery"
+  | "module"
+  | "coil"
+  | "bulb"
+  | "cable"
+  | "meter"
+  | "injector"
+  | "bottle"
+  | "spray"
+  | "lamp"
+  | "stand"
+  | "spring"
+  | "chain"
+  | "belt"
+  | "motor"
+  | "stator"
+  | "tube"
+  | "horn"
+  | "fuse"
+  | "guard"
+  | "peg"
+  | "shaft"
+  | "tap"
+  | "plug-cap"
+  | "jets"
+  | "throttle-body"
+  | "bush"
+  | "charger"
+  | "grip"
+  | "inline-filter"
+  | "reservoir";
+
 /** A product joined with the records it references, ready for display. */
 export interface ProductView extends Product {
   categoryName: string;
@@ -279,4 +374,6 @@ export interface ProductView extends Product {
   models: MotorcycleModel[];
   brands: Brand[];
   displayImage?: DisplayImage;
+  /** Illustration for the part type, shown when there is no accurate photo. */
+  art?: PartArtKind;
 }

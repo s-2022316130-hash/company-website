@@ -127,6 +127,7 @@ function hiddenFields(params: ListingParams): [string, string][] {
   params.categories.forEach((v) => fields.push(["category", v]));
   params.types.forEach((v) => fields.push(["type", v]));
   params.availability.forEach((v) => fields.push(["availability", v]));
+  params.fitment.forEach((v) => fields.push(["fit", v]));
   if (params.minPrice !== undefined) fields.push(["min", String(params.minPrice)]);
   if (params.maxPrice !== undefined) fields.push(["max", String(params.maxPrice)]);
   return fields;
@@ -135,7 +136,7 @@ function hiddenFields(params: ListingParams): [string, string][] {
 function ActiveFilters({ basePath, params, result }: { basePath: string; params: ListingParams; result: ListingResult }) {
   const { facets } = result;
   const chips: { label: string; href: string }[] = [];
-  const add = (key: "brand" | "model" | "category" | "type" | "availability", current: string[], options: typeof facets.brands) => {
+  const add = (key: "brand" | "model" | "category" | "type" | "availability" | "fit", current: string[], options: typeof facets.brands) => {
     for (const o of options) {
       if (!o.selected) continue;
       chips.push({
@@ -149,6 +150,7 @@ function ActiveFilters({ basePath, params, result }: { basePath: string; params:
   add("category", params.categories, facets.categories);
   add("type", params.types, facets.types);
   add("availability", params.availability, facets.availability);
+  add("fit", params.fitment, facets.fitment);
   if (facets.price && (params.minPrice !== undefined || params.maxPrice !== undefined)) {
     chips.push({
       label: `৳${params.minPrice ?? facets.price.min} – ৳${params.maxPrice ?? facets.price.max}`,
@@ -163,6 +165,7 @@ function ActiveFilters({ basePath, params, result }: { basePath: string; params:
     category: undefined,
     type: undefined,
     availability: undefined,
+    fit: undefined,
     min: undefined,
     max: undefined,
     page: undefined,

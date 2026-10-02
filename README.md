@@ -70,44 +70,82 @@ Seed data           src/data/*.ts
 - Pages never import seed files directly. They call `loadCatalog()`, which reads through the repository.
 - Products reference motorcycle models by id (`compatibleModels`). Compatible brands are derived from
   those models, so compatibility is stored once.
-- `fitment` is `model-specific`, `universal` (e.g. chain lube) or `unconfirmed` (shown as "call to confirm").
-- `stockStatus` supports in stock, low stock, out of stock, available on request and call to confirm.
-  Stock is not live. Every product currently uses "call to confirm".
-- `productType` (genuine/OEM/aftermarket/compatible) is shown only when it is not `unknown`. Only set
-  it when the shop has verified it.
-- A missing `price` shows "Call for price". Prices are never invented.
+- `fitment` is `model-specific`, `universal` (e.g. chain lube; may still list the models whose manual
+  recommends it, e.g. an oil grade) or `unconfirmed` (shown as "call to confirm").
+- Three separate questions are kept separate:
+  - **Is it in the catalogue?** Every record is.
+  - **Is it on the shelf?** `inventoryStatus`: in stock, low stock, out of stock, available on request,
+    call to confirm, or `catalogue-only` (listed, but stock not confirmed). Every record is currently
+    `catalogue-only`.
+  - **Is it genuine?** `authenticity`: genuine, OEM, aftermarket, compatible or `unknown`. It is shown
+    only when not `unknown`, and only set when the shop has verified it.
+- `compatibilityConfidence` says how sure the fitment is: `verified`, `manufacturer-listed` (an
+  official source names the part, size or spec for the model), `store-confirmed`, or
+  `needs-confirmation`. `compatibleVariants` limits a record to some official variants.
+- `source` records where each record comes from (`official-bangladesh`, `official-manufacturer`,
+  `retailer-reference`, `store-supplied`, …), with a URL when there is one. Every `specifications` row
+  cites its official page.
+- `productStatus` is `live`, `draft` or `demo`.
+- A missing `price` shows "Call for price". Prices, SKUs and part numbers are never invented; a part
+  number is only recorded when an official source prints it.
 - Filters only appear when they can actually narrow the results, and all filter state lives in the URL
-  (`/shop?brand=yamaha&category=brake-pads`).
+  (`/shop?brand=yamaha&category=brake-pads&fit=manufacturer-listed`).
+- Catalogue-only records are `noindex` and left out of the sitemap (`isIndexable` in `src/lib/seo.ts`).
+  They become indexable once the shop confirms them.
 
-### Demo catalogue
+### Parts catalogue
 
-`src/data/products.ts` generates **159 demo products** (`isSample: true`). 131 are model-specific
-listings from `demoAssignments` (model plus part kind) and 28 are universal items (oils, fluids,
-accessories). They show how the shop is organised and are **not confirmed Nirob Autos stock**. Every
-demo product:
+`src/data/products.ts` assembles **583 catalogue records** from four files in `src/data/catalogue/`:
 
-- shows a "Demo catalogue" badge, and the pages show a catalogue-preview banner
-- is `noindex` and left out of the sitemap
-- has no price, SKU, part number, specification, photo of its own or verified type
-- uses "call to confirm" availability
-- is listed only where the bike has that part according to its official spec. Examples: brake pads
-  only for a wheel with a disc, brake shoes only for a drum, CVT belts only on scooters, carburettors
-  only on carburettor bikes. Each entry in `partKinds` has a `requires` rule for this.
+| File | What it holds |
+| --- | --- |
+| `kinds.ts` | About 115 part kinds (brake pads to grab rails). Each has rules for which bikes it can apply to (`requires`) and which official variants (`variant`), plus an optional split by official value, e.g. disc diameter. |
+| `assignments.ts` | Which kinds are catalogued for which model, and the pairings an official source lists (`officialFitment`). |
+| `official.ts` | Records from official sources. Yamaha Bangladesh's genuine-parts page lists 10 parts with their models. The rest are built from Bajaj spec pages and owner's manuals: tyres by size, tubes, batteries, spark plugs and bulbs. Each is one record listing every bike that uses it, never a copy per model. |
+| `universal.ts` | Engine oils by grade, fluids, cleaners, accessories and small hardware. |
 
-Unit tests fail if a demo product gets a price, part number, specs, a verified type or a photo. They
-also fail if an assignment breaks its `requires` rule. **Replace the demo records with the real
-inventory before launch.** Remove `isSample` from real records.
+Rules:
+
+- **Fitment:** a part is only catalogued where the official spec allows it. For example, there are no
+  disc pads for a drum wheel, no CVT belt on a geared bike, and no injector on a carburettor bike. Where
+  variants differ, the record names them: Pulsar 150 rear brake pads are listed for the TD and TD ABS
+  variants only.
+- **Oil grades and brake fluids** list a bike only where its owner's manual names that grade.
+- **Counts by brand:**
+  - Bajaj 271 (34 manufacturer-listed)
+  - Honda 51
+  - Yamaha 46 (10 manufacturer-listed)
+  - Suzuki 40
+  - TVS 32
+  - Hero 47
+  - Runner 41
+  - Universal: 21 oils and fluids, 23 accessories, 12 hardware items
+- **Fitment confidence:** 48 records have manufacturer-listed fitment; the other 535 need confirmation.
+- **Duplicates:** product names are unique, and a shared part is one record with several models.
+
+Unit tests enforce these rules:
+
+- no prices, SKUs or verified authenticity on catalogue-only records
+- part numbers and manufacturer-listed fitment only with an official source
+- every assignment passes its `requires` rule
+- variant names exist
+- the Bajaj parts checklist is covered
+- the per-brand minimums are met
+
+**To go live with real stock**, set `inventoryStatus`, `price` and (when verified) `authenticity` on
+each record the shop confirms. Add photos of the actual item to `images`.
 
 ### Motorcycle directory
 
-`src/data/models.ts` lists **118 models** across 7 brands, checked on 2 October 2026 against each
-brand's official site. Every model stores its source URL.
+`src/data/models.ts` lists **119 models** across 7 brands, checked on 2 October 2026 against each
+brand's official site. Every model stores its source URL. Bajaj models carry their `family` (Pulsar,
+Discover, Platina, CT).
 
 | Brand | Official source | Models |
 | --- | --- | --- |
 | Bajaj | bajajauto.com/en-bd, plus bajajauto.com for models sold outside BD | 10 current, 13 outside BD |
 | Honda | bdhonda.com | 11 current, 2 earlier |
-| Yamaha | yamahabd.com | 16 current, 1 outside BD |
+| Yamaha | yamahabd.com (products and parts-spares pages) | 16 current, 1 earlier (FZS V3), 1 outside BD |
 | Suzuki | suzuki.com.bd | 10 current, 1 outside BD |
 | TVS | bangladesh.tvsmotor.com | 4 current, 1 earlier, 6 outside BD |
 | Hero | heromotocorp.com/en-bd | 25 current, 1 outside BD |
@@ -120,8 +158,9 @@ brand's official site. Every model stores its source URL.
 - `official-other`: in the official catalogue outside Bangladesh only. These are hidden behind a toggle in the directory.
 
 Brake and fuel-system specs are filled in only when the official page states them. UM-branded bikes
-sold through Runner showrooms are not listed under Runner. Review the list against the bikes the shop
-actually supplies parts for. For example, the FZS V3 is no longer on yamahabd.com and is not listed.
+sold through Runner showrooms are not listed under Runner. The FZS V3 is not in Yamaha's current
+product list, but Yamaha Bangladesh's genuine-parts page lists parts for it, so it is an earlier
+Bangladesh model. Review the list against the bikes the shop actually supplies parts for.
 
 ### Variant specifications
 
@@ -175,10 +214,24 @@ read from there.
   registered in `src/config/photos.ts` with alt text, photographer and source page. `/credits` lists
   them all. The hero photo's number plate is blurred. These photos are **temporary**: replace them with
   the shop's own photos when available.
-- **Product images** fall back in this order: the product's own photo, then its representative `photo`,
-  then its subcategory photo, then its category photo, then a line drawing of the bike type, then a gear
-  placeholder. Anything other than the product's own photo is captioned "Representative photo, not the
-  exact item for sale".
+- **Product images** fall back in this order:
+  1. the product's own photo
+  2. its representative `photo`
+  3. its subcategory photo, which is only set where the photo really shows that part type
+  4. an original line illustration of the part type (`src/components/parts/PartArt.tsx`, 44 drawings)
+  5. a category icon
+
+  The broad category photo is never used for a product, so a brake pad never shows a brake disc.
+  Anything other than the product's own photo is captioned as not the exact item for sale.
+- **Folders**:
+  - `public/images/products/<brand>/` (bajaj, honda, yamaha, suzuki, tvs, hero, runner): photos of the
+    shop's actual items
+  - `public/images/products/<part-type>/`: the temporary representative stock photos
+  - `public/images/motorcycles/` and `public/images/brands/`: licensed model and brand images, if
+    permission is ever given
+
+  Only use photos the shop owns or has permission to use. A credit line does not make a copyrighted
+  manufacturer photo usable.
 - **Bikes** are shown as original line drawings of six body styles (commuter, street, sport, cruiser,
   scooter, offroad), never as photos of a specific model, so no page shows the wrong bike.
 
@@ -193,13 +246,16 @@ read from there.
   subcategory: "brake-pads",
   partBrand: "…",                 // maker of the part, if known
   sku: "…", partNumber: "…",      // only real values
-  images: [{ src: "/images/products/fzs-v4-front-pad.jpg", alt: "Front brake pad set for Yamaha FZS V4" }],
+  images: [{ src: "/images/products/yamaha/fzs-v4-front-pad.jpg", alt: "Front brake pad set for Yamaha FZS V4" }],
   price: 650,                     // whole taka; omit for "Call for price"
   currency: "BDT",
-  stockStatus: "in-stock",
-  productType: "aftermarket",     // only if verified
+  inventoryStatus: "in-stock",
+  productStatus: "live",
+  authenticity: "aftermarket",    // only if verified
   fitment: "model-specific",
   compatibleModels: ["yamaha-fzs-v4"],
+  compatibilityConfidence: "store-confirmed",
+  source: { type: "store-supplied", name: "Nirob Autos stock list" },
   isFeatured: true,
 }
 ```
@@ -257,7 +313,8 @@ events.
 
 ## Known limitations
 
-- The catalogue is demo data. Real inventory, prices, photos and part numbers are still needed.
+- Every catalogue record is `catalogue-only`: real stock, prices, photos and part numbers are still
+  needed from the shop. 535 of 583 records need fitment confirmation.
 - The photos are temporary Unsplash stock (see `/credits`). There are no photos of the shop or its stock.
 - There is no order backend: requests are not stored, and the store must reply on WhatsApp or phone.
 - Stock is not live.

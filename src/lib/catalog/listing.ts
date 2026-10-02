@@ -1,8 +1,8 @@
 import { PAGE_SIZE } from "@/config/site";
 import { productFitsBrand, productFitsModel, productInCategory, type Catalog } from "./catalog";
 import { buildSearchIndex, searchProducts, type SearchMode } from "./search";
-import { productTypeLabels, stockStatusLabels } from "./labels";
-import type { ProductType, ProductView, StockStatus } from "@/lib/types";
+import { authenticityLabels, confidenceLabels, inventoryStatusLabels } from "./labels";
+import type { Authenticity, CompatibilityConfidence, InventoryStatus, ProductView } from "@/lib/types";
 
 /**
  * Filtering, sorting and facets for every product listing (shop, search,
@@ -26,8 +26,9 @@ export interface ListingParams {
   brands: string[];
   models: string[];
   categories: string[];
-  types: ProductType[];
-  availability: StockStatus[];
+  types: Authenticity[];
+  availability: InventoryStatus[];
+  fitment: CompatibilityConfidence[];
   minPrice?: number;
   maxPrice?: number;
   sort?: SortKey;
@@ -63,8 +64,9 @@ export function parseListingParams(raw: RawParams): ListingParams {
     brands: list(raw.brand),
     models: list(raw.model),
     categories: list(raw.category),
-    types: list(raw.type).filter((t): t is ProductType => t in productTypeLabels),
-    availability: list(raw.availability).filter((s): s is StockStatus => s in stockStatusLabels),
+    types: list(raw.type).filter((t): t is Authenticity => t in authenticityLabels),
+    availability: list(raw.availability).filter((s): s is InventoryStatus => s in inventoryStatusLabels),
+    fitment: list(raw.fit).filter((f): f is CompatibilityConfidence => f in confidenceLabels),
     minPrice: positiveInt(raw.min),
     maxPrice: positiveInt(raw.max),
     sort: sort && sort in sortLabels ? sort : undefined,
@@ -85,6 +87,7 @@ export interface Facets {
   categories: FacetOption[];
   types: FacetOption[];
   availability: FacetOption[];
+  fitment: FacetOption[];
   price?: { min: number; max: number };
 }
 
@@ -141,6 +144,7 @@ export function runListing(catalog: Catalog, params: ListingParams, scope: Listi
   const categorySel = valid(params.categories, facets.categories);
   const typeSel = valid(params.types, facets.types);
   const availSel = valid(params.availability, facets.availability);
+  const fitSel = valid(params.fitment, facets.fitment);
   const priceActive = Boolean(facets.price) && (params.minPrice !== undefined || params.maxPrice !== undefined);
 
   const filtered = base.filter(
@@ -148,8 +152,9 @@ export function runListing(catalog: Catalog, params: ListingParams, scope: Listi
       (brandSel.length === 0 || brandSel.some((b) => productFitsBrand(p, b))) &&
       (modelSel.length === 0 || modelSel.some((m) => productFitsModel(p, m))) &&
       (categorySel.length === 0 || categorySel.some((c) => productInCategory(p, c))) &&
-      (typeSel.length === 0 || typeSel.includes(p.productType)) &&
-      (availSel.length === 0 || availSel.includes(p.stockStatus)) &&
+      (typeSel.length === 0 || typeSel.includes(p.authenticity)) &&
+      (availSel.length === 0 || availSel.includes(p.inventoryStatus)) &&
+      (fitSel.length === 0 || fitSel.includes(p.compatibilityConfidence)) &&
       (!priceActive ||
         (p.price !== undefined &&
           (params.minPrice === undefined || p.price >= params.minPrice) &&
@@ -176,7 +181,7 @@ export function runListing(catalog: Catalog, params: ListingParams, scope: Listi
     sort,
     searchMode,
     activeFilterCount:
-      brandSel.length + modelSel.length + categorySel.length + typeSel.length + availSel.length + (priceActive ? 1 : 0),
+      brandSel.length + modelSel.length + categorySel.length + typeSel.length + availSel.length + fitSel.length + (priceActive ? 1 : 0),
   };
 }
 
@@ -215,21 +220,29 @@ function buildFacets(catalog: Catalog, base: ProductView[], params: ListingParam
   }
 
   // Only offer a filter when it can actually narrow the results.
-  const typeCounts = tally(base, (p) => [p.productType]);
+  const typeCounts = tally(base, (p) => [p.authenticity]);
   const hasKnownType = [...typeCounts.keys()].some((t) => t !== "unknown");
   const types =
     typeCounts.size > 1 && hasKnownType
-      ? (Object.keys(productTypeLabels) as ProductType[])
+      ? (Object.keys(authenticityLabels) as Authenticity[])
           .filter((t) => t !== "unknown" && typeCounts.has(t))
-          .map((t) => option(t, productTypeLabels[t], typeCounts.get(t)!, params.types))
+          .map((t) => option(t, authenticityLabels[t], typeCounts.get(t)!, params.types))
       : [];
 
-  const stockCounts = tally(base, (p) => [p.stockStatus]);
+  const stockCounts = tally(base, (p) => [p.inventoryStatus]);
   const availability =
     stockCounts.size > 1
-      ? (Object.keys(stockStatusLabels) as StockStatus[])
+      ? (Object.keys(inventoryStatusLabels) as InventoryStatus[])
           .filter((s) => stockCounts.has(s))
-          .map((s) => option(s, stockStatusLabels[s], stockCounts.get(s)!, params.availability))
+          .map((s) => option(s, inventoryStatusLabels[s], stockCounts.get(s)!, params.availability))
+      : [];
+
+  const fitCounts = tally(base, (p) => [p.compatibilityConfidence]);
+  const fitment =
+    fitCounts.size > 1
+      ? (Object.keys(confidenceLabels) as CompatibilityConfidence[])
+          .filter((f) => fitCounts.has(f))
+          .map((f) => option(f, confidenceLabels[f], fitCounts.get(f)!, params.fitment))
       : [];
 
   const prices = base.map((p) => p.price).filter((p): p is number => p !== undefined);
@@ -241,6 +254,7 @@ function buildFacets(catalog: Catalog, base: ProductView[], params: ListingParam
     categories: categories.length > 1 || params.categories.length > 0 ? categories : [],
     types,
     availability,
+    fitment,
     price,
   };
 }
@@ -252,6 +266,7 @@ export function hasFacets(facets: Facets): boolean {
     facets.categories.length > 0 ||
     facets.types.length > 0 ||
     facets.availability.length > 0 ||
+    facets.fitment.length > 0 ||
     Boolean(facets.price)
   );
 }
@@ -264,7 +279,7 @@ function availableSorts(products: ProductView[], hasQuery: boolean): SortKey[] {
 }
 
 function popularity(p: ProductView): number {
-  return (p.isPopular ? 2 : 0) + (p.isFeatured ? 1 : 0);
+  return (p.isPopular ? 4 : 0) + (p.isFeatured ? 2 : 0) + (p.isFastMoving ? 1 : 0);
 }
 
 export function sortProducts(products: ProductView[], sort: SortKey, relevance = new Map<string, number>()): ProductView[] {
@@ -297,7 +312,7 @@ export function sortProducts(products: ProductView[], sort: SortKey, relevance =
 export function listingHref(
   basePath: string,
   params: ListingParams,
-  overrides: Partial<Record<"q" | "brand" | "model" | "category" | "type" | "availability" | "sort" | "page" | "min" | "max", string | string[] | undefined>> = {},
+  overrides: Partial<Record<"q" | "brand" | "model" | "category" | "type" | "availability" | "fit" | "sort" | "page" | "min" | "max", string | string[] | undefined>> = {},
 ): string {
   const current: Record<string, string | string[] | undefined> = {
     q: params.q || undefined,
@@ -306,6 +321,7 @@ export function listingHref(
     category: params.categories,
     type: params.types,
     availability: params.availability,
+    fit: params.fitment,
     min: params.minPrice?.toString(),
     max: params.maxPrice?.toString(),
     sort: params.sort,

@@ -3,13 +3,18 @@ import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { canRequest } from "@/lib/catalog/labels";
 import { toCartLine } from "@/lib/catalog/present";
 import type { ProductView } from "@/lib/types";
-import { AvailabilityBadge, PriceDisplay, ProductTypeBadge, SampleBadge } from "./Badges";
+import { AuthenticityBadge, AvailabilityBadge, ConfidenceBadge, DemoBadge, PriceDisplay } from "./Badges";
 import { ProductImage } from "./ProductImage";
 
 /** Up to two model chips plus a "+n" count, or a plain note for non-model-specific items. */
 function CompatibilityChips({ product }: { product: ProductView }) {
   if (product.fitment === "universal") {
-    return <p className="truncate text-xs text-muted">Not model-specific</p>;
+    const first = product.models[0];
+    return (
+      <p className="truncate text-xs text-muted">
+        {first ? `Recommended for ${first.name}${product.models.length > 1 ? ` +${product.models.length - 1}` : ""}` : "Not model-specific"}
+      </p>
+    );
   }
   if (product.fitment === "unconfirmed" || product.models.length === 0) {
     return <p className="truncate text-xs text-muted">Fitment not listed: ask us</p>;
@@ -38,8 +43,8 @@ export function ProductCard({ product, priority = false }: { product: ProductVie
       <div className="relative">
         <ProductImage
           image={product.displayImage}
+          art={product.art}
           icon={product.categoryIcon}
-          bikeClass={product.models[0]?.class}
           label={product.subcategoryName ?? product.categoryName}
           priority={priority}
           zoom
@@ -47,7 +52,7 @@ export function ProductCard({ product, priority = false }: { product: ProductVie
         {/* Darken the top edge so the overlaid badges stay readable on any photo. */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-graphite/60 to-transparent" />
         <div className="absolute inset-x-2 top-2 flex items-start justify-between gap-1">
-          {product.isSample ? <SampleBadge className="shadow-sm" /> : <span />}
+          {product.productStatus === "demo" ? <DemoBadge className="shadow-sm" /> : <span />}
           {brand && (
             <span className="rounded bg-graphite/85 px-1.5 py-0.5 font-display text-xs font-semibold uppercase tracking-wider text-white">
               {brand}
@@ -71,13 +76,14 @@ export function ProductCard({ product, priority = false }: { product: ProductVie
         <div className="hidden sm:block">
           <CompatibilityChips product={product} />
         </div>
+        <ConfidenceBadge confidence={product.compatibilityConfidence} className="text-[0.75rem]" />
         <div className="mt-auto space-y-2 pt-1.5">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <PriceDisplay price={product.price} compareAtPrice={product.compareAtPrice} />
-            <ProductTypeBadge type={product.productType} />
+            <AuthenticityBadge authenticity={product.authenticity} />
           </div>
-          <AvailabilityBadge status={product.stockStatus} />
-          <AddToCartButton line={toCartLine(product)} disabled={!canRequest(product.stockStatus)} className="relative z-10" />
+          <AvailabilityBadge status={product.inventoryStatus} />
+          <AddToCartButton line={toCartLine(product)} disabled={!canRequest(product.inventoryStatus)} className="relative z-10" />
         </div>
       </div>
     </article>

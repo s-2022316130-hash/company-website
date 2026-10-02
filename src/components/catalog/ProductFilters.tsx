@@ -45,6 +45,7 @@ function FilterForm({ facets, basePath, carry, price, mode, onApplied }: FilterF
       <FacetGroup legend="Category" name="category" options={facets.categories} idPrefix={`${id}-cat`} scroll />
       <FacetGroup legend="Product type" name="type" options={facets.types} idPrefix={`${id}-type`} />
       <FacetGroup legend="Availability" name="availability" options={facets.availability} idPrefix={`${id}-avail`} />
+      <FacetGroup legend="Fitment" name="fit" options={facets.fitment} idPrefix={`${id}-fit`} />
 
       {facets.price && (
         <fieldset>

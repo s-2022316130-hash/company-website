@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CircleCheck, Info } from "lucide-react";
+import { CircleCheck, ExternalLink, Info, ScrollText } from "lucide-react";
 import { TrackView } from "@/components/analytics/Track";
 import { ProductPurchase } from "@/components/cart/AddToCartButton";
-import { AvailabilityBadge, PriceDisplay, ProductTypeBadge, SampleBadge } from "@/components/catalog/Badges";
+import { AuthenticityBadge, AvailabilityBadge, ConfidenceBadge, DemoBadge, PriceDisplay } from "@/components/catalog/Badges";
 import { CompatibilityList } from "@/components/catalog/CompatibilityList";
 import { categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
@@ -13,11 +13,19 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { absoluteUrl } from "@/config/site";
-import { categoryPath, countBy, loadCatalog, modelCategoryGroups, relatedProducts } from "@/lib/catalog/catalog";
-import { canRequest } from "@/lib/catalog/labels";
+import {
+  categoryPath,
+  countBy,
+  loadCatalog,
+  modelCategoryGroups,
+  modelDisplayName,
+  relatedProducts,
+  variantsFor,
+} from "@/lib/catalog/catalog";
+import { canRequest, CATALOGUE_DISCLAIMER, sourceTypeLabels } from "@/lib/catalog/labels";
 import { fitmentSummary, productEyebrow, toCartLine } from "@/lib/catalog/present";
 import { productEnquiryMessage } from "@/lib/order";
-import { pageMetadata, productJsonLd, type Crumb } from "@/lib/seo";
+import { isIndexable, pageMetadata, productJsonLd, type Crumb } from "@/lib/seo";
 
 export async function generateStaticParams() {
   const { products } = await loadCatalog();
@@ -37,8 +45,8 @@ export async function generateMetadata(props: PageProps<"/products/[slug]">): Pr
       product.shortDescription ??
       `${product.name}. ${fit}. Check price and availability with Nirob Autos, Madhupur.`,
     path: `/products/${product.slug}`,
-    // Demo catalogue records are not real stock: keep them out of search engines.
-    noindex: product.isSample,
+    // Catalogue-only entries are not confirmed stock: keep them out of search engines.
+    noindex: !isIndexable(product),
   });
   if (product.images[0]) {
     meta.openGraph = { ...meta.openGraph, images: [{ url: product.images[0].src, alt: product.images[0].alt }] };
@@ -62,7 +70,12 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
   ];
   const rails = relatedProducts(catalog, product);
   const modelCounts = countBy(catalog.products, (p) => p.compatibleModels);
-  const requestable = canRequest(product.stockStatus);
+  const requestable = canRequest(product.inventoryStatus);
+  // Models where the part only fits some official variants (e.g. rear disc pads on a Pulsar 150 TD).
+  const limited = product.models
+    .map((m) => ({ model: m, variants: variantsFor(product, m) }))
+    .filter((x) => x.variants.length > 0);
+  const recommended = product.fitment === "universal" && product.models.length > 0;
   const enquiry = productEnquiryMessage(product.name, absoluteUrl(`/products/${product.slug}`));
 
   return (
@@ -77,8 +90,8 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
           <ProductGallery
             images={product.images}
             fallback={product.displayImage}
+            art={product.art}
             icon={product.categoryIcon}
-            bikeClass={product.models[0]?.class}
             label={product.subcategoryName ?? product.categoryName}
             name={product.name}
           />
@@ -93,8 +106,9 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
             )}
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              {product.isSample && <SampleBadge />}
-              <ProductTypeBadge type={product.productType} />
+              {product.productStatus === "demo" && <DemoBadge />}
+              <AuthenticityBadge authenticity={product.authenticity} />
+              <ConfidenceBadge confidence={product.compatibilityConfidence} className="text-sm" />
               {product.partBrand && <span className="text-sm text-muted">Made by {product.partBrand}</span>}
             </div>
 
@@ -118,18 +132,33 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
             <div className="card mt-5 space-y-4 p-4 sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <PriceDisplay price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
-                <AvailabilityBadge status={product.stockStatus} className="text-sm" />
+                <AvailabilityBadge status={product.inventoryStatus} className="text-sm" />
               </div>
+              {product.inventoryStatus === "catalogue-only" && <p className="-mt-1 text-sm text-muted">{CATALOGUE_DISCLAIMER}</p>}
 
               <p className="flex items-start gap-2 rounded-lg bg-steel-soft p-3 text-sm text-ink">
                 <CircleCheck className="mt-0.5 size-4 shrink-0 text-steel" aria-hidden="true" />
                 <span>
                   <span className="font-semibold">{fitmentSummary(product)}.</span>{" "}
+                  {limited.length > 0 && <span>Only {limited.map((x) => x.variants.join(", ")).join("; ")}. </span>}
+                  {product.compatibilityConfidence === "needs-confirmation" && product.fitment !== "universal" && (
+                    <span>Tell us your bike&apos;s variant and year so we can confirm the exact part. </span>
+                  )}
                   <a href="#compatibility" className="text-brand underline">
                     See compatible motorcycles
                   </a>
                 </span>
               </p>
+              {product.notes && product.notes.length > 0 && (
+                <ul className="space-y-1.5 text-sm text-muted">
+                  {product.notes.map((n) => (
+                    <li key={n} className="flex items-start gap-2">
+                      <Info className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+                      {n}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               <ProductPurchase line={toCartLine(product)} disabled={!requestable} />
 
@@ -150,7 +179,16 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
         </div>
 
         <section id="compatibility" aria-labelledby="compat-title" className="mt-12 scroll-mt-40">
-          <SectionHeader id="compat-title" eyebrow="Compatibility" title="Fits these bikes" />
+          <SectionHeader
+            id="compat-title"
+            eyebrow="Compatibility"
+            title={recommended ? "Recommended by the manufacturer for" : "Fits these bikes"}
+            description={
+              recommended
+                ? "The owner's manuals of these models name this grade. Other bikes that call for the same grade can use it too."
+                : undefined
+            }
+          />
           {product.models.length > 0 ? (
             <>
               <ul className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -165,6 +203,15 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
                   </li>
                 ))}
               </ul>
+              {limited.length > 0 && (
+                <ul className="mt-3 space-y-1 text-sm text-ink">
+                  {limited.map(({ model, variants }) => (
+                    <li key={model.id}>
+                      <span className="font-semibold">{modelDisplayName(model, catalog.brandBySlug)}:</span> only {variants.join(", ")}
+                    </li>
+                  ))}
+                </ul>
+              )}
               <p className="mt-3 text-sm text-muted">
                 Bikes can differ between versions and years. If you are not sure, tell us your bike&apos;s model and year
                 before ordering.
@@ -205,10 +252,22 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
                 <tbody>
                   {product.specifications.map((s) => (
                     <tr key={s.label} className="border-t border-line">
-                      <th scope="row" className="w-2/5 py-2 pr-3 text-left font-medium text-muted">
+                      <th scope="row" className="w-2/5 py-2 pr-3 text-left align-top font-medium text-muted">
                         {s.label}
                       </th>
-                      <td className="py-2 text-ink">{s.value}</td>
+                      <td className="py-2 text-ink">
+                        {s.value}
+                        {s.source && (
+                          <a
+                            href={s.source}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted underline hover:text-brand"
+                          >
+                            Official source <ExternalLink className="size-3" aria-hidden="true" />
+                          </a>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -216,6 +275,23 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
             ) : (
               <p className="text-sm text-muted">Specifications have not been listed for this product.</p>
             )}
+
+            <p className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line pt-4 text-xs text-muted">
+              <ScrollText className="size-3.5" aria-hidden="true" />
+              <span>
+                Source: {sourceTypeLabels[product.source.type]}, {product.source.name}.
+              </span>
+              {product.source.url && (
+                <a
+                  href={product.source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-0.5 underline hover:text-brand"
+                >
+                  View source <ExternalLink className="size-3" aria-hidden="true" />
+                </a>
+              )}
+            </p>
           </section>
         </div>
 

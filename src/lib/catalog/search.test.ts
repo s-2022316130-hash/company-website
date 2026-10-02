@@ -61,8 +61,32 @@ describe("product search", () => {
     expect(searchProducts(index, "electrical").hits.length).toBeGreaterThan(0);
   });
 
+  it("finds every Pulsar's brake parts and every chain kit", () => {
+    const pulsar = searchProducts(index, "pulsar brake").hits.map((h) => h.product.slug);
+    expect(pulsar).toEqual(
+      expect.arrayContaining([
+        "bajaj-pulsar-150-front-brake-pad",
+        "bajaj-pulsar-n160-front-brake-pad",
+        "bajaj-pulsar-n160-rear-brake-pad",
+        "bajaj-pulsar-ns125-front-brake-pad",
+      ]),
+    );
+    const kits = searchProducts(index, "chain kit").hits.map((h) => h.product);
+    const allKits = catalog.products.filter((p) => p.subcategory === "chain-sprocket-kit");
+    expect(kits.filter((p) => p.subcategory === "chain-sprocket-kit")).toHaveLength(allKits.length);
+  });
+
+  it("understands common part names customers use", () => {
+    const sub = (q: string) => new Set(searchProducts(index, q).hits.slice(0, 10).map((h) => h.product.subcategory));
+    expect(sub("air cleaner").has("air-filter")).toBe(true);
+    expect(sub("accelerator cable").has("throttle-cable")).toBe(true);
+    expect(sub("engine oil filter").has("oil-filter")).toBe(true);
+    expect(sub("front pad").has("brake-pads")).toBe(true);
+    expect(sub("chain sprocket").has("chain-sprocket-kit")).toBe(true);
+  });
+
   it("resolves local and Bangla terms", () => {
-    expect(top("mobil")).toContain("semi-synthetic-engine-oil");
+    expect(top("mobil")).toContain("engine-oil-20w50");
     expect(top("fzs v4 disc pad")).toEqual(expect.arrayContaining(["yamaha-fzs-v4-front-brake-pad"]));
     expect(top("fzs v4 চেইন")).toEqual(expect.arrayContaining(["yamaha-fzs-v4-chain-sprocket-kit"]));
   });

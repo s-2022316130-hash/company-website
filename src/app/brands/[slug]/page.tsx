@@ -18,7 +18,9 @@ import {
   modelsForBrand,
   modelStatusLabels,
   productFitsBrand,
+  spreadByCategory,
 } from "@/lib/catalog/catalog";
+import { ProductGrid } from "@/components/catalog/ProductCard";
 import { pluralize } from "@/lib/format";
 import { pageMetadata } from "@/lib/seo";
 
@@ -49,6 +51,10 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
   const other = models.filter((m) => m.status === "official-other");
   const q = typeof searchParams.q === "string" ? searchParams.q : "";
   const dealer = dealershipFor(brand.slug);
+  const popular = spreadByCategory(
+    brandProducts.filter((p) => p.isFastMoving || p.isPopular),
+    8,
+  );
   const withSpecs = current.filter((m) => m.variants && m.variants.length > 0);
 
   return (
@@ -173,6 +179,18 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
                 </li>
               ))}
             </ul>
+          </section>
+        )}
+
+        {popular.length > 0 && (
+          <section aria-labelledby="brand-popular-title">
+            <SectionHeader
+              id="brand-popular-title"
+              eyebrow="Popular parts"
+              title={`Fast-moving ${brand.name} parts`}
+              description="Routine wear parts riders replace most often. Catalogue items: ask us to confirm stock and fit."
+            />
+            <ProductGrid products={popular} priorityCount={4} />
           </section>
         )}
 

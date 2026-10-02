@@ -175,8 +175,10 @@ export const modelVariants: Record<string, VariantSpec[]> = {
       name: "Discover 125 Disc",
       engineCc: 124.5,
       frontBrake: { type: "disc", sizeMm: 200 },
+      rearBrake: { type: "drum" },
       frontSuspension: "Telescopic, 140 mm travel",
       rearSuspension: "Nitrox, 120 mm travel",
+      note: "Rear brake type is from Bajaj's Discover owner's manual; the spec page doesn't state it.",
     }),
   ],
   "bajaj-discover-110": [

@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import { business } from "@/config/business";
 import { absoluteUrl, siteUrl } from "@/config/site";
-import type { ProductView, StockStatus } from "@/lib/types";
+import type { InventoryStatus, ProductView } from "@/lib/types";
+
+/**
+ * Whether a product page should be indexed and listed in the sitemap. Catalogue-only entries and
+ * demo or draft records are kept out until the shop confirms the item, so search results never
+ * present an unconfirmed listing as stock.
+ */
+export function isIndexable(product: Pick<ProductView, "productStatus" | "inventoryStatus">): boolean {
+  return product.productStatus === "live" && product.inventoryStatus !== "catalogue-only";
+}
 
 export interface Crumb {
   label: string;
@@ -77,8 +86,8 @@ export function breadcrumbJsonLd(crumbs: Crumb[]) {
   };
 }
 
-// "call-for-availability" has no schema.org equivalent, so availability is omitted for it.
-const schemaAvailability: Partial<Record<StockStatus, string>> = {
+// "call-to-confirm" and "catalogue-only" have no schema.org equivalent, so availability is omitted for them.
+const schemaAvailability: Partial<Record<InventoryStatus, string>> = {
   "in-stock": "https://schema.org/InStock",
   "low-stock": "https://schema.org/LimitedAvailability",
   "out-of-stock": "https://schema.org/OutOfStock",
@@ -87,10 +96,10 @@ const schemaAvailability: Partial<Record<StockStatus, string>> = {
 
 /**
  * Product structured data. Search engines require an offer (price) for a valid
- * Product result, so this returns null for products without a price or for sample records.
+ * Product result, so this returns null for products without a price or that are not indexable.
  */
 export function productJsonLd(product: ProductView) {
-  if (product.isSample || product.price === undefined) return null;
+  if (!isIndexable(product) || product.price === undefined) return null;
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -106,7 +115,7 @@ export function productJsonLd(product: ProductView) {
       "@type": "Offer",
       price: product.price,
       priceCurrency: product.currency ?? "BDT",
-      availability: schemaAvailability[product.stockStatus],
+      availability: schemaAvailability[product.inventoryStatus],
       url: absoluteUrl(`/products/${product.slug}`),
       seller: { "@id": `${siteUrl}/#store` },
     },

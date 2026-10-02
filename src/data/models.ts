@@ -34,10 +34,12 @@ function model(
     source?: string;
     aliases?: string[];
     variant?: string;
+    family?: string;
   },
 ): MotorcycleModel {
   const slug = `${brand}-${key}`;
   const variants = modelVariants[slug];
+  const manual = ownerManuals[slug];
   // Variant names ("pulsar 150 td abs") are searchable spellings of the model.
   const variantNames = (variants ?? []).map((v) => v.name.toLowerCase()).filter((n) => n !== name.toLowerCase());
   const aliases = [...(opts.aliases ?? []), ...variantNames];
@@ -50,20 +52,25 @@ function model(
     class: opts.cls,
     status: opts.status,
     spec: variants
-      ? specFromVariants(variants)
+      ? specFromVariants(variants, manual?.fuelSystem)
       : opts.spec
         ? { frontBrake: opts.spec.f, rearBrake: opts.spec.r, fuel: opts.spec.fuel }
         : undefined,
     source: opts.source,
     aliases: aliases.length > 0 ? aliases : undefined,
     variant: opts.variant,
+    // Bajaj names start with the family ("Pulsar N160", "CT 100 ES").
+    family: opts.family ?? (brand === "bajaj" ? name.split(" ")[0] : undefined),
     variants,
-    manual: ownerManuals[slug],
+    manual,
   };
 }
 
-/** Every brake type and fuel system stated across a model's variants. */
-function specFromVariants(variants: VariantSpec[]): ModelSpec {
+/**
+ * Every brake type and fuel system stated across a model's variants. When no spec page states the
+ * fuel system, the owner's manual's is used (e.g. Pulsar 150 and Discover: carburettor).
+ */
+function specFromVariants(variants: VariantSpec[], manualFuel?: FuelSystem): ModelSpec {
   const uniq = <T,>(values: (T | undefined)[]) => {
     const set = [...new Set(values.filter((v): v is T => v !== undefined))];
     return set.length > 0 ? set : undefined;
@@ -71,7 +78,7 @@ function specFromVariants(variants: VariantSpec[]): ModelSpec {
   return {
     frontBrake: uniq(variants.map((v) => v.frontBrake?.type)),
     rearBrake: uniq(variants.map((v) => v.rearBrake?.type)),
-    fuel: uniq(variants.map((v) => v.fuel)),
+    fuel: uniq(variants.map((v) => v.fuel)) ?? (manualFuel ? [manualFuel] : undefined),
   };
 }
 
@@ -85,6 +92,7 @@ const BAJAJ_BD = "https://www.bajajauto.com/en-bd/bikes/";
 const BAJAJ_IN = "https://www.bajajauto.com/bikes/";
 const HONDA_BD = "https://www.bdhonda.com/product/";
 const YAMAHA_BD = "https://www.yamahabd.com/products/";
+export const YAMAHA_PARTS = "https://www.yamahabd.com/parts-spares";
 const SUZUKI_BD = "https://suzuki.com.bd/product/";
 const TVS_BD = "https://bangladesh.tvsmotor.com/en/p/our-products/";
 const HERO_BD = "https://www.heromotocorp.com/en-bd/products/";
@@ -141,6 +149,8 @@ export const models: MotorcycleModel[] = [
   model("yamaha", "mt15-v1", "MT15 V1", { cls: "street", status: "bd-current", spec: { f: D, r: D, fuel: FI }, source: `${YAMAHA_BD}yamaha-mt-15-v1`, aliases: ["mt-15 v1"] }),
   model("yamaha", "fzs-v4", "FZS V4", { cls: "street", status: "bd-current", spec: { f: D, r: D, fuel: FI }, source: `${YAMAHA_BD}yamaha-fzs-v4`, aliases: ["fz v4", "fzs fi v4", "fzsv4", "fz s v4", "fz"] }),
   model("yamaha", "fzs-v2", "FZS V2", { cls: "street", status: "bd-current", spec: { f: D, r: D, fuel: FI }, source: `${YAMAHA_BD}yamaha-fzs-v2`, aliases: ["fz v2", "fzsv2", "fz s v2"] }),
+  // Not in the current product list, but Yamaha BD's own genuine-parts page lists FZS V3 parts.
+  model("yamaha", "fzs-v3", "FZS V3", { cls: "street", status: "bd-earlier", source: YAMAHA_PARTS, aliases: ["fz v3", "fzsv3", "fz s v3", "fzs fi v3"] }),
   model("yamaha", "fzs-fi-hybrid", "FZS Fi Hybrid", { cls: "street", status: "bd-current", spec: { f: D, r: D, fuel: FI }, source: `${YAMAHA_BD}yamaha-fzs-fi-hybrid`, aliases: ["fz hybrid", "fzs hybrid"] }),
   model("yamaha", "fz-x", "FZ-X", { cls: "street", status: "bd-current", spec: { f: D, r: D, fuel: FI }, source: `${YAMAHA_BD}yamaha-fz-x`, aliases: ["fzx", "fz x"] }),
   model("yamaha", "fz-25", "FZ-25", { cls: "street", status: "bd-current", spec: { f: D, r: D, fuel: FI }, source: `${YAMAHA_BD}yamaha-fz-25`, aliases: ["fz25", "fz 25"] }),
