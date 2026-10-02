@@ -38,26 +38,33 @@ describe("product search", () => {
   });
 
   it("matches model shorthand and partial words", () => {
-    expect(top("FZS chain sprocket")).toContain("yamaha-fzs-v3-chain-sprocket-kit");
-    expect(top("puls clutch")).toContain("bajaj-pulsar-150-clutch-cable");
-    expect(top("fz v3 pad")).toContain("yamaha-fzs-v3-front-brake-pad");
+    expect(top("FZS V4 chain sprocket")).toContain("yamaha-fzs-v4-chain-sprocket-kit");
+    expect(top("puls 150 clutch")).toContain("bajaj-pulsar-150-clutch-cable");
+    expect(top("fz v4 pad")).toContain("yamaha-fzs-v4-front-brake-pad");
   });
 
   it("does not match 150 against 160", () => {
     // Only Apache RTR 160 products exist, so "apache 150" must not be a full match.
-    expect(searchProducts(index, "apache 150").mode).toBe("partial");
+    const result = searchProducts(index, "apache 150");
+    expect(result.mode).toBe("partial");
+    // The model word outranks the bare number, so Apache parts lead rather than Pulsar 150 parts.
+    expect(result.hits[0].product.brands[0].slug).toBe("tvs");
   });
 
   it("prefers direct matches over category-group matches", () => {
-    expect(searchProducts(index, "mobil").hits.map((h) => h.product.slug)).toEqual(["motorcycle-engine-oil"]);
+    const oils = searchProducts(index, "mobil").hits.map((h) => h.product);
+    const engineOils = catalog.products.filter((p) => p.subcategory === "engine-oil").length;
+    // Every engine oil ranks above parts that only mention oil (oil seals, oil filters).
+    expect(oils.slice(0, engineOils).every((p) => p.subcategory === "engine-oil")).toBe(true);
+    expect(oils.some((p) => p.category === "brakes")).toBe(false);
     // With no direct match, group-level matches are still returned.
     expect(searchProducts(index, "electrical").hits.length).toBeGreaterThan(0);
   });
 
   it("resolves local and Bangla terms", () => {
-    expect(top("mobil")).toContain("motorcycle-engine-oil");
-    expect(top("disc pad")).toEqual(expect.arrayContaining(["yamaha-fzs-v3-front-brake-pad"]));
-    expect(top("চেইন")).toEqual(expect.arrayContaining(["yamaha-fzs-v3-chain-sprocket-kit"]));
+    expect(top("mobil")).toContain("semi-synthetic-engine-oil");
+    expect(top("fzs v4 disc pad")).toEqual(expect.arrayContaining(["yamaha-fzs-v4-front-brake-pad"]));
+    expect(top("fzs v4 চেইন")).toEqual(expect.arrayContaining(["yamaha-fzs-v4-chain-sprocket-kit"]));
   });
 
   it("separates front and rear pads", () => {

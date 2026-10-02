@@ -4,14 +4,14 @@ import { buildOrderMessage, normalizeBdPhone, validateOrder, whatsAppUrl, type O
 
 const line: CartLine = {
   productId: "p1",
-  slug: "yamaha-fzs-v3-front-brake-pad",
-  name: "Yamaha FZS V3 Front Brake Pad",
-  fitmentSummary: "Fits Yamaha FZS V3",
+  slug: "yamaha-fzs-v4-front-brake-pad",
+  name: "Yamaha FZS V4 Front Brake Pad",
+  fitmentSummary: "Fits Yamaha FZS V4",
   quantity: 2,
 };
 
 const base: OrderRequest = {
-  customer: { name: "Rahim", phone: "01712-345678", address: "", motorcycle: "Yamaha FZS V3", notes: "" },
+  customer: { name: "Rahim", phone: "01712-345678", address: "", motorcycle: "Yamaha FZS V4", notes: "" },
   fulfilment: "pickup",
   lines: [line],
 };
@@ -51,7 +51,7 @@ describe("validateOrder", () => {
 describe("buildOrderMessage", () => {
   it("lists items and customer details and asks for confirmation", () => {
     const msg = buildOrderMessage(base);
-    expect(msg).toContain("1. Yamaha FZS V3 Front Brake Pad × 2");
+    expect(msg).toContain("1. Yamaha FZS V4 Front Brake Pad × 2");
     expect(msg).toContain("Phone: 01712345678");
     expect(msg).toContain("Delivery / Pickup: Store pickup");
     expect(msg).toContain("Please confirm price and availability.");

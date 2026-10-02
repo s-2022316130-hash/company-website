@@ -20,7 +20,9 @@ describe("parseListingParams", () => {
 describe("runListing", () => {
   it("filters by brand and category together", () => {
     const r = runListing(catalog, parseListingParams({ brand: "yamaha", category: "brakes" }));
-    expect(r.items.map((p) => p.slug)).toEqual(["yamaha-fzs-v3-front-brake-pad"]);
+    expect(r.total).toBeGreaterThan(0);
+    expect(r.items.every((p) => p.category === "brakes" && p.brands.some((b) => b.slug === "yamaha"))).toBe(true);
+    expect(r.items.map((p) => p.slug)).toContain("yamaha-fzs-v4-front-brake-pad");
     expect(r.activeFilterCount).toBe(2);
   });
 

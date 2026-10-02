@@ -1,9 +1,19 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { photos } from "@/config/photos";
 import { brands } from "@/data/brands";
 import { categoryGroups, popularPartLinks } from "@/data/categories";
 import { models } from "@/data/models";
-import { products } from "@/data/products";
-import { loadCatalog, relatedProducts, resolveCategory } from "./catalog";
+import { demoAssignments, partKinds, products } from "@/data/products";
+import {
+  loadCatalog,
+  popularForModel,
+  relatedProducts,
+  resolveCategory,
+  resolveProductImage,
+  spreadByCategory,
+} from "./catalog";
 
 describe("catalogue data integrity", () => {
   it("has unique category slugs across groups and subcategories", () => {
@@ -36,7 +46,7 @@ describe("catalogue data integrity", () => {
     }
   });
 
-  it("never gives sample products invented prices, part numbers, specs or verified types", () => {
+  it("never gives demo products invented prices, part numbers, specs or verified types", () => {
     for (const p of products.filter((p) => p.isSample)) {
       expect(p.price, p.slug).toBeUndefined();
       expect(p.partNumber, p.slug).toBeUndefined();
@@ -44,21 +54,80 @@ describe("catalogue data integrity", () => {
       expect(p.specifications ?? [], p.slug).toHaveLength(0);
       expect(p.productType, p.slug).toBe("unknown");
       expect(p.stockStatus, p.slug).toBe("call-for-availability");
+      expect(p.images, `${p.slug} must not claim a photo of the exact item`).toHaveLength(0);
+    }
+  });
+
+  it("only lists a demo part where the official spec says the bike has it", () => {
+    const byId = new Map(models.map((m) => [m.id, m]));
+    for (const [modelId, kindKey] of demoAssignments) {
+      const m = byId.get(modelId)!;
+      expect(partKinds[kindKey].requires(m), `${kindKey} does not fit ${modelId} (${JSON.stringify(m.spec)}, ${m.type})`).toBe(true);
+    }
+  });
+
+  it("has a substantial demo catalogue spread across categories", () => {
+    expect(products.length).toBeGreaterThanOrEqual(100);
+    const perGroup = (slug: string) => products.filter((p) => p.category === slug).length;
+    for (const slug of ["brakes", "chain-drive", "engine", "clutch-transmission", "filters", "electrical", "cables-controls", "suspension-steering", "body", "oils-fluids", "accessories"]) {
+      expect(perGroup(slug), slug).toBeGreaterThanOrEqual(6);
+    }
+  });
+
+  it("gives every brand a model list and every model a valid class and status", () => {
+    for (const b of brands) expect(models.filter((m) => m.brand === b.slug).length, b.slug).toBeGreaterThanOrEqual(4);
+    for (const m of models) {
+      expect(["commuter", "street", "sport", "cruiser", "scooter", "offroad"]).toContain(m.class);
+      expect(["bd-current", "bd-earlier", "official-other"]).toContain(m.status);
+      expect(m.source, `${m.id} needs an official source`).toMatch(/^https:\/\//);
+      if (m.type === "scooter") expect(m.class, m.id).toBe("scooter");
     }
   });
 
   it("points every popular part link at a real category", () => {
     for (const link of popularPartLinks) expect(resolveCategory(categoryGroups, link.slug), link.slug).toBeDefined();
   });
+
+  it("gives every category a photo and a short label", () => {
+    for (const g of categoryGroups) {
+      expect(g.image, g.slug).toBeDefined();
+      expect(g.shortLabel.length, g.slug).toBeGreaterThan(3);
+    }
+  });
+
+  it("only references photos that exist on disk", () => {
+    for (const [key, p] of Object.entries(photos)) {
+      expect(existsSync(join(process.cwd(), "public", p.src)), `${key}: ${p.src}`).toBe(true);
+      expect(p.alt.length, key).toBeGreaterThan(5);
+      expect(p.credit.pageUrl, key).toMatch(/^https:\/\/unsplash\.com\/photos\//);
+    }
+    for (const g of categoryGroups) {
+      for (const key of [g.image, ...g.subcategories.map((s) => s.image)]) {
+        if (key) expect(photos[key], `${g.slug} → ${key}`).toBeDefined();
+      }
+    }
+  });
 });
 
 describe("catalogue service", () => {
-  it("joins models and brands onto products", async () => {
+  it("joins models, brands and a display image onto products", async () => {
     const catalog = await loadCatalog();
-    const pad = catalog.productBySlug.get("yamaha-fzs-v3-front-brake-pad")!;
+    const pad = catalog.productBySlug.get("yamaha-fzs-v4-front-brake-pad")!;
     expect(pad.brands.map((b) => b.slug)).toEqual(["yamaha"]);
-    expect(pad.models.map((m) => m.id)).toEqual(["yamaha-fzs-v3"]);
+    expect(pad.models.map((m) => m.id)).toEqual(["yamaha-fzs-v4"]);
     expect(pad.subcategoryName).toBe("Brake Pads");
+    expect(pad.displayImage?.representative).toBe(true);
+    expect(pad.displayImage?.alt).toMatch(/^Representative photo/);
+  });
+
+  it("prefers a photo of the exact item over representative photos", () => {
+    const group = categoryGroups.find((g) => g.slug === "brakes")!;
+    const base = products.find((p) => p.category === "brakes")!;
+    const own = resolveProductImage({ ...base, images: [{ src: "/images/products/brake/own.webp", alt: "Own" }] }, group);
+    expect(own).toMatchObject({ src: "/images/products/brake/own.webp", representative: false });
+    const sub = group.subcategories.find((s) => s.slug === "brake-disc");
+    expect(resolveProductImage({ ...base, images: [] }, group, sub)?.src).toBe(photos.brakeDisc.src);
+    expect(resolveProductImage({ ...base, images: [], photo: undefined }, undefined, undefined)).toBeUndefined();
   });
 
   it("resolves group and subcategory slugs", () => {
@@ -67,15 +136,26 @@ describe("catalogue service", () => {
     expect(resolveCategory(categoryGroups, "nope")).toBeUndefined();
   });
 
-  it("recommends paired maintenance items without repeating the product", async () => {
+  it("recommends paired maintenance items without repeating the product or another bike's part", async () => {
     const catalog = await loadCatalog();
-    const kit = catalog.productBySlug.get("yamaha-fzs-v3-chain-sprocket-kit")!;
+    const kit = catalog.productBySlug.get("yamaha-fzs-v4-chain-sprocket-kit")!;
     const rails = relatedProducts(catalog, kit);
     const all = rails.flatMap((r) => r.products.map((p) => p.slug));
     expect(all).not.toContain(kit.slug);
     expect(new Set(all).size).toBe(all.length);
-    expect(rails.find((r) => r.title === "Often replaced together")?.products.map((p) => p.subcategory)).toEqual(
-      expect.arrayContaining(["chain-lubricant"]),
-    );
+    const paired = rails.find((r) => r.title === "Often used together")!.products;
+    expect(paired.map((p) => p.subcategory)).toEqual(expect.arrayContaining(["chain-lubricant"]));
+    for (const p of paired) {
+      expect(p.fitment !== "model-specific" || p.compatibleModels.includes("yamaha-fzs-v4"), p.slug).toBe(true);
+    }
+  });
+
+  it("spreads short lists across categories", async () => {
+    const catalog = await loadCatalog();
+    const picks = spreadByCategory(catalog.products, 8);
+    expect(new Set(picks.map((p) => p.category)).size).toBeGreaterThanOrEqual(6);
+    const forBike = popularForModel(catalog, "yamaha-fzs-v4", 6);
+    expect(forBike.every((p) => p.compatibleModels.includes("yamaha-fzs-v4"))).toBe(true);
+    expect(new Set(forBike.map((p) => p.category)).size).toBeGreaterThan(3);
   });
 });

@@ -24,7 +24,7 @@ export function toCartLine(product: ProductView): Omit<CartLine, "quantity"> {
     slug: product.slug,
     name: product.name,
     sku: product.sku,
-    image: product.images[0],
+    image: product.images[0] ?? (product.displayImage ? { src: product.displayImage.src, alt: "" } : undefined),
     price: product.price,
     fitmentSummary: fitmentSummary(product),
   };
