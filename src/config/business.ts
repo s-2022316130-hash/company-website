@@ -27,15 +27,15 @@ export const business = {
   /** Proprietor, as printed on the shop's business card. */
   proprietor: "Basir Uddin Ahmed",
 
-  /** As printed on the shop's business card. */
+  /** Business card address, with the N401 road number the owner gave earlier. */
   address: {
-    street: "Mymensingh Road, Natun Bazar",
+    street: "Mymensingh Road (N401), Natun Bazar",
     locality: "Madhupur",
     region: "Tangail",
     country: "Bangladesh",
     countryCode: "BD",
     /** One line, for display. */
-    full: "Mymensingh Road, Natun Bazar, Madhupur, Tangail",
+    full: "Mymensingh Road (N401), Natun Bazar, Madhupur, Tangail",
     /** For tight spaces such as the top bar. */
     short: "Natun Bazar, Madhupur, Tangail",
   },
@@ -44,12 +44,13 @@ export const business = {
    * Dealerships printed on the shop's business card (shown by the owner, 2026-10-02):
    * dealer for these companies, selling their genuine parts at company price.
    * `brand` links each one to the motorcycle brand it supplies parts for.
+   * The card prints "Hero Honda", the brand's name before 2011; the owner asked for it to read "Hero".
    */
   dealerships: [
     { company: "Uttara Motors", brand: "bajaj", note: "Bajaj distributor in Bangladesh" },
     { company: "TVS Motors", brand: "tvs" },
     { company: "Runner Automobiles", brand: "runner" },
-    { company: "Hero Honda", brand: "hero" },
+    { company: "Hero", brand: "hero" },
   ],
 
   /** Card: "all kinds of original parts of Yamaha, Suzuki and Honda sold at affordable prices". Not a dealership. */
@@ -79,7 +80,7 @@ export const business = {
   fulfilment: {
     pickup: {
       label: "Store pickup",
-      description: "Collect from our shop on Mymensingh Road, Natun Bazar, Madhupur.",
+      description: "Collect from our shop on Mymensingh Road (N401), Natun Bazar, Madhupur.",
     },
     courier: {
       label: "Courier delivery",

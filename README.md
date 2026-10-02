@@ -162,8 +162,9 @@ and Twin Disc) and Discover 110/125. Both were read on 2 October 2026.
 ### Dealerships
 
 The shop's business card lists it as a dealer for Uttara Motors (Bajaj), TVS Motors, Runner Automobiles
-and Hero Honda, with genuine parts at company price. It also sells original Yamaha, Suzuki and Honda
-parts. These details live in `business.dealerships` and `business.originalPartsBrands` in
+and Hero, with genuine parts at company price. The card prints "Hero Honda", the brand's name before
+2011, and the site shows "Hero" at the owner's request. The shop also sells original Yamaha, Suzuki and
+Honda parts. These details live in `business.dealerships` and `business.originalPartsBrands` in
 `src/config/business.ts`. Brand cards, brand and model pages, the About page, the footer and the terms
 read from there.
 
