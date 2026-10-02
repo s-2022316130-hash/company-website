@@ -13,6 +13,7 @@ import { BlueprintBanner } from "@/components/layout/Banners";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { business, dealershipFor } from "@/config/business";
 import {
+  categoryPath,
   loadCatalog,
   modelCategoryGroups,
   modelDisplayName,
@@ -22,6 +23,19 @@ import {
   spreadByCategory,
 } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
+import type { MotorcycleModel } from "@/lib/types";
+
+/** "Front: disc · Rear: disc or drum · Fuel: fuel injection", from the official spec page. */
+function specLine(model: MotorcycleModel): string | undefined {
+  const s = model.spec;
+  const list = (xs?: string[]) => xs?.map((x) => (x === "fi" ? "fuel injection" : x)).join(" or ");
+  const parts = [
+    s?.frontBrake && `Front brake: ${list(s.frontBrake)}`,
+    s?.rearBrake && `Rear brake: ${list(s.rearBrake)}`,
+    s?.fuel && `Fuel: ${list(s.fuel)}`,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : undefined;
+}
 
 export async function generateMetadata(props: PageProps<"/models/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -62,7 +76,9 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
       <TrackView event="model_view" props={{ model: model.id }} />
       <BlueprintBanner
         bikeClass={model.class}
-        eyebrow={`${brand?.name ?? ""} · ${bikeClassName(model.class)}`}
+        eyebrow={[brand?.name, model.family && model.family !== model.name ? `${model.family} family` : undefined, bikeClassName(model.class)]
+          .filter(Boolean)
+          .join(" · ")}
         title={`${name} parts`}
         crumbs={[
           { label: "Motorcycles", href: "/models" },
@@ -91,6 +107,12 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
                 </a>
               )}
             </span>
+            {/* Models without a variant table still show the brake and fuel facts from their official page. */}
+            {!model.variants?.length && specLine(model) && (
+              <span className="mt-2 block text-sm text-on-dark-muted">
+                <span className="text-on-dark">Official spec:</span> {specLine(model)}
+              </span>
+            )}
           </>
         }
       >
@@ -117,16 +139,26 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               ))}
             </ul>
           ) : (
-            <div className="card p-6">
-              <p className="display text-2xl text-ink">No parts listed online for the {name} yet</p>
-              <p className="mt-1 text-sm text-muted">
-                The online catalogue is still being filled in. The shop may well have what you need: ask by WhatsApp or phone.
-              </p>
-            </div>
+            <>
+              <div className="card mb-4 flex flex-wrap items-center justify-between gap-3 p-5">
+                <p className="text-[0.9375rem] text-ink">
+                  <strong className="font-semibold">Parts available on request</strong>: contact {business.name} for fitment
+                  for the {name}.
+                </p>
+                <WhatsAppButton message={`Hello ${business.name}, I need parts for my ${name}. `} label="Ask on WhatsApp" />
+              </div>
+              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {catalog.groups.map((group) => (
+                  <li key={group.slug}>
+                    <CategoryImageCard group={group} count={0} href={categoryPath(group.slug)} />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
           {groups.length > 0 && notListed.length > 0 && (
             <p className="mt-3 text-sm text-muted">
-              Not listed online yet: {notListed.map((g) => categoryShortName(g)).join(", ")}. Ask the shop about these.
+              Also available on request: {notListed.map((g) => categoryShortName(g)).join(", ")}. Ask the shop for these parts.
             </p>
           )}
         </section>

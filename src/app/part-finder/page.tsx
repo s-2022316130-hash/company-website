@@ -5,6 +5,8 @@ import { BikeArt } from "@/components/bikes/BikeArt";
 import { BikeVisual } from "@/components/bikes/BikeVisual";
 import { bikeClassName, CategoryImageCard, categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
+import { ProductImage } from "@/components/catalog/ProductImage";
+import { getPhoto } from "@/config/photos";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -44,21 +46,36 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
   const categorySlug = first(sp.category);
   const group = model ? catalog.groups.find((g) => g.slug === categorySlug) : undefined;
   const showAll = Boolean(model) && categorySlug === "all";
+  const groupFits = group ? fits.filter((p) => productInCategory(p, group.slug)) : [];
+  // Step 4: the part types inside the chosen category that have listings for this bike.
+  const partTypes = group
+    ? group.subcategories
+        .map((s) => ({ sub: s, count: groupFits.filter((p) => p.subcategory === s.slug).length }))
+        .filter((x) => x.count > 0)
+    : [];
+  const partSlug = first(sp.part);
+  const sub = partTypes.find((x) => x.sub.slug === partSlug)?.sub;
+  const showGroup = Boolean(group) && (partSlug === "all" || partTypes.length <= 1);
 
-  const step = !brand ? 1 : !model ? 2 : !group && !showAll ? 3 : 4;
+  const step = !brand ? 1 : !model ? 2 : !group && !showAll ? 3 : group && !sub && !showGroup ? 4 : 5;
   const bikeName = model ? modelDisplayName(model, catalog.brandBySlug) : "";
   const results =
-    model && (group || showAll)
-      ? spreadByCategory(group ? fits.filter((p) => productInCategory(p, group.slug)) : fits, 200)
-      : [];
+    step === 5 ? spreadByCategory(sub ? groupFits.filter((p) => p.subcategory === sub.slug) : group ? groupFits : fits, 400) : [];
   const modelCounts = countBy(catalog.products, (p) => p.compatibleModels);
   const modelHref = model ? `/part-finder?brand=${model.brand}&model=${model.id}` : "";
+  const groupHref = group ? `${modelHref}&category=${group.slug}` : "";
 
   const steps = [
     { n: 1, label: "Brand", value: brand?.name, href: "/part-finder" },
     { n: 2, label: "Bike", value: model?.name, href: brand ? `/part-finder?brand=${brand.slug}` : undefined },
-    { n: 3, label: "Part type", value: group?.name ?? (showAll ? "All parts" : undefined), href: model ? modelHref : undefined },
-    { n: 4, label: "Parts", value: undefined, href: undefined },
+    { n: 3, label: "Category", value: group?.name ?? (showAll ? "All parts" : undefined), href: model ? modelHref : undefined },
+    {
+      n: 4,
+      label: "Part",
+      value: sub?.name ?? (showGroup && group ? `All ${categoryShortName(group).toLowerCase()}` : showAll ? "All parts" : undefined),
+      href: group && partTypes.length > 1 ? groupHref : undefined,
+    },
+    { n: 5, label: "Results", value: undefined, href: undefined },
   ];
 
   return (
@@ -69,7 +86,7 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
         description="Choose your brand, then your bike, then what you need. We'll show the parts listed as fitting it."
         crumbs={[{ label: "Part finder", href: "/part-finder" }]}
       >
-        <ol className="mt-6 grid grid-cols-4 gap-1.5 sm:gap-3" aria-label="Steps">
+        <ol className="mt-6 grid grid-cols-5 gap-1.5 sm:gap-3" aria-label="Steps">
           {steps.map((s) => {
             const done = s.n < step;
             const current = s.n === step;
@@ -83,26 +100,32 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
                 >
                   {done ? <Check className="size-4" aria-hidden="true" /> : `0${s.n}`}
                 </span>
-                <span className="min-w-0">
-                  <span className={cx("block font-display text-xs uppercase tracking-[0.12em]", current ? "text-white" : "text-on-dark-muted")}>
+                <span className="min-w-0 max-w-full">
+                  <span
+                    className={cx(
+                      "block truncate font-display text-[0.6875rem] uppercase tracking-[0.1em] sm:text-xs sm:tracking-[0.12em]",
+                      current ? "text-white" : "text-on-dark-muted",
+                    )}
+                  >
                     {s.label}
                   </span>
-                  {s.value && <span className="block truncate text-sm font-semibold text-white">{s.value}</span>}
+                  {s.value && <span className="hidden truncate text-sm font-semibold text-white sm:block">{s.value}</span>}
                 </span>
               </>
             );
+            const layout = "flex min-h-10 flex-col items-start gap-1 sm:flex-row sm:gap-2";
             return (
               <li
                 key={s.n}
                 aria-current={current ? "step" : undefined}
-                className={cx("border-t-[3px] pt-2.5", done || current ? "border-brand-bright" : "border-white/15")}
+                className={cx("min-w-0 border-t-[3px] pt-2.5", done || current ? "border-brand-bright" : "border-white/15")}
               >
                 {done && s.href ? (
-                  <Link href={s.href} className="flex min-h-10 items-start gap-2 hover:opacity-80" aria-label={`Change ${s.label.toLowerCase()}: ${s.value}`}>
+                  <Link href={s.href} className={cx(layout, "hover:opacity-80")} aria-label={`Change ${s.label.toLowerCase()}: ${s.value}`}>
                     {content}
                   </Link>
                 ) : (
-                  <div className="flex min-h-10 items-start gap-2">{content}</div>
+                  <div className={layout}>{content}</div>
                 )}
               </li>
             );
@@ -180,21 +203,60 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
             ) : (
               <AskInstead bikeName={bikeName} what="parts" />
             )}
-            {groups.length > 0 && (
+            {groups.length > 0 && groups.length < catalog.groups.length && (
               <p className="mt-4 text-sm text-muted">
-                Need something else?{" "}
+                Also available on request:{" "}
                 {catalog.groups
                   .filter((g) => !groups.some((x) => x.group.slug === g.slug))
                   .map((g) => categoryShortName(g))
-                  .join(", ")}{" "}
-                are not listed online for this bike yet. Ask the shop.
+                  .join(", ")}
+                . Ask the shop for these parts.
               </p>
             )}
           </StepSection>
         )}
 
-        {step === 4 && model && (
-          <StepSection title={group ? `${group.name} for the ${bikeName}` : `All parts for the ${bikeName}`}>
+        {step === 4 && model && group && (
+          <StepSection title={`Which ${categoryShortName(group).toLowerCase()} part for the ${bikeName}?`}>
+            <Link href={`${groupHref}&part=all`} className="btn btn-dark mb-5">
+              Show all {pluralize(groupFits.length, "part")} in {group.name}
+            </Link>
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {partTypes.map(({ sub: s, count }) => {
+                const photo = getPhoto(s.image);
+                return (
+                  <li key={s.slug}>
+                    <Link href={`${groupHref}&part=${s.slug}`} className="card group flex h-full flex-col overflow-hidden hover:border-brand">
+                      <ProductImage
+                        image={photo ? { src: photo.src, alt: "", representative: true, position: photo.position } : undefined}
+                        art={s.art}
+                        icon={group.icon}
+                        aspect="aspect-[4/3]"
+                        sizes="(min-width: 1024px) 22vw, (min-width: 640px) 30vw, 48vw"
+                        zoom
+                      />
+                      <span className="flex flex-1 items-center justify-between gap-2 border-t-2 border-brand/80 p-3">
+                        <span className="font-semibold text-ink group-hover:text-brand">{s.name}</span>
+                        <span className="shrink-0 text-xs text-muted">{pluralize(count, "part")}</span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </StepSection>
+        )}
+
+        {step === 5 && model && (
+          <StepSection
+            title={
+              sub
+                ? `${sub.name} for the ${bikeName}`
+                : group
+                  ? `${group.name} for the ${bikeName}`
+                  : `All parts for the ${bikeName}`
+            }
+          >
             {results.length > 0 ? (
               <>
                 <p className="mb-4 text-sm text-muted">{pluralize(results.length, "part")} listed as fitting this bike.</p>
@@ -202,8 +264,8 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
               </>
             ) : (
               <EmptyState
-                title="Nothing listed online for this yet"
-                description={`We haven't listed ${group ? group.name.toLowerCase() : "parts"} for the ${bikeName} online. The shop may still have it. Send a quick message and we'll check.`}
+                title="Parts available on request"
+                description={`We haven't listed ${group ? group.name.toLowerCase() : "parts"} for the ${bikeName} online yet. Contact ${business.name} for fitment and we'll check.`}
                 actions={[{ label: "Choose another part type", href: modelHref, variant: "outline" }]}
               >
                 <AskButtons bikeName={bikeName} what={group ? group.name.toLowerCase() : "parts"} />
@@ -245,7 +307,9 @@ function SelectedBike({
       <div className="flex flex-col justify-center gap-1 p-5">
         <p className="eyebrow eyebrow-dark">Your bike · {bikeClassName(model.class)}</p>
         <p className="display text-3xl text-white">{name}</p>
-        <p className="text-sm text-on-dark-muted">{partCount > 0 ? `${pluralize(partCount, "part")} listed for this bike` : "No parts listed online yet"}</p>
+        <p className="text-sm text-on-dark-muted">
+          {partCount > 0 ? `${pluralize(partCount, "catalogue item")} for this bike` : "Parts available on request"}
+        </p>
         <p className="mt-2 flex flex-wrap gap-3 text-sm">
           <Link href={`/models/${model.slug}`} className="font-semibold text-brand-bright underline">
             Open bike page
@@ -271,8 +335,8 @@ function AskButtons({ bikeName, what }: { bikeName: string; what: string }) {
 function AskInstead({ bikeName, what }: { bikeName: string; what: string }) {
   return (
     <EmptyState
-      title="Nothing listed online for this bike yet"
-      description={`The online catalogue doesn't list ${what} for the ${bikeName} yet, but the shop may have them.`}
+      title="Parts available on request"
+      description={`The online catalogue doesn't list ${what} for the ${bikeName} yet. Contact ${business.name} for fitment and we'll check.`}
     >
       <AskButtons bikeName={bikeName} what={what} />
     </EmptyState>
