@@ -39,7 +39,7 @@ export function CartView() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <section aria-labelledby="cart-items-title">
         <h2 id="cart-items-title" className="sr-only">
           Items in your cart

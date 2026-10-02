@@ -57,8 +57,9 @@ export default async function HomePage() {
               Runner bikes, then order from {business.name} by WhatsApp or phone.
             </p>
 
-            <SearchBar size="lg" className="mt-6 max-w-2xl" />
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            {/* Phones already have the sticky header search directly above. */}
+            <SearchBar size="lg" className="mt-6 hidden max-w-2xl md:block" />
+            <div className="mt-5 flex flex-wrap items-center gap-2 md:mt-3">
               <span className="text-sm text-muted">Try:</span>
               {searchExamples.map((ex) => (
                 <Link key={ex} href={`/search?q=${encodeURIComponent(ex)}`} className="chip min-h-9 bg-surface/90">

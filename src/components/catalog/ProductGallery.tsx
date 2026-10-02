@@ -17,6 +17,8 @@ export function ProductGallery({ images, icon, name }: { images: ProductImageDat
           image={current}
           icon={icon}
           priority
+          // Without a photo, a shorter placeholder keeps the name and price above the fold on phones.
+          aspect={images.length > 0 ? "aspect-square" : "aspect-[2/1] lg:aspect-square"}
           sizes="(min-width: 1024px) 45vw, 100vw"
           placeholderLabel="Product photo coming soon"
         />

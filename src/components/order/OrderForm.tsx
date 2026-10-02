@@ -204,7 +204,7 @@ export function OrderForm() {
   const errorList = attempted ? fieldOrder.filter((f) => errors[f]) : [];
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <form onSubmit={onSubmit} noValidate className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="space-y-6">
         {errorList.length > 0 && (
           <div role="alert" className="rounded-lg border border-danger/30 bg-danger-soft p-4 text-sm">
@@ -364,7 +364,10 @@ export function OrderForm() {
           This sends an order <strong>request</strong>. No payment is taken here. The store confirms price, availability
           {fulfilment === "courier" ? " and delivery charge" : ""} before anything is final.
         </p>
-        <button type="submit" className={cx("btn btn-lg w-full", method === "call" ? "btn-primary" : "btn-whatsapp")}>
+        <button
+          type="submit"
+          className={cx("btn btn-lg w-full whitespace-normal", method === "call" ? "btn-primary" : "btn-whatsapp")}
+        >
           {method === "call" ? (
             <>
               <Phone className="size-5" aria-hidden="true" /> Continue to call

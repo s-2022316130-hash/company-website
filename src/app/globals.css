@@ -45,6 +45,11 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Browsers default fieldsets to min-width: min-content, which overflows narrow phones. */
+fieldset {
+  min-width: 0;
+}
+
 :focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
@@ -195,6 +200,12 @@ body {
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* The search box has its own clear button. */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 dialog::backdrop {

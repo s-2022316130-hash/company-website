@@ -48,6 +48,12 @@ describe("product search", () => {
     expect(searchProducts(index, "apache 150").mode).toBe("partial");
   });
 
+  it("prefers direct matches over category-group matches", () => {
+    expect(searchProducts(index, "mobil").hits.map((h) => h.product.slug)).toEqual(["motorcycle-engine-oil"]);
+    // With no direct match, group-level matches are still returned.
+    expect(searchProducts(index, "electrical").hits.length).toBeGreaterThan(0);
+  });
+
   it("resolves local and Bangla terms", () => {
     expect(top("mobil")).toContain("motorcycle-engine-oil");
     expect(top("disc pad")).toEqual(expect.arrayContaining(["yamaha-fzs-v3-front-brake-pad"]));

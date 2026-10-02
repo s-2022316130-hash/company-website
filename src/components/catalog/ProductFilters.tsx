@@ -78,10 +78,18 @@ function FilterForm({ facets, basePath, carry, price, mode, onApplied }: FilterF
         </fieldset>
       )}
 
-      {/* Sidebar: needed for the price inputs and when JavaScript is off. Drawer: the main apply button. */}
-      <button type="submit" className={mode === "drawer" ? "btn btn-primary btn-lg w-full" : "btn btn-outline btn-sm w-full"}>
-        {mode === "drawer" ? "Show results" : "Apply filters"}
-      </button>
+      {/* Sidebar: needed for the price inputs and when JavaScript is off. Drawer: the main apply button, pinned in view. */}
+      {mode === "drawer" ? (
+        <div className="sticky bottom-0 -mx-4 border-t border-line bg-surface px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+          <button type="submit" className="btn btn-primary btn-lg w-full">
+            Show results
+          </button>
+        </div>
+      ) : (
+        <button type="submit" className="btn btn-outline btn-sm w-full">
+          Apply filters
+        </button>
+      )}
     </Form>
   );
 }
@@ -185,7 +193,7 @@ export function FilterDrawer(props: Omit<FilterFormProps, "mode" | "onApplied"> 
             <X className="size-5" aria-hidden="true" />
           </button>
         </div>
-        <div className="p-4" key={stateKey}>
+        <div className="px-4 pt-4" key={stateKey}>
           <FilterForm {...rest} mode="drawer" onApplied={close} />
         </div>
       </dialog>

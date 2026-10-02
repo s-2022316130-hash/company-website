@@ -87,9 +87,13 @@ export function buildSearchIndex(products: ProductView[], ctx: SearchContext): S
   });
 }
 
-/** Best score for one query token across all fields; 0 means no match. */
-function tokenScore(token: string, fields: IndexedField[]): number {
+/** Fields at or above this weight (SKU, name, model, part type) count as a direct match. */
+const STRONG_WEIGHT = 2;
+
+/** Best score for one query token across all fields; score 0 means no match. */
+function tokenScore(token: string, fields: IndexedField[]): { score: number; strong: boolean } {
   let best = 0;
+  let strong = false;
   const numeric = /^\d+$/.test(token);
   for (const field of fields) {
     for (const docToken of field.tokens) {
@@ -99,10 +103,11 @@ function tokenScore(token: string, fields: IndexedField[]): number {
       else if (!numeric && token.length >= 2 && docToken.startsWith(token)) s = field.weight * 0.7;
       // Singular/plural: "pads" vs "pad".
       else if (token.length >= 4 && (docToken === `${token}s` || `${docToken}s` === token)) s = field.weight * 0.9;
+      if (s > 0 && field.weight >= STRONG_WEIGHT) strong = true;
       if (s > best) best = s;
     }
   }
-  return best;
+  return { score: best, strong };
 }
 
 export type SearchMode = "all" | "partial" | "none";
@@ -123,25 +128,31 @@ export function searchProducts(index: SearchIndexEntry[], query: string): Search
   const tokens = queryTokens(query);
   if (tokens.length === 0) return { hits: [], mode: "none", tokens };
 
-  const full: SearchHit[] = [];
+  const full: (SearchHit & { strong: boolean })[] = [];
   const partial: (SearchHit & { matched: number })[] = [];
 
   for (const entry of index) {
     let score = 0;
     let matched = 0;
+    let strong = true;
     for (const token of tokens) {
       const s = tokenScore(token, entry.fields);
-      if (s > 0) matched += 1;
-      score += s;
+      if (s.score > 0) matched += 1;
+      if (!s.strong) strong = false;
+      score += s.score;
     }
     if (matched === 0) continue;
     if (entry.product.isPopular) score += 0.25;
-    if (matched === tokens.length) full.push({ product: entry.product, score });
+    if (matched === tokens.length) full.push({ product: entry.product, score, strong });
     else partial.push({ product: entry.product, score, matched });
   }
 
   if (full.length > 0) {
-    return { hits: full.sort((a, b) => b.score - a.score), mode: "all", tokens };
+    // If some products match every word directly, drop ones that only match through their
+    // category group or description (e.g. "engine oil" should not list brake fluid).
+    const direct = full.filter((h) => h.strong);
+    const hits = (direct.length > 0 ? direct : full).map(({ product, score }) => ({ product, score }));
+    return { hits: hits.sort((a, b) => b.score - a.score), mode: "all", tokens };
   }
   if (partial.length > 0) {
     partial.sort((a, b) => b.matched - a.matched || b.score - a.score);

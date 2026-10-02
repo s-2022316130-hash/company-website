@@ -17,6 +17,7 @@ export function ProductImage({
   sizes = "(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 48vw",
   priority = false,
   className,
+  aspect = "aspect-square",
   placeholderLabel = "Photo coming soon",
 }: {
   image?: ProductImageData;
@@ -24,13 +25,15 @@ export function ProductImage({
   sizes?: string;
   priority?: boolean;
   className?: string;
+  /** Tailwind aspect-ratio classes; product photos should stay square for consistency. */
+  aspect?: string;
   placeholderLabel?: string;
 }) {
   const [failed, setFailed] = useState(false);
   const showImage = image && !failed;
 
   return (
-    <div className={cx("relative aspect-square w-full overflow-hidden bg-surface", className)}>
+    <div className={cx("relative w-full overflow-hidden bg-surface", aspect, className)}>
       {showImage ? (
         <Image
           src={image.src}
