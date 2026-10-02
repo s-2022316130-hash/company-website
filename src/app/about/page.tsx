@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BrandRelationBadge } from "@/components/catalog/Badges";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { business, dealerList } from "@/config/business";
-import { loadCatalog } from "@/lib/catalog/catalog";
+import { brandsByRelation, loadCatalog } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -13,7 +14,8 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function AboutPage() {
-  const { brands } = await loadCatalog();
+  const catalog = await loadCatalog();
+  const { brands } = catalog;
   return (
     <>
       <PageHeader
@@ -26,7 +28,7 @@ export default async function AboutPage() {
         }
       />
       {/* Factual store information only. Add the shop's own story, founding year and team here when supplied. */}
-      <div className="container-page grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="container-page grid grid-cols-1 gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="card space-y-4 p-5 text-[0.9375rem] leading-relaxed text-ink sm:p-6">
           <p>
             {business.name} is a motorcycle spare parts shop at {business.address.full}. We sell spare parts, maintenance
@@ -34,9 +36,22 @@ export default async function AboutPage() {
             is {business.proprietor}.
           </p>
           <p>
-            We are a dealer for {dealerList()}, and sell their genuine parts at company price. We also sell all kinds of
+            We are an authorized dealer for {dealerList()}, and sell their genuine parts at company price. We also sell all kinds of
             original Yamaha, Suzuki and Honda parts at affordable prices.
           </p>
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2" aria-label="Brands we deal in">
+            {brandsByRelation(catalog).map((b) => (
+              <li key={b.slug}>
+                <Link
+                  href={`/brands/${b.slug}`}
+                  className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md border border-line px-3 py-2 transition-colors hover:border-ink"
+                >
+                  <span className="display text-xl text-ink">{b.name}</span>
+                  <BrandRelationBadge brandSlug={b.slug} detail tone="light" />
+                </Link>
+              </li>
+            ))}
+          </ul>
           <p>
             This website organises parts around the bikes people ride: {brands.map((b) => b.name).join(", ")}. Search by
             part name or part number, or start from your motorcycle model with the{" "}

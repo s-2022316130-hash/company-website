@@ -34,10 +34,11 @@ export default function TermsPage() {
           </p>
           <h2 className="font-display text-lg font-bold">Brand names</h2>
           <p>
-            {business.name} is a dealer for {dealerList()} and sells their genuine parts at company price. It also sells
+            {business.name} is an authorized dealer for {dealerList()} and sells their genuine parts at company price. It also sells
             original Yamaha, Suzuki and Honda parts, without being a dealer for those brands. Other motorcycle and part
             brand names are used only to describe compatibility. A product is described as genuine only when the shop has
-            confirmed it.
+            confirmed it. Manufacturer logos and official model photos are shown only when the distributor has supplied
+            them or permitted their use; until then the site shows brand names and original line drawings.
           </p>
         </div>
       </div>

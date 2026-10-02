@@ -1,8 +1,11 @@
 import { cache } from "react";
-import { getPhoto, type PhotoKey } from "@/config/photos";
+import { business } from "@/config/business";
+import { getPhoto, type PhotoKey } from "@/config/images";
 import { popularPartLinks } from "@/data/categories";
+import { brandFeatureModelId } from "@/lib/images";
 import { repository } from "./repository";
 import type {
+  BikeClass,
   Brand,
   CategoryGroup,
   CategoryIcon,
@@ -156,6 +159,34 @@ export function modelsForBrand(catalog: Catalog, brandSlug: string): MotorcycleM
     .map((m, i) => ({ m, i }))
     .sort((a, b) => statusOrder[a.m.status] - statusOrder[b.m.status] || a.i - b.i)
     .map(({ m }) => m);
+}
+
+/** The model that stands for a brand on cards and banners (set in the image manifest). */
+export function brandFeatureModel(catalog: Catalog, brandSlug: string): MotorcycleModel | undefined {
+  const id = brandFeatureModelId(brandSlug);
+  return (id ? catalog.modelById.get(id) : undefined) ?? modelsForBrand(catalog, brandSlug)[0];
+}
+
+/** Body style drawn for a brand: its feature model's. */
+export function brandBikeClass(catalog: Catalog, brandSlug: string): BikeClass {
+  return brandFeatureModel(catalog, brandSlug)?.class ?? "street";
+}
+
+/**
+ * Brands in the order the shop presents them: its dealerships first (business card order), then
+ * the brands it sells original parts for, then any others.
+ */
+export function brandsByRelation(catalog: Catalog): Brand[] {
+  const rank = (slug: string) => {
+    const d = business.dealerships.findIndex((x) => x.brand === slug);
+    if (d >= 0) return d;
+    const o = (business.originalPartsBrands as readonly string[]).indexOf(slug);
+    return o >= 0 ? 100 + o : 200;
+  };
+  return catalog.brands
+    .map((b, i) => ({ b, i }))
+    .sort((x, y) => rank(x.b.slug) - rank(y.b.slug) || x.i - y.i)
+    .map(({ b }) => b);
 }
 
 export function countBy<T>(items: T[], key: (item: T) => string[]): Map<string, number> {

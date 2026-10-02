@@ -1,4 +1,4 @@
-import type { PhotoKey } from "@/config/photos";
+import type { PhotoKey } from "@/config/images";
 import type { MotorcycleModel, ProductSpec, VariantSpec } from "@/lib/types";
 
 /**

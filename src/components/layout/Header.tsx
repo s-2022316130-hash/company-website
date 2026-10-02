@@ -21,7 +21,7 @@ export function Header() {
             </span>
             <span className="hidden items-center gap-1.5 xl:inline-flex">
               <BadgeCheck className="size-3.5 text-brand-bright" aria-hidden="true" />
-              Dealer: {business.dealerships.map((d) => d.company).join(" · ")}
+              Authorized dealer: {business.dealerships.map((d) => d.company).join(" · ")}
             </span>
           </p>
           <a href={`tel:${business.phones.orders.e164}`} className="inline-flex items-center gap-1.5 font-semibold text-white hover:underline">

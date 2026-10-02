@@ -61,11 +61,11 @@ export async function Footer() {
       <div className="border-t border-graphite-3">
         <div className="container-page py-5 text-xs text-on-dark-muted">
           <p>
-            © {new Date().getFullYear()} {business.name} | <span lang="bn">{business.banglaName}</span>. Dealer for{" "}
-            {dealerList()}. Other brand names show which bikes a part is listed for. Stock photography from Unsplash;
-            see{" "}
+            © {new Date().getFullYear()} {business.name} | <span lang="bn">{business.banglaName}</span>. Authorized dealer
+            for {dealerList()}. Brand names are trademarks of their owners and show which bikes a part is listed for.
+            Stock photography from Unsplash; manufacturer logos and photos appear only with permission. See{" "}
             <Link href="/credits" className="underline hover:text-white">
-              photo credits
+              image credits
             </Link>
             .
           </p>

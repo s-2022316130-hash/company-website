@@ -9,12 +9,22 @@ export const inventoryStatusLabels: Record<InventoryStatus, string> = {
   "catalogue-only": "Catalogue item",
 };
 
+/** Filter option names. */
 export const authenticityLabels: Record<Authenticity, string> = {
   genuine: "Genuine",
   oem: "OEM",
   aftermarket: "Aftermarket",
   compatible: "Compatible",
   unknown: "Not specified",
+};
+
+/** Badge wording on product pages. An unchecked item asks the customer to contact the store, never implies genuine. */
+export const authenticityBadgeLabels: Record<Authenticity, string> = {
+  genuine: "Genuine part",
+  oem: "OEM part",
+  aftermarket: "Aftermarket",
+  compatible: "Compatible part",
+  unknown: "Contact store",
 };
 
 export const fitmentLabels: Record<Fitment, string> = {

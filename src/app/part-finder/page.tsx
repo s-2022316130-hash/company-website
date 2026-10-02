@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
-import { BikeArt } from "@/components/bikes/BikeArt";
 import { BikeVisual } from "@/components/bikes/BikeVisual";
+import { BrandMark } from "@/components/brand/BrandMark";
+import { BrandRelationBadge } from "@/components/catalog/Badges";
 import { bikeClassName, CategoryImageCard, categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { ProductImage } from "@/components/catalog/ProductImage";
-import { getPhoto } from "@/config/photos";
+import { getPhoto } from "@/config/images";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { business } from "@/config/business";
 import {
+  brandFeatureModel,
+  brandsByRelation,
   countBy,
   loadCatalog,
   modelCategoryGroups,
@@ -23,6 +26,7 @@ import {
 } from "@/lib/catalog/catalog";
 import { cx } from "@/lib/cx";
 import { pluralize } from "@/lib/format";
+import { motorcycleImage } from "@/lib/images";
 import { pageMetadata } from "@/lib/seo";
 import type { MotorcycleModel } from "@/lib/types";
 
@@ -137,29 +141,40 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
         {step === 1 && (
           <StepSection title="Choose your motorcycle brand">
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {catalog.brands.map((b) => (
-                <li key={b.slug}>
-                  <Link
-                    href={`/part-finder?brand=${b.slug}`}
-                    className="group card-dark flex h-full flex-col overflow-hidden transition-colors hover:border-brand-bright/60"
-                  >
-                    <span className="blueprint block px-3 pt-3">
-                      <BikeArt bikeClass={b.bikeClass} className="w-full text-on-dark transition-transform duration-500 group-hover:scale-[1.04]" />
-                    </span>
-                    <span className="flex items-center justify-between gap-2 p-3">
-                      <span className="display text-2xl text-white">{b.name}</span>
-                      <span className="text-xs text-on-dark-muted">{pluralize(modelsForBrand(catalog, b.slug).length, "model")}</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
+              {brandsByRelation(catalog).map((b) => {
+                const feature = brandFeatureModel(catalog, b.slug);
+                return (
+                  <li key={b.slug}>
+                    <Link
+                      href={`/part-finder?brand=${b.slug}`}
+                      className="group card-dark flex h-full flex-col overflow-hidden transition-colors hover:border-brand-bright/60"
+                    >
+                      <span className="relative block">
+                        <BikeVisual
+                          bikeClass={feature?.class ?? "street"}
+                          image={feature ? motorcycleImage(feature, b.name) : undefined}
+                          name={feature ? `${b.name} ${feature.name}` : b.name}
+                          annotate={false}
+                          sizes="(min-width: 1024px) 22vw, (min-width: 640px) 30vw, 48vw"
+                          className="aspect-[16/10]"
+                        />
+                        <BrandRelationBadge brandSlug={b.slug} className="absolute right-2 top-2" />
+                      </span>
+                      <span className="flex items-center justify-between gap-2 p-3">
+                        <BrandMark slug={b.slug} name={b.name} className="text-2xl text-white" logoClassName="h-7" />
+                        <span className="text-xs text-on-dark-muted">{pluralize(modelsForBrand(catalog, b.slug).length, "model")}</span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </StepSection>
         )}
 
         {step === 2 && brand && (
           <StepSection title={`Choose your ${brand.name}`}>
-            <ul className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
               {modelsForBrand(catalog, brand.slug).map((m) => (
                 <li key={m.id}>
                   <ModelCard
@@ -183,7 +198,15 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
           </StepSection>
         )}
 
-        {model && step >= 3 && <SelectedBike name={bikeName} model={model} partCount={fits.length} changeHref={`/part-finder?brand=${model.brand}`} />}
+        {model && step >= 3 && (
+          <SelectedBike
+            name={bikeName}
+            brandName={brand?.name ?? model.brand}
+            model={model}
+            partCount={fits.length}
+            changeHref={`/part-finder?brand=${model.brand}`}
+          />
+        )}
 
         {step === 3 && model && (
           <StepSection title={`What do you need for the ${bikeName}?`}>
@@ -292,18 +315,26 @@ function StepSection({ title, children }: { title: string; children: React.React
 /** Banner showing the chosen bike once steps 1–2 are done. */
 function SelectedBike({
   name,
+  brandName,
   model,
   partCount,
   changeHref,
 }: {
   name: string;
+  brandName: string;
   model: MotorcycleModel;
   partCount: number;
   changeHref: string;
 }) {
   return (
     <div className="card-dark mb-8 grid overflow-hidden sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
-      <BikeVisual bikeClass={model.class} image={model.image} name={name} className="aspect-[16/10] sm:aspect-auto sm:min-h-36" />
+      <BikeVisual
+        bikeClass={model.class}
+        image={motorcycleImage(model, brandName)}
+        name={name}
+        sizes="(min-width: 640px) 16rem, 100vw"
+        className="aspect-[16/10] sm:aspect-auto sm:min-h-36"
+      />
       <div className="flex flex-col justify-center gap-1 p-5">
         <p className="eyebrow eyebrow-dark">Your bike · {bikeClassName(model.class)}</p>
         <p className="display text-3xl text-white">{name}</p>

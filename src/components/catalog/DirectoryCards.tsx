@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ChevronRight } from "lucide-react";
-import { BikeArt } from "@/components/bikes/BikeArt";
 import { BikeVisual } from "@/components/bikes/BikeVisual";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { PhotoFill } from "@/components/media/Photo";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { GearRing } from "@/components/ui/Mechanical";
@@ -10,6 +10,7 @@ import type { PopularPart } from "@/lib/catalog/catalog";
 import { categoryPath } from "@/lib/catalog/paths";
 import { cx } from "@/lib/cx";
 import { pluralize } from "@/lib/format";
+import { motorcycleImage } from "@/lib/images";
 import type { BikeClass, Brand, CategoryGroup, ModelStatus, MotorcycleModel } from "@/lib/types";
 
 /** One-word category name for compact lists, e.g. "Brake Parts" → "Brake". */
@@ -84,14 +85,20 @@ export function CategoryImageCard({
   );
 }
 
-/** Dark "mini showroom" card for a motorcycle brand. */
+/**
+ * Dark brand card for "Brands we deal in": the brand's feature model (official photo when supplied,
+ * otherwise its drawing), the shop's relationship with the brand, and a few model names.
+ */
 export function BrandShowroomCard({
   brand,
+  feature,
   modelNames,
   modelCount,
   productCount,
 }: {
   brand: Brand;
+  /** Model whose image stands for the brand. */
+  feature?: MotorcycleModel;
   modelNames: string[];
   modelCount: number;
   productCount: number;
@@ -101,22 +108,28 @@ export function BrandShowroomCard({
       href={`/brands/${brand.slug}`}
       className="group card-dark relative flex h-full flex-col overflow-hidden transition-colors hover:border-brand-bright/60"
     >
-      <div className="blueprint relative aspect-[16/9] overflow-hidden">
+      <div className="relative aspect-[16/9] overflow-hidden">
+        <BikeVisual
+          bikeClass={feature?.class ?? "street"}
+          image={feature ? motorcycleImage(feature, brand.name) : undefined}
+          name={feature ? `${brand.name} ${feature.name}` : brand.name}
+          annotate={false}
+          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 18rem"
+          className="absolute inset-0"
+        />
         <span
           aria-hidden="true"
           className="display pointer-events-none absolute -left-1 top-1 select-none text-[4.5rem] leading-none text-white/[0.06]"
         >
           {brand.name}
         </span>
-        <BikeArt
-          bikeClass={brand.bikeClass}
-          className="absolute inset-x-[6%] bottom-0 w-[88%] text-on-dark transition-transform duration-500 group-hover:-translate-x-1 group-hover:scale-[1.03]"
-        />
         <BrandRelationBadge brandSlug={brand.slug} className="absolute right-3 top-3" />
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="display text-3xl text-white">{brand.name}</h3>
+          <h3 className="text-white">
+            <BrandMark slug={brand.slug} name={brand.name} className="text-3xl" logoClassName="h-8" />
+          </h3>
           <span className="text-xs text-on-dark-muted">{pluralize(modelCount, "model")}</span>
         </div>
         {modelNames.length > 0 && (
@@ -139,14 +152,18 @@ export function BrandShowroomCard({
   );
 }
 
-/** Motorcycle model card: drawing (or licensed photo), name, class and the part types listed for it. */
+/**
+ * Motorcycle model card: official photo (when supplied) or drawing, name, class and the part types
+ * listed for it. Compact enough for two columns on a phone.
+ */
 export function ModelCard({
   model,
   brandName,
   productCount,
   categories = [],
   href,
-  cta = "View parts",
+  cta = "View compatible parts",
+  ctaShort,
   className,
 }: {
   model: MotorcycleModel;
@@ -157,9 +174,16 @@ export function ModelCard({
   /** Defaults to the model page; the part finder links to its next step instead. */
   href?: string;
   cta?: string;
+  /** Shorter call to action for narrow cards on phones. */
+  ctaShort?: string;
   className?: string;
 }) {
   const badge = statusBadge[model.status];
+  const short = ctaShort ?? (cta === "View compatible parts" ? "View parts" : cta);
+  const summary =
+    productCount > 0
+      ? [pluralize(productCount, "part"), categories.slice(0, 3).join(" • ")].filter(Boolean).join(" · ")
+      : "Parts available on request";
   return (
     <Link
       href={href ?? `/models/${model.slug}`}
@@ -169,29 +193,88 @@ export function ModelCard({
       )}
     >
       <div className="relative">
-        <BikeVisual bikeClass={model.class} image={model.image} name={`${brandName} ${model.name}`} className="aspect-[16/10]" />
+        <BikeVisual
+          bikeClass={model.class}
+          image={motorcycleImage(model, brandName)}
+          name={`${brandName} ${model.name}`}
+          sizes="(min-width: 1024px) 22vw, (min-width: 768px) 30vw, 48vw"
+          className="aspect-[16/10]"
+        />
         {badge && (
           <span className="absolute left-2 top-2 rounded bg-graphite/85 px-1.5 py-0.5 text-[0.75rem] font-medium text-on-dark ring-1 ring-white/15">
             {badge}
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-1.5 border-t-2 border-brand/80 p-3.5">
-        <p className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+      <div className="flex flex-1 flex-col gap-1 border-t-2 border-brand/80 p-3 sm:p-3.5">
+        <p className="truncate font-display text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           {brandName} · {bikeClassName(model.class)}
         </p>
-        <h3 className="display text-2xl text-ink group-hover:text-brand">{model.name}</h3>
-        <p className="line-clamp-1 text-xs text-muted">
-          {categories.length > 0 ? categories.slice(0, 4).join(" • ") : "Parts not listed online yet"}
-        </p>
-        <span className="mt-auto flex items-center justify-between pt-2 text-sm">
-          <span className="text-muted">{productCount > 0 ? pluralize(productCount, "part") : "Ask us"}</span>
-          <span className="inline-flex items-center gap-1 font-semibold text-brand">
-            {cta} <ChevronRight className="size-4" aria-hidden="true" />
-          </span>
+        <h3 className="display text-xl text-ink group-hover:text-brand sm:text-2xl">{model.name}</h3>
+        <p className="line-clamp-1 text-xs text-muted">{summary}</p>
+        <span className="mt-auto inline-flex items-center gap-1 pt-2 text-sm font-semibold text-brand">
+          <span className="sm:hidden">{short}</span>
+          <span className="max-sm:hidden">{cta}</span>
+          <ChevronRight className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
         </span>
       </div>
     </Link>
+  );
+}
+
+/** Compact links to the bikes a part fits, each with the bike's photo or drawing. */
+export function FitsBikeList({
+  title,
+  models,
+  brandName,
+  moreCount = 0,
+  moreHref,
+  className,
+}: {
+  title: string;
+  models: MotorcycleModel[];
+  brandName: (slug: string) => string;
+  moreCount?: number;
+  moreHref?: string;
+  className?: string;
+}) {
+  if (models.length === 0) return null;
+  return (
+    <div className={className}>
+      <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted">{title}</p>
+      <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+        {models.map((m) => {
+          const brand = brandName(m.brand);
+          return (
+            <li key={m.id}>
+              <Link
+                href={`/models/${m.slug}`}
+                className="group card flex items-center gap-3 overflow-hidden pr-3 transition-colors hover:border-ink"
+              >
+                <BikeVisual
+                  bikeClass={m.class}
+                  image={motorcycleImage(m, brand)}
+                  name={`${brand} ${m.name}`}
+                  annotate={false}
+                  sizes="112px"
+                  className="aspect-[16/10] w-28 shrink-0"
+                />
+                <span className="min-w-0 flex-1 py-2">
+                  <span className="block truncate font-display text-xs font-semibold uppercase tracking-[0.12em] text-muted">{brand}</span>
+                  <span className="block truncate font-semibold text-ink group-hover:text-brand">{m.name}</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted" aria-hidden="true" />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      {moreCount > 0 && moreHref && (
+        <a href={moreHref} className="mt-2 inline-flex min-h-10 items-center text-sm font-semibold text-brand underline">
+          +{pluralize(moreCount, "more bike")}
+        </a>
+      )}
+    </div>
   );
 }
 

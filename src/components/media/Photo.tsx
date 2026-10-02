@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getPhoto, type Photo, type PhotoKey } from "@/config/photos";
+import { getPhoto, type Photo, type PhotoKey } from "@/config/images";
 import { cx } from "@/lib/cx";
 
 /**

@@ -1,7 +1,8 @@
-import { getPhoto, type PhotoKey } from "@/config/photos";
+import { getPhoto, type PhotoKey } from "@/config/images";
 import { searchAliases, searchStopWords } from "@/data/search-aliases";
+import { motorcycleImage, shown } from "@/lib/images";
 import { categoryPath } from "./paths";
-import type { BikeClass, Brand, CategoryGroup, CategoryIcon, MotorcycleModel, ProductView } from "@/lib/types";
+import type { BikeClass, Brand, CategoryGroup, CategoryIcon, MotorcycleModel, PartArtKind, ProductView } from "@/lib/types";
 
 /**
  * Product search tuned for how riders type: model shorthand ("fzs v3"),
@@ -181,8 +182,33 @@ export function searchProducts(index: SearchIndexEntry[], query: string): Search
 /** Small image shown next to a suggestion. */
 export type SuggestionThumb =
   | { kind: "photo"; src: string }
+  | { kind: "art"; art: PartArtKind }
   | { kind: "bike"; bikeClass: BikeClass }
   | { kind: "icon"; icon: CategoryIcon };
+
+/**
+ * Thumbnail for a product suggestion: its photo, else the part-type illustration, else the category
+ * icon. Never a motorcycle: the picture must show the part.
+ */
+export function productThumb(product: Pick<ProductView, "displayImage" | "art" | "categoryIcon">): SuggestionThumb {
+  if (product.displayImage) return { kind: "photo", src: product.displayImage.src };
+  if (product.art) return { kind: "art", art: product.art };
+  return { kind: "icon", icon: product.categoryIcon };
+}
+
+/** "Bajaj · Pulsar N160", "Bajaj · Pulsar 150 +2", or the part type when no bike is listed. */
+export function productSublabel(product: Pick<ProductView, "brands" | "models" | "subcategoryName" | "categoryName">): string {
+  const brand = product.brands.length === 1 ? product.brands[0].name : product.brands.length > 1 ? "Multiple brands" : undefined;
+  const [first, ...rest] = product.models;
+  const bike = first ? `${first.name}${rest.length > 0 ? ` +${rest.length}` : ""}` : (product.subcategoryName ?? product.categoryName);
+  return [brand, bike].filter(Boolean).join(" · ");
+}
+
+/** A model's suggestion thumbnail: its photo when one may be shown, otherwise its drawing. */
+function modelThumb(model: MotorcycleModel, brandName: string): SuggestionThumb {
+  const photo = shown(motorcycleImage(model, brandName));
+  return photo ? { kind: "photo", src: photo.src } : { kind: "bike", bikeClass: model.class };
+}
 
 export interface Suggestion {
   kind: "product" | "model" | "category" | "search";
@@ -222,7 +248,7 @@ export function suggestDirectory(
           label: `${brand?.name ?? ""} ${m.name}`.trim(),
           sublabel: "Motorcycle · see parts",
           href: `/models/${m.slug}`,
-          thumb: { kind: "bike", bikeClass: m.class },
+          thumb: modelThumb(m, brand?.name ?? ""),
         },
         rank: statusRank[m.status],
       });

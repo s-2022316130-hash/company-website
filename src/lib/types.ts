@@ -1,4 +1,4 @@
-import type { PhotoKey } from "@/config/photos";
+import type { PhotoKey } from "@/config/images";
 
 /**
  * Catalogue domain types. Text fields accept any Unicode, so Bangla names and
@@ -76,19 +76,17 @@ export interface ModelSpec {
   fuel?: FuelSystem[];
 }
 
+/** Logos and the brand's feature model live in the image manifest (src/config/images.ts). */
 export interface Brand {
   slug: string;
   name: string;
   nameBn?: string;
   description?: string;
-  /** Drawing used for the brand when no licensed photo exists. */
-  bikeClass: BikeClass;
-  /** Licensed photo for brand cards and banners, if one is ever supplied. */
-  image?: PhotoKey;
   /** Official site the model list was checked against. */
   officialSource?: { label: string; url: string; checked: string };
 }
 
+/** Photos of a model are looked up by its id in the image manifest (src/config/images.ts). */
 export interface MotorcycleModel {
   /** Equals slug; kept separate so a database id can replace it later. */
   id: string;
@@ -105,8 +103,6 @@ export interface MotorcycleModel {
   source?: string;
   variant?: string;
   yearRange?: string;
-  /** Licensed photo of this exact model, if one is ever supplied. */
-  image?: PhotoKey;
   description?: string;
   /** Extra spellings customers type, e.g. "fz v4". */
   aliases?: string[];

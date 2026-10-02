@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { BikeArt } from "@/components/bikes/BikeArt";
+import { bikeImageCaption, BikeVisual } from "@/components/bikes/BikeVisual";
 import { PhotoFill } from "@/components/media/Photo";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { GearRing } from "@/components/ui/Mechanical";
-import type { PhotoKey } from "@/config/photos";
+import type { ImageAsset, PhotoKey } from "@/config/images";
 import type { Crumb } from "@/lib/seo";
 import type { BikeClass } from "@/lib/types";
 
@@ -43,7 +44,7 @@ export function PhotoBanner({
   );
 }
 
-/** Dark blueprint banner with a bike drawing, for brand and model pages. */
+/** Dark blueprint banner with a bike drawing, for pages about a type of bike rather than one model. */
 export function BlueprintBanner({
   bikeClass,
   eyebrow,
@@ -76,6 +77,64 @@ export function BlueprintBanner({
         <div className="relative hidden sm:block">
           <BikeArt bikeClass={bikeClass} annotate className="mx-auto w-full max-w-xl text-on-dark" />
           {aside && <div className="mt-1 text-center text-xs text-on-dark-muted">{aside}</div>}
+        </div>
+      </div>
+      <div className="chain-rule opacity-70" aria-hidden="true" />
+    </section>
+  );
+}
+
+/**
+ * Banner for brand and model pages: the heading block beside a large framed image of the bike
+ * (the official photo once it may be shown, otherwise the line drawing, captioned either way).
+ * On phones the image sits above the text at a modest height instead of a full-screen background.
+ */
+export function BikeBanner({
+  heading,
+  crumbs,
+  bikeClass,
+  image,
+  imageName,
+  imageLink,
+  children,
+}: {
+  /** Eyebrow, h1 and supporting line, laid out by the page. */
+  heading: ReactNode;
+  crumbs: Crumb[];
+  bikeClass: BikeClass;
+  /** Image slot from the manifest. */
+  image?: ImageAsset;
+  /** Bike name for the image's accessible label. */
+  imageName: string;
+  /** Small link under the image, e.g. to the feature model's page. */
+  imageLink?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <section className="blueprint relative isolate overflow-hidden text-white">
+      <GearRing teeth={32} className="pointer-events-none absolute -right-24 -top-24 -z-10 size-[26rem] text-white/[0.05]" />
+      <div className="container-page py-7 sm:py-10 lg:py-12">
+        <Breadcrumbs items={crumbs} tone="dark" />
+        <div className="mt-4 grid items-center gap-x-10 gap-y-5 lg:mt-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+          <div className="min-w-0">
+            {heading}
+            {children}
+          </div>
+          {/* Phones see the bike first; the heading stays first in reading order. */}
+          <figure className="min-w-0 max-lg:-order-1">
+            <BikeVisual
+              bikeClass={bikeClass}
+              image={image}
+              name={imageName}
+              priority
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="aspect-[16/8] rounded-lg ring-1 ring-white/10 sm:aspect-[16/9]"
+            />
+            <figcaption className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-on-dark-muted">
+              <span>{bikeImageCaption(image, bikeClass)}</span>
+              {imageLink}
+            </figcaption>
+          </figure>
         </div>
       </div>
       <div className="chain-rule opacity-70" aria-hidden="true" />

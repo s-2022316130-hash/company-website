@@ -2,15 +2,18 @@ import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgeCheck, Search } from "lucide-react";
+import { ArrowRight, Bike, Search } from "lucide-react";
 import { TrackView } from "@/components/analytics/Track";
+import { BrandMark } from "@/components/brand/BrandMark";
+import { BrandRelationBadge } from "@/components/catalog/Badges";
 import { CategoryImageCard, categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
 import { LineupSpecTable } from "@/components/catalog/VariantSpecs";
 import { business, dealershipFor, sellsOriginalParts } from "@/config/business";
 import { ProductListing } from "@/components/catalog/ProductListing";
-import { BlueprintBanner } from "@/components/layout/Banners";
+import { BikeBanner } from "@/components/layout/Banners";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import {
+  brandFeatureModel,
   categoryCounts,
   countBy,
   loadCatalog,
@@ -22,19 +25,30 @@ import {
 } from "@/lib/catalog/catalog";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { pluralize } from "@/lib/format";
+import { motorcycleImage } from "@/lib/images";
 import { pageMetadata } from "@/lib/seo";
+import type { MotorcycleModel } from "@/lib/types";
 
 export async function generateMetadata(props: PageProps<"/brands/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   const { brandBySlug } = await loadCatalog();
   const brand = brandBySlug.get(slug);
   if (!brand) return { title: "Brand not found", robots: { index: false } };
+  const dealer = dealershipFor(brand.slug);
+  const relation = dealer
+    ? `Authorized dealer of ${dealer.company}: genuine ${brand.name} parts at company price.`
+    : sellsOriginalParts(brand.slug)
+      ? `Original ${brand.name} parts.`
+      : "";
   return pageMetadata({
     title: `${brand.name} Motorcycle Parts`,
-    description: `Spare parts, filters, brake parts and maintenance products for ${brand.name} motorcycles at Nirob Autos, Madhupur. Browse by model.`,
+    description: `${relation} Spare parts, filters, brake parts and maintenance products for ${brand.name} motorcycles at Nirob Autos, Madhupur. Browse by model.`.trim(),
     path: `/brands/${brand.slug}`,
   });
 }
+
+const formatChecked = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
 export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
   const [{ slug }, searchParams] = await Promise.all([props.params, props.searchParams]);
@@ -47,56 +61,91 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
   const brandProducts = catalog.products.filter((p) => productFitsBrand(p, brand.slug));
   const counts = categoryCounts(brandProducts);
   const groupsWithParts = catalog.groups.filter((g) => counts.has(g.slug));
-  const current = models.filter((m) => m.status !== "official-other");
+  const current = models.filter((m) => m.status === "bd-current");
+  const earlier = models.filter((m) => m.status === "bd-earlier");
   const other = models.filter((m) => m.status === "official-other");
   const q = typeof searchParams.q === "string" ? searchParams.q : "";
   const dealer = dealershipFor(brand.slug);
+  const original = sellsOriginalParts(brand.slug);
   const popular = spreadByCategory(
     brandProducts.filter((p) => p.isFastMoving || p.isPopular),
     8,
   );
   const withSpecs = current.filter((m) => m.variants && m.variants.length > 0);
+  const feature = brandFeatureModel(catalog, brand.slug);
+
+  const modelGrid = (list: MotorcycleModel[]) => (
+    <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      {list.map((m) => (
+        <li key={m.id}>
+          <ModelCard
+            model={m}
+            brandName={brand.name}
+            productCount={modelCounts.get(m.id) ?? 0}
+            categories={modelCategoryGroups(catalog, m.id).map(({ group }) => categoryShortName(group))}
+          />
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <>
       <TrackView event="brand_view" props={{ brand: brand.slug }} />
-      <BlueprintBanner
-        bikeClass={brand.bikeClass}
-        eyebrow="Motorcycle parts"
-        title={`${brand.name} motorcycle parts`}
+      <BikeBanner
         crumbs={[
           { label: "Brands", href: "/brands" },
           { label: brand.name, href: `/brands/${brand.slug}` },
         ]}
-        aside="Drawing shows a typical bike type, not a specific model"
-        description={
+        bikeClass={feature?.class ?? "street"}
+        image={feature ? motorcycleImage(feature, brand.name) : undefined}
+        imageName={feature ? `${brand.name} ${feature.name}` : brand.name}
+        imageLink={
+          feature && (
+            <Link href={`/models/${feature.slug}`} className="inline-flex items-center gap-1 font-semibold text-brand-bright hover:text-white">
+              {feature.name} parts <ArrowRight className="size-3.5" aria-hidden="true" />
+            </Link>
+          )
+        }
+        heading={
           <>
-            Parts and maintenance products listed for {brand.name} motorcycles. Pick your model for the most accurate list.
-            {(dealer || sellsOriginalParts(brand.slug)) && (
-              <span className="mt-3 flex items-start gap-2 rounded-md border border-brand-bright/40 bg-brand-bright/10 px-3 py-2 text-sm text-on-dark">
-                <BadgeCheck className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
-                {dealer ? (
-                  <span>
-                    {business.name} is a dealer for <strong className="text-white">{dealer.company}</strong>
-                    {"note" in dealer ? `, ${dealer.note}` : ""}. Genuine {brand.name} parts at company price.
-                  </span>
-                ) : (
-                  <span>Original {brand.name} parts sold at affordable prices. Ask for availability.</span>
-                )}
-              </span>
-            )}
-            <span className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-dark-muted">
-              <span>
-                <strong className="text-white">{pluralize(models.length, "model")}</strong> in the directory
-              </span>
-              <span>
-                <strong className="text-white">{pluralize(brandProducts.length, "part")}</strong> listed
-              </span>
-            </span>
+            <BrandMark slug={brand.slug} name={brand.name} fallback="none" logoClassName="mb-4 h-10 sm:h-12" />
+            <BrandRelationBadge brandSlug={brand.slug} detail className="px-2 py-1 text-[0.8125rem]" />
+            <h1 className="display mt-3 text-[2.6rem] text-white sm:text-6xl lg:text-[4.25rem]">{brand.name} motorcycle parts</h1>
+            <p className="mt-3 max-w-xl text-[0.9375rem] text-on-dark sm:text-lg">
+              {dealer ? (
+                <>
+                  Genuine {brand.name} parts at company price. {business.name} is an authorized dealer of{" "}
+                  <strong className="text-white">{dealer.company}</strong>
+                  {"note" in dealer ? `, the ${dealer.note}` : ""}.
+                </>
+              ) : original ? (
+                <>Original {brand.name} parts at affordable prices. Ask the shop for availability.</>
+              ) : (
+                <>Parts and maintenance products listed for {brand.name} motorcycles.</>
+              )}{" "}
+              Pick your model for the most accurate parts list.
+            </p>
           </>
         }
       >
-        <Form action={`/brands/${brand.slug}`} className="mt-5 flex max-w-xl gap-2" role="search" scroll={false}>
+        <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-dark-muted">
+          <span>
+            <strong className="text-white">{pluralize(models.length, "model")}</strong> in the directory
+          </span>
+          <span>
+            <strong className="text-white">{pluralize(brandProducts.length, "part")}</strong> listed
+          </span>
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <a href="#parts" className="btn btn-primary">
+            Explore {brand.name} parts <ArrowRight className="size-4" aria-hidden="true" />
+          </a>
+          <Link href={`/part-finder?brand=${brand.slug}`} className="btn btn-outline-dark">
+            <Bike className="size-4" aria-hidden="true" /> Find parts for your {brand.name}
+          </Link>
+        </div>
+        <Form action={`/brands/${brand.slug}`} className="mt-4 flex max-w-xl gap-2" role="search" scroll={false}>
           <label htmlFor="brand-search" className="sr-only">
             Search within {brand.name} parts
           </label>
@@ -109,7 +158,7 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
             placeholder={`Search ${brand.name} parts, e.g. brake pad`}
             className="input"
           />
-          <button type="submit" className="btn btn-primary shrink-0">
+          <button type="submit" className="btn btn-outline-dark shrink-0">
             <Search className="size-4" aria-hidden="true" />
             <span className="max-sm:sr-only">Search</span>
           </button>
@@ -120,32 +169,46 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
             <a href={brand.officialSource.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
               {brand.officialSource.label}
             </a>{" "}
-            on {new Date(brand.officialSource.checked).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.
+            on {formatChecked(brand.officialSource.checked)}.
           </p>
         )}
-      </BlueprintBanner>
+      </BikeBanner>
 
       <div className="container-page space-y-14 py-10">
         {current.length > 0 && (
           <section aria-labelledby="models-title">
             <SectionHeader
               id="models-title"
-              eyebrow="Popular models"
-              title={`${brand.name} motorcycles`}
+              eyebrow="Current line-up"
+              title={`Current ${brand.name} models`}
+              description={`${brand.name}'s Bangladesh line-up. Choose your bike to see its compatible parts.`}
               action={{ label: "Motorcycle directory", href: `/models?brand=${brand.slug}` }}
             />
-            <ul className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {current.map((m) => (
-                <li key={m.id}>
-                  <ModelCard
-                    model={m}
-                    brandName={brand.name}
-                    productCount={modelCounts.get(m.id) ?? 0}
-                    categories={modelCategoryGroups(catalog, m.id).map(({ group }) => categoryShortName(group))}
-                  />
-                </li>
-              ))}
-            </ul>
+            {modelGrid(current)}
+          </section>
+        )}
+
+        {earlier.length > 0 && (
+          <section aria-labelledby="earlier-models-title">
+            <SectionHeader
+              id="earlier-models-title"
+              eyebrow={modelStatusLabels["bd-earlier"]}
+              title={`Earlier ${brand.name} models`}
+              description="No longer in the line-up, but still on the road. Parts may still be available."
+            />
+            {modelGrid(earlier)}
+          </section>
+        )}
+
+        {popular.length > 0 && (
+          <section aria-labelledby="brand-popular-title">
+            <SectionHeader
+              id="brand-popular-title"
+              eyebrow="Popular parts"
+              title={`Fast-moving ${brand.name} parts`}
+              description="Routine wear parts riders replace most often. Catalogue items: ask us to confirm stock and fit."
+            />
+            <ProductGrid products={popular} />
           </section>
         )}
 
@@ -158,6 +221,23 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
               description="Engine, brakes and tyres for each model, as published by the manufacturer. Choose a model for every variant's details."
             />
             <LineupSpecTable models={withSpecs} brandName={brand.name} />
+          </section>
+        )}
+
+        {groupsWithParts.length > 0 && (
+          <section aria-labelledby="brand-cats-title">
+            <SectionHeader id="brand-cats-title" eyebrow="Categories" title={`${brand.name} parts by type`} />
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {groupsWithParts.map((g) => (
+                <li key={g.slug}>
+                  <CategoryImageCard
+                    group={g}
+                    count={counts.get(g.slug) ?? 0}
+                    href={`/brands/${brand.slug}?category=${g.slug}#parts`}
+                  />
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
@@ -176,35 +256,6 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
                   <Link href={`/models/${m.slug}`} className="chip">
                     {m.name}
                   </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {popular.length > 0 && (
-          <section aria-labelledby="brand-popular-title">
-            <SectionHeader
-              id="brand-popular-title"
-              eyebrow="Popular parts"
-              title={`Fast-moving ${brand.name} parts`}
-              description="Routine wear parts riders replace most often. Catalogue items: ask us to confirm stock and fit."
-            />
-            <ProductGrid products={popular} priorityCount={4} />
-          </section>
-        )}
-
-        {groupsWithParts.length > 0 && (
-          <section aria-labelledby="brand-cats-title">
-            <SectionHeader id="brand-cats-title" eyebrow="Categories" title={`${brand.name} parts by type`} />
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {groupsWithParts.map((g) => (
-                <li key={g.slug}>
-                  <CategoryImageCard
-                    group={g}
-                    count={counts.get(g.slug) ?? 0}
-                    href={`/brands/${brand.slug}?category=${g.slug}#parts`}
-                  />
                 </li>
               ))}
             </ul>

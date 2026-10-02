@@ -28,5 +28,5 @@ export const footerInfoLinks: NavItem[] = [
   { label: "FAQ", href: "/faq" },
   { label: "Privacy", href: "/privacy" },
   { label: "Terms", href: "/terms" },
-  { label: "Photo credits", href: "/credits" },
+  { label: "Image credits", href: "/credits" },
 ];
