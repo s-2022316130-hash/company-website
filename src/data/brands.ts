@@ -2,7 +2,7 @@ import type { Brand } from "@/lib/types";
 
 /**
  * Motorcycle brands the catalogue is organised around.
- * Brand names identify vehicle compatibility only; they do not imply any dealership.
+ * Which brands the shop is a dealer for lives in `business.dealerships` (src/config/business.ts).
  * `officialSource` records where the model list was checked.
  */
 export const brands: Brand[] = [

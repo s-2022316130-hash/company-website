@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { business } from "@/config/business";
+import { business, dealerList } from "@/config/business";
 import { footerInfoLinks, footerShopLinks } from "@/config/navigation";
 import { categoryPath, loadCatalog } from "@/lib/catalog/catalog";
 import { Logo } from "./Logo";
@@ -61,9 +61,9 @@ export async function Footer() {
       <div className="border-t border-graphite-3">
         <div className="container-page py-5 text-xs text-on-dark-muted">
           <p>
-            © {new Date().getFullYear()} {business.name} | <span lang="bn">{business.banglaName}</span>. Motorcycle brand
-            names show which bikes a part is listed for and do not indicate an official dealership. Stock photography
-            from Unsplash; see{" "}
+            © {new Date().getFullYear()} {business.name} | <span lang="bn">{business.banglaName}</span>. Dealer for{" "}
+            {dealerList()}. Other brand names show which bikes a part is listed for. Stock photography from Unsplash;
+            see{" "}
             <Link href="/credits" className="underline hover:text-white">
               photo credits
             </Link>

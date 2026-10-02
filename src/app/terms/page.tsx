@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { business } from "@/config/business";
+import { business, dealerList } from "@/config/business";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -34,8 +34,10 @@ export default function TermsPage() {
           </p>
           <h2 className="font-display text-lg font-bold">Brand names</h2>
           <p>
-            Motorcycle and part brand names are used to describe compatibility. They do not indicate that {business.name}{" "}
-            is an official dealer or distributor unless this is stated on a product.
+            {business.name} is a dealer for {dealerList()} and sells their genuine parts at company price. It also sells
+            original Yamaha, Suzuki and Honda parts, without being a dealer for those brands. Other motorcycle and part
+            brand names are used only to describe compatibility. A product is described as genuine only when the shop has
+            confirmed it.
           </p>
         </div>
       </div>

@@ -1,4 +1,5 @@
-import { FlaskConical } from "lucide-react";
+import { BadgeCheck, FlaskConical } from "lucide-react";
+import { dealershipFor, sellsOriginalParts } from "@/config/business";
 import { productTypeLabels, stockStatusLabels } from "@/lib/catalog/labels";
 import { cx } from "@/lib/cx";
 import { formatPrice } from "@/lib/format";
@@ -57,6 +58,28 @@ export function ProductTypeBadge({ type }: { type: ProductType }) {
   return (
     <span className="inline-flex items-center rounded border border-line-strong bg-surface px-1.5 py-0.5 text-xs font-semibold text-steel">
       {productTypeLabels[type]}
+    </span>
+  );
+}
+
+/**
+ * What the shop states about a motorcycle brand, from its business card: dealer (genuine parts at
+ * company price) or original parts. Renders nothing for other brands.
+ */
+export function BrandRelationBadge({ brandSlug, className }: { brandSlug: string; className?: string }) {
+  const dealer = dealershipFor(brandSlug);
+  if (!dealer && !sellsOriginalParts(brandSlug)) return null;
+  return (
+    <span
+      className={cx(
+        "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold",
+        dealer ? "bg-brand-bright text-white" : "border border-white/20 bg-black/40 text-on-dark",
+        className,
+      )}
+      title={dealer ? `Dealer for ${dealer.company}: genuine parts at company price` : "Original parts sold"}
+    >
+      <BadgeCheck className="size-3" aria-hidden="true" />
+      {dealer ? "Dealer · genuine parts" : "Original parts"}
     </span>
   );
 }
