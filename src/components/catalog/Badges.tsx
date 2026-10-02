@@ -1,24 +1,41 @@
-import { BadgeCheck, FlaskConical } from "lucide-react";
+import { BadgeCheck, CircleHelp, FlaskConical } from "lucide-react";
 import { dealershipFor, sellsOriginalParts } from "@/config/business";
-import { productTypeLabels, stockStatusLabels } from "@/lib/catalog/labels";
+import { authenticityLabels, CATALOGUE_DISCLAIMER, confidenceLabels, inventoryStatusLabels } from "@/lib/catalog/labels";
 import { cx } from "@/lib/cx";
 import { formatPrice } from "@/lib/format";
-import type { ProductType, StockStatus } from "@/lib/types";
+import type { Authenticity, CompatibilityConfidence, InventoryStatus } from "@/lib/types";
 
-const stockStyles: Record<StockStatus, { dot: string; text: string }> = {
+const stockStyles: Record<InventoryStatus, { dot: string; text: string }> = {
   "in-stock": { dot: "bg-success", text: "text-success" },
   "low-stock": { dot: "bg-warning", text: "text-warning" },
   "out-of-stock": { dot: "bg-danger", text: "text-danger" },
   "available-on-request": { dot: "bg-steel", text: "text-steel" },
-  "call-for-availability": { dot: "bg-steel", text: "text-steel" },
+  "call-to-confirm": { dot: "bg-steel", text: "text-steel" },
+  "catalogue-only": { dot: "border border-steel bg-transparent", text: "text-steel" },
 };
 
-export function AvailabilityBadge({ status, className }: { status: StockStatus; className?: string }) {
+/** Stock status. "Catalogue item" means listed but not confirmed on the shelf. */
+export function AvailabilityBadge({ status, className }: { status: InventoryStatus; className?: string }) {
   const s = stockStyles[status];
   return (
-    <span className={cx("inline-flex items-center gap-1.5 text-xs font-semibold", s.text, className)}>
+    <span
+      className={cx("inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide", s.text, className)}
+      title={status === "catalogue-only" ? CATALOGUE_DISCLAIMER : undefined}
+    >
       <span className={cx("size-2 shrink-0 rounded-full", s.dot)} aria-hidden="true" />
-      {stockStatusLabels[status]}
+      {inventoryStatusLabels[status]}
+    </span>
+  );
+}
+
+/** How sure the listed fitment is. */
+export function ConfidenceBadge({ confidence, className }: { confidence: CompatibilityConfidence; className?: string }) {
+  const sure = confidence !== "needs-confirmation";
+  const Icon = sure ? BadgeCheck : CircleHelp;
+  return (
+    <span className={cx("inline-flex items-center gap-1 text-xs font-medium", sure ? "text-success" : "text-warning", className)}>
+      <Icon className="size-3.5 shrink-0" aria-hidden="true" />
+      {confidenceLabels[confidence]}
     </span>
   );
 }
@@ -52,12 +69,12 @@ export function PriceDisplay({
   );
 }
 
-/** Only rendered for verified types; "unknown" shows nothing. */
-export function ProductTypeBadge({ type }: { type: ProductType }) {
-  if (type === "unknown") return null;
+/** Only rendered when the shop has verified it; "unknown" shows nothing. */
+export function AuthenticityBadge({ authenticity }: { authenticity: Authenticity }) {
+  if (authenticity === "unknown") return null;
   return (
     <span className="inline-flex items-center rounded border border-line-strong bg-surface px-1.5 py-0.5 text-xs font-semibold text-steel">
-      {productTypeLabels[type]}
+      {authenticityLabels[authenticity]}
     </span>
   );
 }
@@ -84,17 +101,18 @@ export function BrandRelationBadge({ brandSlug, className }: { brandSlug: string
   );
 }
 
-export function SampleBadge({ className }: { className?: string }) {
+/** Only for records with productStatus "demo": placeholder data that is not a real catalogue entry. */
+export function DemoBadge({ className }: { className?: string }) {
   return (
     <span
       className={cx(
         "inline-flex items-center gap-1 rounded border border-warning/30 bg-warning-soft px-1.5 py-0.5 text-xs font-semibold text-warning",
         className,
       )}
-      title="Demo catalogue entry, not confirmed store stock"
+      title="Demo entry, not a real catalogue item"
     >
       <FlaskConical className="size-3" aria-hidden="true" />
-      Demo catalogue
+      Demo
     </span>
   );
 }

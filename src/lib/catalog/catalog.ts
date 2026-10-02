@@ -54,15 +54,16 @@ export const loadCatalog = cache(async (): Promise<Catalog> => {
 });
 
 /**
- * Image a product shows, in priority order:
- * 1. a photo of the exact item, 2. its own representative photo, 3. its subcategory's photo,
- * 4. its category's photo. Without any of these the UI falls back to the bike drawing or a
- * placeholder. Steps 2–4 are flagged `representative` so the page can say so.
+ * Photo a product shows, in priority order:
+ * 1. a photo of the exact item, 2. its own representative photo, 3. its subcategory's photo, which
+ * is only set where the photo really shows that part type. The broad category photo is never used
+ * for a product (a brake pad must not show a disc). Without a photo the UI shows the part-type
+ * illustration (`art`). Steps 2–3 are flagged `representative` so the page can say so.
  */
-export function resolveProductImage(product: Product, group?: CategoryGroup, sub?: Subcategory): DisplayImage | undefined {
+export function resolveProductImage(product: Product, _group?: CategoryGroup, sub?: Subcategory): DisplayImage | undefined {
   const actual = product.images[0];
   if (actual) return { src: actual.src, alt: actual.alt, representative: false };
-  const key: PhotoKey | undefined = product.photo ?? sub?.image ?? group?.image;
+  const key: PhotoKey | undefined = product.photo ?? sub?.image;
   const photo = getPhoto(key);
   if (!photo) return undefined;
   return {
@@ -93,7 +94,17 @@ function toView(
     models: productModels,
     brands: brandSlugs.map((s) => brandBySlug.get(s)).filter((b): b is Brand => Boolean(b)),
     displayImage: resolveProductImage(product, group, sub),
+    art: sub?.art,
   };
+}
+
+/**
+ * The official variants of one model that a product is limited to. Empty means it fits every
+ * variant (or the model has no variant data).
+ */
+export function variantsFor(product: Pick<Product, "compatibleVariants">, model: MotorcycleModel): string[] {
+  const names = new Set((model.variants ?? []).map((v) => v.name));
+  return (product.compatibleVariants ?? []).filter((v) => names.has(v));
 }
 
 export function resolveCategory(groups: CategoryGroup[], slug: string): ResolvedCategory | undefined {
@@ -184,12 +195,13 @@ export function popularParts(catalog: Catalog): PopularPart[] {
   });
 }
 
-export function hasSampleProducts(catalog: Catalog): boolean {
-  return catalog.products.some((p) => p.isSample);
+/** True while any listed item is a catalogue entry rather than confirmed stock. */
+export function hasCatalogueOnly(catalog: Catalog): boolean {
+  return catalog.products.some((p) => p.inventoryStatus === "catalogue-only");
 }
 
 function popularity(p: Product): number {
-  return (p.isPopular ? 2 : 0) + (p.isFeatured ? 1 : 0);
+  return (p.isPopular ? 4 : 0) + (p.isFeatured ? 2 : 0) + (p.isFastMoving ? 1 : 0);
 }
 
 /**
@@ -225,23 +237,29 @@ export function popularForModel(catalog: Catalog, modelId: string, limit = 8): P
  * These link part types, never specific products, so no fitment is implied.
  */
 const maintenancePairings: Record<string, string[]> = {
-  "brake-pads": ["brake-fluid", "brake-disc"],
+  "brake-pads": ["brake-fluid", "cleaners", "brake-disc"],
   "brake-disc": ["brake-pads", "brake-fluid"],
-  "brake-shoe": ["brake-cable"],
-  "chain-sprocket-kit": ["chain-lubricant", "cleaning-care"],
-  chain: ["sprocket", "chain-lubricant"],
+  "brake-shoe": ["brake-hardware", "brake-cable"],
+  "brake-caliper": ["brake-pads", "brake-fluid"],
+  "master-cylinder": ["brake-fluid", "brake-hose"],
+  "chain-sprocket-kit": ["chain-lubricant", "cleaners", "cleaning-tools"],
+  chain: ["sprocket", "chain-lubricant", "cleaners"],
   sprocket: ["chain", "chain-lubricant"],
-  "air-filter": ["engine-oil", "oil-filter", "spark-plug"],
-  "oil-filter": ["engine-oil"],
+  "air-filter": ["oil-filter", "engine-oil", "spark-plug"],
+  "oil-filter": ["engine-oil", "air-filter"],
   "engine-oil": ["oil-filter", "air-filter"],
-  "spark-plug": ["air-filter"],
-  "clutch-plate": ["clutch-spring", "clutch-cable", "engine-oil"],
-  "clutch-cable": ["clutch-plate"],
-  "piston": ["piston-ring", "gasket"],
+  "spark-plug": ["air-filter", "plug-cap"],
+  "clutch-plate": ["clutch-cable", "gasket", "clutch-spring"],
+  "clutch-cable": ["clutch-plate", "clutch-lever"],
+  piston: ["piston-ring", "gasket", "timing-chain"],
   "piston-ring": ["piston", "gasket"],
   "cylinder-block": ["piston", "gasket"],
+  "timing-chain": ["gasket"],
+  battery: ["fuse", "rectifier", "usb-charger"],
   "cvt-belt": ["gear-oil"],
-  "fork-seal": ["front-fork"],
+  "fork-seal": ["fork-oil", "front-fork"],
+  tyres: ["tubes", "wheel-bearing"],
+  carburetor: ["carb-kit", "cleaners", "intake"],
 };
 
 export interface RelatedRail {

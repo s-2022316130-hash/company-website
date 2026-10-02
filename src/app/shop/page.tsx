@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { ProductListing } from "@/components/catalog/ProductListing";
-import { SampleCatalogNotice } from "@/components/catalog/SampleCatalogNotice";
+import { CatalogueNotice } from "@/components/catalog/CatalogueNotice";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { hasSampleProducts, loadCatalog } from "@/lib/catalog/catalog";
+import { hasCatalogueOnly, loadCatalog } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -16,7 +16,7 @@ export default async function ShopPage(props: PageProps<"/shop">) {
   const [searchParams, catalog] = await Promise.all([props.searchParams, loadCatalog()]);
   return (
     <>
-      {hasSampleProducts(catalog) && <SampleCatalogNotice />}
+      {hasCatalogueOnly(catalog) && <CatalogueNotice />}
       <PageHeader
         title="Shop all parts"
         description="Filter by motorcycle brand, model or category. Prices and availability are confirmed by the store when you order."

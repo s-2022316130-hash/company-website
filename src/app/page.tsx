@@ -9,7 +9,7 @@ import {
   PopularPartCard,
 } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
-import { SampleCatalogNotice } from "@/components/catalog/SampleCatalogNotice";
+import { CatalogueNotice } from "@/components/catalog/CatalogueNotice";
 import { StoreContactCard } from "@/components/contact/StoreContactCard";
 import { BikesShowcase, Hero, MechanicalDna, OilsFeature, WorkshopBanner } from "@/components/home/HomeSections";
 import { JsonLd } from "@/components/ui/JsonLd";
@@ -18,7 +18,7 @@ import { business } from "@/config/business";
 import {
   categoryCounts,
   countBy,
-  hasSampleProducts,
+  hasCatalogueOnly,
   loadCatalog,
   modelCategoryGroups,
   modelsForBrand,
@@ -80,7 +80,7 @@ export default async function HomePage() {
 
   return (
     <>
-      {hasSampleProducts(catalog) && <SampleCatalogNotice />}
+      {hasCatalogueOnly(catalog) && <CatalogueNotice />}
 
       <Hero brandNames={catalog.brands.map((b) => b.name)} searchExamples={searchExamples} />
 

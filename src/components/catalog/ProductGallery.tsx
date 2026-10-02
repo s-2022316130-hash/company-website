@@ -4,26 +4,26 @@ import { useState } from "react";
 import Image from "next/image";
 import { Camera } from "lucide-react";
 import { cx } from "@/lib/cx";
-import type { BikeClass, CategoryIcon, DisplayImage, ProductImage as ProductImageData } from "@/lib/types";
+import type { CategoryIcon, DisplayImage, PartArtKind, ProductImage as ProductImageData } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
 
 /**
- * Product gallery. Shows the item's own photos when the shop has supplied them; otherwise one
- * representative category photo, captioned as not the exact item.
+ * Product gallery. Shows the item's own photos when the shop has supplied them; otherwise a photo
+ * of the part type or an illustration, captioned as not the exact item.
  */
 export function ProductGallery({
   images,
   fallback,
+  art,
   icon,
-  bikeClass,
   label,
   name,
 }: {
   images: ProductImageData[];
   /** Representative image used when there are no photos of the exact item. */
   fallback?: DisplayImage;
+  art?: PartArtKind;
   icon: CategoryIcon;
-  bikeClass?: BikeClass;
   label?: string;
   name: string;
 }) {
@@ -36,18 +36,19 @@ export function ProductGallery({
       <div className="card overflow-hidden">
         <ProductImage
           image={current}
+          art={art}
           icon={icon}
-          bikeClass={bikeClass}
           label={label}
           priority
           aspect="aspect-[4/3] lg:aspect-square"
           sizes="(min-width: 1024px) 45vw, 100vw"
         />
       </div>
-      {current?.representative && (
+      {(current?.representative || (!current && art)) && (
         <p className="flex items-start gap-2 text-sm text-muted">
           <Camera className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          Representative photo, not the exact item for sale. Ask for a photo of the actual part on WhatsApp.
+          {current ? "Representative photo" : "Illustration of the part type"}, not the exact item for sale. Ask for a
+          photo of the actual part on WhatsApp.
         </p>
       )}
       {own.length > 1 && (

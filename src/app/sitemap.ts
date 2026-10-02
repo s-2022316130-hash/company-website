@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/config/site";
 import { categoryPath, loadCatalog } from "@/lib/catalog/catalog";
+import { isIndexable } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const catalog = await loadCatalog();
@@ -34,9 +35,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]),
   ].map((path) => ({ url: absoluteUrl(path) }));
 
-  // Sample records are placeholders and are left out until real products replace them.
+  // Catalogue-only entries are left out until the shop confirms them (see isIndexable).
   const products = catalog.products
-    .filter((p) => !p.isSample)
+    .filter(isIndexable)
     .map((p) => ({ url: absoluteUrl(`/products/${p.slug}`), lastModified: p.updatedAt }));
 
   return [...pages, ...products];
