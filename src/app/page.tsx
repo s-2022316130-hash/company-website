@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Bike, Layers, MapPin, MessageCircle, Search } from "lucide-react";
 import { BikeFinder } from "@/components/catalog/BikeFinder";
@@ -20,6 +21,11 @@ import {
 } from "@/lib/catalog/catalog";
 import { sortProducts } from "@/lib/catalog/listing";
 import { localBusinessJsonLd } from "@/lib/seo";
+
+// Title and description come from the root layout; only the canonical URL is page-specific.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const searchExamples = ["Brake pad", "Pulsar 150", "FZS V3", "Chain sprocket", "Spark plug"];
 
