@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ExternalLink } from "lucide-react";
+import { BadgeCheck, ExternalLink } from "lucide-react";
 import { TrackView } from "@/components/analytics/Track";
 import { bikeClassLabel } from "@/components/bikes/BikeArt";
 import { bikeClassName, CategoryImageCard, categoryShortName } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { ProductListing } from "@/components/catalog/ProductListing";
+import { VariantSpecTable } from "@/components/catalog/VariantSpecs";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { BlueprintBanner } from "@/components/layout/Banners";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { business } from "@/config/business";
+import { business, dealershipFor } from "@/config/business";
 import {
   loadCatalog,
   modelCategoryGroups,
@@ -41,6 +42,7 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
   if (!model) notFound();
 
   const brand = catalog.brandBySlug.get(model.brand);
+  const dealer = dealershipFor(model.brand);
   const name = modelDisplayName(model, catalog.brandBySlug);
   const fits = catalog.products.filter((p) => productFitsModel(p, model.id));
   const groups = modelCategoryGroups(catalog, model.id);
@@ -71,6 +73,15 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
           <>
             Parts listed as fitting the {name}. Confirm with the shop before ordering if you are unsure of your bike&apos;s
             version or year.
+            {dealer && (
+              <span className="mt-3 flex items-start gap-2 rounded-md border border-brand-bright/40 bg-brand-bright/10 px-3 py-2 text-sm text-on-dark">
+                <BadgeCheck className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
+                <span>
+                  {business.name} is a dealer for <strong className="text-white">{dealer.company}</strong>. Genuine{" "}
+                  {brand?.name} parts at company price.
+                </span>
+              </span>
+            )}
             <span className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-on-dark-muted">
               <span className="rounded border border-white/15 px-2 py-0.5 text-on-dark">{modelStatusLabels[model.status]}</span>
               {model.source && (
@@ -118,6 +129,18 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
             </p>
           )}
         </section>
+
+        {model.variants && model.variants.length > 0 && (
+          <section aria-labelledby="model-specs-title">
+            <SectionHeader
+              id="model-specs-title"
+              eyebrow="Official specifications"
+              title={model.variants.length > 1 ? `${model.name} variants compared` : `${model.name} specifications`}
+              description="The brake, tyre and suspension details that decide which parts fit."
+            />
+            <VariantSpecTable variants={model.variants} makerName={brand?.name ?? "the manufacturer"} />
+          </section>
+        )}
 
         {popular.length > 0 && (
           <section aria-labelledby="model-popular-title">

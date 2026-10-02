@@ -1,11 +1,13 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { business } from "@/config/business";
 import { photos } from "@/config/photos";
 import { brands } from "@/data/brands";
 import { categoryGroups, popularPartLinks } from "@/data/categories";
 import { models } from "@/data/models";
 import { demoAssignments, partKinds, products } from "@/data/products";
+import { modelVariants } from "@/data/variants";
 import {
   loadCatalog,
   popularForModel,
@@ -82,6 +84,36 @@ describe("catalogue data integrity", () => {
       expect(m.source, `${m.id} needs an official source`).toMatch(/^https:\/\//);
       if (m.type === "scooter") expect(m.class, m.id).toBe("scooter");
     }
+  });
+
+  it("keys variant specs to real models and keeps them sourced", () => {
+    const ids = new Set(models.map((m) => m.id));
+    for (const [modelId, variants] of Object.entries(modelVariants)) {
+      expect(ids.has(modelId), modelId).toBe(true);
+      const brandSource = brands.find((b) => b.slug === models.find((m) => m.id === modelId)?.brand)?.officialSource?.url;
+      for (const v of variants) {
+        expect(v.source, v.name).toMatch(/^https:\/\//);
+        expect(new URL(v.source).hostname, v.name).toBe(new URL(brandSource!).hostname);
+        expect(v.checked, v.name).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        for (const b of [v.frontBrake, v.rearBrake]) if (b?.sizeMm) expect(b.sizeMm).toBeGreaterThan(80);
+      }
+    }
+  });
+
+  it("derives a model's brake spec from its variants", () => {
+    const p150 = models.find((m) => m.id === "bajaj-pulsar-150")!;
+    expect(p150.spec?.frontBrake).toEqual(["disc"]);
+    expect(p150.spec?.rearBrake?.sort()).toEqual(["disc", "drum"]);
+    expect(p150.aliases).toContain("pulsar 150 td abs");
+    const n160 = models.find((m) => m.id === "bajaj-pulsar-n160")!;
+    expect(n160.spec?.fuel?.sort()).toEqual(["carburettor", "fi"]);
+  });
+
+  it("only lists dealerships and original-parts brands that exist, without overlap", () => {
+    const slugs = new Set(brands.map((b) => b.slug));
+    const dealerBrands = business.dealerships.map((d) => d.brand);
+    for (const s of [...dealerBrands, ...business.originalPartsBrands]) expect(slugs.has(s), s).toBe(true);
+    expect(dealerBrands.filter((s) => (business.originalPartsBrands as readonly string[]).includes(s))).toEqual([]);
   });
 
   it("points every popular part link at a real category", () => {

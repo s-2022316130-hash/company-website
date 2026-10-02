@@ -123,6 +123,29 @@ Brake and fuel-system specs are filled in only when the official page states the
 sold through Runner showrooms are not listed under Runner. Review the list against the bikes the shop
 actually supplies parts for. For example, the FZS V3 is no longer on yamahabd.com and is not listed.
 
+### Variant specifications
+
+`src/data/variants.ts` holds official per-variant specs, keyed by model id: engine, fuel system,
+cooling, ABS, brake type and size, tyre sizes, suspension, battery and gearbox. Bajaj's 10 Bangladesh
+models (16 variant pages on bajajauto.com/en-bd) are covered so far, checked on 2 October 2026.
+
+- These are facts restated in our own words. No text or images are copied from the manufacturer's site.
+- A field is left out when the page doesn't state it. It is also left out when the page contradicts
+  itself; for example, the Pulsar 150 TD ABS page gives single-disc figures. Each variant's `note`
+  explains any gap.
+- When a model has variants, its brake and fuel `spec` is derived from them, and variant names become
+  searchable aliases ("pulsar 150 td abs").
+- Model pages show a variant comparison table and the parts that depend on the variant. Brand pages
+  show a line-up table.
+
+### Dealerships
+
+The shop's business card lists it as a dealer for Uttara Motors (Bajaj), TVS Motors, Runner Automobiles
+and Hero Honda, with genuine parts at company price. It also sells original Yamaha, Suzuki and Honda
+parts. These details live in `business.dealerships` and `business.originalPartsBrands` in
+`src/config/business.ts`. Brand cards, brand and model pages, the About page, the footer and the terms
+read from there.
+
 ### Images
 
 - **Photos**: 31 photos from [Unsplash](https://unsplash.com) under the

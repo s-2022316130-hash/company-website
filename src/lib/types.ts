@@ -78,6 +78,45 @@ export interface MotorcycleModel {
   description?: string;
   /** Extra spellings customers type, e.g. "fz v4". */
   aliases?: string[];
+  /** Official per-variant specifications, where they have been collected. */
+  variants?: VariantSpec[];
+}
+
+export type Cooling = "air" | "oil" | "liquid";
+
+export interface BrakeSpec {
+  type: BrakeType;
+  sizeMm?: number;
+}
+
+/**
+ * One variant's published specification, restated from the official spec page (facts only, no copied
+ * text). Fields are left out when the page doesn't state them or contradicts itself.
+ */
+export interface VariantSpec {
+  /** Variant name as the official site titles it, e.g. "Pulsar 150 TD ABS". */
+  name: string;
+  /** Official spec page. */
+  source: string;
+  /** Date the page was read, YYYY-MM-DD. */
+  checked: string;
+  engineCc?: number;
+  valves?: number;
+  fuel?: FuelSystem;
+  cooling?: Cooling;
+  /** True only when the page says the brakes have ABS. */
+  abs?: boolean;
+  frontBrake?: BrakeSpec;
+  rearBrake?: BrakeSpec;
+  /** Size as published, e.g. "80/100-17 46P, tubeless". */
+  frontTyre?: string;
+  rearTyre?: string;
+  frontSuspension?: string;
+  rearSuspension?: string;
+  battery?: string;
+  gears?: number;
+  /** Shown with the table, e.g. when the official page contradicts itself. */
+  note?: string;
 }
 
 export type CategoryIcon =
