@@ -138,6 +138,27 @@ models (16 variant pages on bajajauto.com/en-bd) are covered so far, checked on 
 - Model pages show a variant comparison table and the parts that depend on the variant. Brand pages
   show a line-up table.
 
+### Owner's manual facts
+
+`src/data/manuals.ts` holds maintenance facts from official owner's manuals, keyed by model id. Each
+entry records:
+
+- engine oil grade and quantity, and the change and top-up intervals
+- spark plug type and gap
+- battery and brake fluid
+- tyre pressures and chain slack
+- bulbs and the service schedule
+
+Bajaj publishes two manuals on its Bangladesh Owner's Zone: Pulsar 150 (which also covers the Classic
+and Twin Disc) and Discover 110/125. Both were read on 2 October 2026.
+
+- Only facts are restated. The PDFs are not stored in the repo, and pages link to the official PDF.
+- Where a manual contradicts itself, the value is left out or both figures are given in `notes`. The
+  Discover manual, for example, gives two oil-change intervals.
+- Manuals can be older editions than the current line-up, so brake and tyre details still come from
+  `variants.ts`.
+- Model pages show the facts as cards. `/engine-oil` shows a "Recommended engine oil by model" table.
+
 ### Dealerships
 
 The shop's business card lists it as a dealer for Uttara Motors (Bajaj), TVS Motors, Runner Automobiles

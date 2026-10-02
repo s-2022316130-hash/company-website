@@ -7,6 +7,7 @@ import { brands } from "@/data/brands";
 import { categoryGroups, popularPartLinks } from "@/data/categories";
 import { models } from "@/data/models";
 import { demoAssignments, partKinds, products } from "@/data/products";
+import { ownerManuals } from "@/data/manuals";
 import { modelVariants } from "@/data/variants";
 import {
   loadCatalog,
@@ -97,6 +98,16 @@ describe("catalogue data integrity", () => {
         expect(v.checked, v.name).toMatch(/^\d{4}-\d{2}-\d{2}$/);
         for (const b of [v.frontBrake, v.rearBrake]) if (b?.sizeMm) expect(b.sizeMm).toBeGreaterThan(80);
       }
+    }
+  });
+
+  it("keys owner's manual facts to real models and official PDFs", () => {
+    const ids = new Set(models.map((m) => m.id));
+    for (const [modelId, m] of Object.entries(ownerManuals)) {
+      expect(ids.has(modelId), modelId).toBe(true);
+      expect(m.source, modelId).toMatch(/^https:\/\/www\.bajajauto\.com\/.+\.pdf$/);
+      expect(models.find((x) => x.id === modelId)?.manual, modelId).toBe(m);
+      if (m.tyrePressurePsi) expect(m.tyrePressurePsi.rearPillion).toBeGreaterThanOrEqual(m.tyrePressurePsi.rearSolo);
     }
   });
 

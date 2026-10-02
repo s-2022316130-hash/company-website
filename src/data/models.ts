@@ -1,4 +1,5 @@
 import type { BikeClass, BrakeType, FuelSystem, ModelSpec, ModelStatus, MotorcycleModel, VariantSpec } from "@/lib/types";
+import { ownerManuals } from "./manuals";
 import { modelVariants } from "./variants";
 
 /**
@@ -57,6 +58,7 @@ function model(
     aliases: aliases.length > 0 ? aliases : undefined,
     variant: opts.variant,
     variants,
+    manual: ownerManuals[slug],
   };
 }
 

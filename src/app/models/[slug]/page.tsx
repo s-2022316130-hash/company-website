@@ -6,6 +6,7 @@ import { bikeClassLabel } from "@/components/bikes/BikeArt";
 import { bikeClassName, CategoryImageCard, categoryShortName } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { ProductListing } from "@/components/catalog/ProductListing";
+import { ManualFacts } from "@/components/catalog/ManualFacts";
 import { VariantSpecTable } from "@/components/catalog/VariantSpecs";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { BlueprintBanner } from "@/components/layout/Banners";
@@ -139,6 +140,18 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               description="The brake, tyre and suspension details that decide which parts fit."
             />
             <VariantSpecTable variants={model.variants} makerName={brand?.name ?? "the manufacturer"} />
+          </section>
+        )}
+
+        {model.manual && (
+          <section aria-labelledby="model-manual-title">
+            <SectionHeader
+              id="model-manual-title"
+              eyebrow="Owner's manual"
+              title={`${model.name} maintenance facts`}
+              description="Oil grade, spark plugs, battery, tyre pressures and service intervals, from the manufacturer's manual."
+            />
+            <ManualFacts manual={model.manual} />
           </section>
         )}
 
