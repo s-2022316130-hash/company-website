@@ -1,5 +1,3 @@
-import { cx } from "@/lib/cx";
-
 /** Sprocket-style ring used as a quiet ornament behind icons and headings. */
 export function GearRing({ teeth = 24, className }: { teeth?: number; className?: string }) {
   const outer = 48;
@@ -48,16 +46,5 @@ export function GaugeArc({ className, needle = 0.68 }: { className?: string; nee
       <line x1={50} y1={54} x2={r2(50 + 34 * Math.cos(na))} y2={r2(54 - 34 * Math.sin(na))} strokeWidth={1.8} stroke="var(--color-brand-bright)" />
       <circle cx={50} cy={54} r={3} fill="currentColor" stroke="none" />
     </svg>
-  );
-}
-
-/** Small numbered technical label, e.g. "01 / ENGINE". */
-export function SpecLabel({ index, label, className }: { index: string; label: string; className?: string }) {
-  return (
-    <span className={cx("inline-flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-[0.14em]", className)}>
-      <span className="text-brand-bright">{index}</span>
-      <span aria-hidden="true" className="h-px w-6 bg-current opacity-40" />
-      {label}
-    </span>
   );
 }

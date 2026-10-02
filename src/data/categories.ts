@@ -4,7 +4,7 @@ import type { CategoryGroup } from "@/lib/types";
  * Category hierarchy, using the 14 canonical category names. Slugs are unique across groups and
  * subcategories, so /categories/[slug] can resolve either level.
  *
- * `image` (a key into src/config/photos.ts) is set on a subcategory only when the photo actually
+ * `image` (a key into src/config/images.ts) is set on a subcategory only when the photo actually
  * shows that part type; otherwise `art` names a line illustration. Group images are only used for
  * category cards and banners, never as a product's picture.
  */

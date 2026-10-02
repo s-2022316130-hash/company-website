@@ -265,6 +265,14 @@ fieldset {
     background-size: 16px 16px;
   }
 
+  /* Controlled frames for model photos: a soft spotlight behind a contained (never cropped) image. */
+  .studio {
+    background: radial-gradient(ellipse at 50% 42%, #ffffff 0%, var(--color-steel-soft) 72%);
+  }
+  .studio-dark {
+    background: radial-gradient(ellipse at 50% 45%, var(--color-graphite-3) 0%, var(--color-graphite) 72%);
+  }
+
   /* Blueprint grid on graphite: minor 24px, major 120px. */
   .blueprint {
     background-color: var(--color-graphite);

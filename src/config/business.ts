@@ -117,7 +117,7 @@ export function sellsOriginalParts(brandSlug: string): boolean {
   return (business.originalPartsBrands as readonly string[]).includes(brandSlug);
 }
 
-/** "Uttara Motors (Bajaj), TVS Motors, Runner Automobiles and Hero Honda" */
+/** "Uttara Motors (Bajaj), TVS Motors, Runner Automobiles and Hero" */
 export function dealerList(): string {
   const parts = business.dealerships.map((d) => (d.brand === "bajaj" ? `${d.company} (Bajaj)` : d.company));
   return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");

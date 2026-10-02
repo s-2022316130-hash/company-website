@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { business } from "@/config/business";
-import { photos } from "@/config/photos";
+import { photos } from "@/config/images";
 import { brands } from "@/data/brands";
 import { categoryGroups, popularPartLinks } from "@/data/categories";
 import { ownerManuals } from "@/data/manuals";

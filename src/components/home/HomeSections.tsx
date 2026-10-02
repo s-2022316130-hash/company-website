@@ -1,42 +1,57 @@
 import Link from "next/link";
-import { ArrowRight, Bike, Phone } from "lucide-react";
-import { ModelCard } from "@/components/catalog/DirectoryCards";
+import { ArrowRight, Bike, CircleHelp, ExternalLink, Phone, QrCode, ScanSearch, ShieldCheck } from "lucide-react";
+import { BrandMark } from "@/components/brand/BrandMark";
+import { BrandShowroomCard, ModelCard } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
+import { WhatsAppButton } from "@/components/contact/ContactActions";
 import { LogoMark } from "@/components/layout/Logo";
 import { PhotoFill } from "@/components/media/Photo";
 import { SearchBar } from "@/components/search/SearchBar";
-import { SpecLabel } from "@/components/ui/Mechanical";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { business } from "@/config/business";
-import type { PhotoKey } from "@/config/photos";
-import { categoryPath } from "@/lib/catalog/paths";
-import type { CategoryGroup, MotorcycleModel, ProductView } from "@/lib/types";
+import { business, dealerList } from "@/config/business";
+import type { Brand, CategoryGroup, MotorcycleModel, ProductView } from "@/lib/types";
 
-/** Homepage hero: full-bleed motorcycle photo, dark gradient, product-first copy and search. */
-export function Hero({ brandNames, searchExamples }: { brandNames: string[]; searchExamples: string[] }) {
+/** Homepage hero: full-bleed motorcycle photo under a dark gradient, the shop's name and what it sells. */
+export function Hero({
+  searchExamples,
+  dealers,
+  originals,
+}: {
+  searchExamples: string[];
+  /** Dealership names as on the business card, e.g. "Uttara Motors (Bajaj)". */
+  dealers: string[];
+  /** Brands the shop sells original parts for. */
+  originals: string[];
+}) {
   return (
     <section className="relative isolate overflow-hidden bg-graphite text-white" aria-labelledby="hero-title">
       <PhotoFill photo="hero" sizes="100vw" priority decorative className="-z-20 animate-hero-in" />
       {/* Phones: text sits at the bottom, so darken from the bottom up. Desktop: darken the left half. */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgb(14_17_21)_0%,rgb(14_17_21/0.9)_42%,rgb(14_17_21/0.25)_72%,rgb(14_17_21/0.55)_100%)] lg:bg-[linear-gradient(90deg,rgb(14_17_21/0.97)_0%,rgb(14_17_21/0.88)_34%,rgb(14_17_21/0.35)_62%,rgb(14_17_21/0.1)_100%)]" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgb(14_17_21)_0%,rgb(14_17_21/0.9)_46%,rgb(14_17_21/0.3)_74%,rgb(14_17_21/0.55)_100%)] lg:bg-[linear-gradient(90deg,rgb(14_17_21/0.97)_0%,rgb(14_17_21/0.88)_36%,rgb(14_17_21/0.35)_64%,rgb(14_17_21/0.1)_100%)]" />
       <div className="absolute inset-0 -z-10 fins opacity-50" />
-      <div className="container-page flex min-h-[600px] flex-col justify-end pb-9 pt-48 sm:min-h-[640px] lg:min-h-[600px] lg:justify-center lg:py-20">
+      <div className="container-page flex min-h-[620px] flex-col justify-end pb-9 pt-40 sm:min-h-[660px] lg:min-h-[640px] lg:justify-center lg:py-20">
         <div className="max-w-2xl animate-fade-up">
-          <p className="flex items-center gap-3">
-            <LogoMark className="size-9" />
-            <span className="leading-none">
-              <span className="display block text-xl tracking-[0.06em] text-white">{business.name}</span>
-              <span lang="bn" className="mt-0.5 block text-sm text-on-dark-muted">
-                {business.banglaName}
+          <p className="eyebrow eyebrow-dark flex items-center gap-2">
+            <ShieldCheck className="size-4" aria-hidden="true" />
+            Authorized dealer · Genuine &amp; original parts
+          </p>
+          <h1 id="hero-title" className="mt-4">
+            <span className="flex items-center gap-3 sm:gap-4">
+              <LogoMark className="size-11 shrink-0 sm:size-16" />
+              <span className="display block text-[3.3rem] leading-[0.88] text-white sm:text-[5.5rem] lg:text-[6.25rem]">
+                {business.name}
               </span>
             </span>
-          </p>
-          <h1 id="hero-title" className="display mt-5 text-[2.9rem] text-white sm:text-7xl lg:text-[5.25rem]">
-            Find the Right Parts for Your Motorcycle
+            <span lang="bn" className="mt-2 block text-xl font-semibold text-on-dark sm:mt-3 sm:text-2xl">
+              {business.banglaName}
+            </span>
+            <span className="display mt-4 block text-[1.65rem] text-brand-bright sm:text-[2.6rem]">
+              Motorcycle spare parts &amp; genuine products
+            </span>
           </h1>
           <p className="mt-4 max-w-xl text-base text-on-dark sm:text-lg">
-            Spare parts, maintenance products and accessories for the bikes Bangladesh rides, organised by brand, model
-            and part type, from our shop in {business.address.locality}.
+            Spare parts, maintenance products and accessories, organised by brand, model and part type, from our shop in{" "}
+            {business.address.locality}, {business.address.region}.
           </p>
           <SearchBar size="lg" className="mt-6 hidden max-w-xl md:block" />
           <div className="mt-3 hidden flex-wrap items-center gap-2 md:flex">
@@ -49,10 +64,10 @@ export function Hero({ brandNames, searchExamples }: { brandNames: string[]; sea
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/shop" className="btn btn-primary btn-lg">
-              Shop spare parts <ArrowRight className="size-4" aria-hidden="true" />
+              Shop parts <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
             <Link href="/part-finder" className="btn btn-outline-dark btn-lg">
-              <Bike className="size-5" aria-hidden="true" /> Find parts by bike
+              <Bike className="size-5" aria-hidden="true" /> Find parts for your bike
             </Link>
           </div>
           <a
@@ -65,11 +80,20 @@ export function Hero({ brandNames, searchExamples }: { brandNames: string[]; sea
         </div>
       </div>
       <div className="border-t border-white/10 bg-black/40 backdrop-blur-sm">
-        <div className="container-page scrollbar-none flex items-center gap-x-6 gap-y-1 overflow-x-auto py-3 font-display text-sm font-semibold uppercase tracking-[0.16em] text-on-dark-muted">
-          <span className="shrink-0 text-brand-bright">Parts for</span>
-          {brandNames.map((b) => (
-            <span key={b} className="shrink-0">
-              {b}
+        <div className="container-page scrollbar-none flex items-center gap-x-5 overflow-x-auto py-3 font-display text-sm font-semibold uppercase tracking-[0.14em] text-on-dark-muted">
+          <span className="inline-flex shrink-0 items-center gap-1.5 text-brand-bright">
+            <ShieldCheck className="size-4" aria-hidden="true" /> Authorized dealer
+          </span>
+          {dealers.map((d) => (
+            <span key={d} className="shrink-0 text-on-dark">
+              {d}
+            </span>
+          ))}
+          <span aria-hidden="true" className="h-4 w-px shrink-0 bg-white/20" />
+          <span className="shrink-0 text-brand-bright">Original parts</span>
+          {originals.map((o) => (
+            <span key={o} className="shrink-0">
+              {o}
             </span>
           ))}
         </div>
@@ -78,78 +102,176 @@ export function Hero({ brandNames, searchExamples }: { brandNames: string[]; sea
   );
 }
 
-const dna: { index: string; label: string; photo: PhotoKey; text: string; slug: string }[] = [
-  {
-    index: "01",
-    label: "Engine",
-    photo: "engineService",
-    text: "Pistons, rings, gaskets and timing parts keep compression and timing where they belong.",
-    slug: "engine",
-  },
-  {
-    index: "02",
-    label: "Brakes",
-    photo: "brakeDisc",
-    text: "Pads, shoes and discs wear with every stop. Replace them before they reach metal.",
-    slug: "brakes",
-  },
-  {
-    index: "03",
-    label: "Chain & drive",
-    photo: "chainService",
-    text: "A stretched chain wears its sprockets. Chain, sprockets and lube work as a set.",
-    slug: "chain-drive",
-  },
-  {
-    index: "04",
-    label: "Electrical",
-    photo: "sparkPlug",
-    text: "Plugs, coils, batteries and regulators keep a bike starting, charging and lit.",
-    slug: "electrical",
-  },
-];
+export interface BrandCardData {
+  brand: Brand;
+  feature?: MotorcycleModel;
+  modelNames: string[];
+  modelCount: number;
+  productCount: number;
+}
 
-/** Editorial close-ups of the four systems most riders replace parts for. */
-export function MechanicalDna() {
+/** "Brands we deal in": one card per brand, dealerships first, then the brands it sells original parts for. */
+export function BrandShowcase({ cards }: { cards: BrandCardData[] }) {
   return (
-    <section className="bg-graphite py-14 text-on-dark sm:py-20" aria-labelledby="dna-title">
-      <div className="container-page">
-        <SectionHeader
-          id="dna-title"
-          tone="dark"
-          eyebrow="Mechanical DNA"
-          title="Know the systems. Find the part."
-          description="Four systems account for most everyday repairs. Start with the one giving you trouble."
-        />
-        <ul className="scrollbar-none -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
-          {dna.map((d) => (
-            <li key={d.slug} className="w-[78%] shrink-0 snap-start sm:w-auto">
-              <Link href={categoryPath(d.slug)} className="group card-dark flex h-full flex-col overflow-hidden">
-                <div className="relative aspect-[4/5] overflow-hidden">
-                  <PhotoFill
-                    photo={d.photo}
-                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 78vw"
-                    className="transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-graphite-2 via-graphite-2/10 to-transparent" />
-                  <SpecLabel index={d.index} label={d.label} className="absolute left-4 top-4 rounded bg-graphite/80 px-2 py-1 text-white" />
-                </div>
-                <div className="flex flex-1 flex-col gap-3 p-4">
-                  <p className="text-sm text-on-dark">{d.text}</p>
-                  <span className="mt-auto inline-flex items-center gap-1 font-display text-sm font-semibold uppercase tracking-[0.1em] text-brand-bright">
-                    Shop {d.label.toLowerCase()} parts <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+    <section aria-labelledby="brands-title" className="reveal">
+      <SectionHeader
+        id="brands-title"
+        eyebrow="Shop by brand"
+        title="Brands we deal in"
+        description={`Authorized dealer for ${dealerList()}, with genuine parts at company price. Original Yamaha, Suzuki and Honda parts at affordable prices.`}
+        action={{ label: "All brands", href: "/brands" }}
+      />
+      <ul className="scrollbar-none -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+        {cards.map((c) => (
+          <li key={c.brand.slug} className="w-72 shrink-0 snap-start sm:w-auto">
+            <BrandShowroomCard {...c} />
+          </li>
+        ))}
+        <li className="w-72 shrink-0 snap-start sm:w-auto">
+          <Link
+            href="/models"
+            className="group flex h-full min-h-64 flex-col justify-between rounded-[0.625rem] border-2 border-dashed border-line-strong p-5 transition-colors hover:border-brand hover:bg-surface"
+          >
+            <span className="display text-3xl text-ink">Know only your model?</span>
+            <span className="text-sm text-muted">Search the motorcycle directory by name, from Shine 100 to Gixxer SF 250.</span>
+            <span className="inline-flex items-center gap-1 font-display font-semibold uppercase tracking-[0.08em] text-brand">
+              Find your bike <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            </span>
+          </Link>
+        </li>
+      </ul>
     </section>
   );
 }
 
-/** "Built Around the Bikes You Ride": riding photo band, then a scrollable rail of model cards. */
+const TVS_GENUINE = "https://bangladesh.tvsmotor.com/en/after-sales/genuine-parts";
+const HONDA_GENUINE = "https://www.bdhonda.com/services/genuine-parts";
+
+/**
+ * "Original parts. Built for your bike.": the shop's dealerships and original-parts brands, how listings
+ * label authenticity, and two checks the manufacturers themselves publish (read 2026-10-03).
+ */
+export function GenuineParts({
+  dealers,
+  originals,
+}: {
+  dealers: { brand: Brand; company: string }[];
+  originals: Brand[];
+}) {
+  return (
+    <section className="relative isolate overflow-hidden bg-graphite pt-14 text-on-dark sm:pt-20" aria-labelledby="genuine-title">
+      <div className="absolute inset-0 -z-10 fins opacity-40" />
+      <div className="container-page grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-14">
+        <div className="min-w-0">
+          <p className="eyebrow eyebrow-dark flex items-center gap-2">
+            <span aria-hidden="true" className="h-px w-7 bg-current" /> Genuine &amp; original parts
+          </p>
+          <h2 id="genuine-title" className="display mt-1.5 text-[2.4rem] text-white sm:text-6xl">
+            Original parts. Built for your bike.
+          </h2>
+          <p className="mt-3 max-w-xl text-on-dark sm:text-lg">
+            {business.name} is an authorized dealer of {dealerList()}, selling their genuine parts at company price. We also
+            sell original Yamaha, Suzuki and Honda parts at affordable prices.
+          </p>
+
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <div>
+              <p className="flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-[0.14em] text-brand-bright">
+                <ShieldCheck className="size-4" aria-hidden="true" /> Authorized dealer
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                {dealers.map(({ brand, company }) => (
+                  <li key={brand.slug}>
+                    <Link
+                      href={`/brands/${brand.slug}`}
+                      className="group flex min-h-11 items-center justify-between gap-3 rounded-md border border-graphite-3 bg-white/[0.03] px-3 py-1.5 transition-colors hover:border-brand-bright/60"
+                    >
+                      <BrandMark slug={brand.slug} name={brand.name} className="text-xl text-white" logoClassName="h-6" />
+                      <span className="truncate text-xs text-on-dark-muted">{company === brand.name ? "Dealer" : company}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-brand-bright">Original parts</p>
+              <ul className="mt-2 space-y-1.5">
+                {originals.map((brand) => (
+                  <li key={brand.slug}>
+                    <Link
+                      href={`/brands/${brand.slug}`}
+                      className="group flex min-h-11 items-center justify-between gap-3 rounded-md border border-graphite-3 bg-white/[0.03] px-3 py-1.5 transition-colors hover:border-brand-bright/60"
+                    >
+                      <BrandMark slug={brand.slug} name={brand.name} className="text-xl text-white" logoClassName="h-6" />
+                      <ArrowRight className="size-4 text-on-dark-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <h3 className="mt-8 font-display text-lg font-semibold uppercase tracking-[0.08em] text-white">How to check a part</h3>
+          <ul className="mt-3 space-y-3 text-sm">
+            <li className="flex gap-3">
+              <CircleHelp className="mt-0.5 size-5 shrink-0 text-brand-bright" aria-hidden="true" />
+              <span>
+                Each listing says <strong className="text-white">Genuine part</strong>, <strong className="text-white">OEM part</strong> or{" "}
+                <strong className="text-white">Aftermarket</strong> once the shop has checked it. <strong className="text-white">Contact store</strong>{" "}
+                means it has not been checked yet, so ask before you order.
+              </span>
+            </li>
+            <li className="flex gap-3">
+              <QrCode className="mt-0.5 size-5 shrink-0 text-brand-bright" aria-hidden="true" />
+              <span>
+                TVS genuine parts carry a label with a QR code; scanning it confirms the part is genuine.{" "}
+                <a href={TVS_GENUINE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 underline hover:text-white">
+                  TVS Bangladesh <ExternalLink className="size-3" aria-hidden="true" />
+                </a>
+              </span>
+            </li>
+            <li className="flex gap-3">
+              <ScanSearch className="mt-0.5 size-5 shrink-0 text-brand-bright" aria-hidden="true" />
+              <span>
+                Honda part numbers can be checked against the genuine parts list on Bangladesh Honda&apos;s website.{" "}
+                <a href={HONDA_GENUINE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 underline hover:text-white">
+                  Bangladesh Honda <ExternalLink className="size-3" aria-hidden="true" />
+                </a>
+              </span>
+            </li>
+          </ul>
+
+          <div className="mt-7 flex flex-wrap gap-3">
+            <WhatsAppButton
+              size="lg"
+              message={`Hello ${business.name}, I am looking for a genuine part for my motorcycle. `}
+              label="Ask for a genuine part"
+            />
+            <Link href="/brands" className="btn btn-outline-dark btn-lg">
+              Browse by brand
+            </Link>
+          </div>
+        </div>
+
+        {/* Close-ups of motorcycle components: decorative stock photos, not photos of stock for sale. */}
+        <div className="grid grid-cols-2 gap-3" aria-hidden="true">
+          <div className="relative row-span-2 min-h-80 overflow-hidden rounded-lg">
+            <PhotoFill photo="chainKit" sizes="(min-width: 1024px) 22vw, 50vw" decorative />
+          </div>
+          <div className="relative aspect-square overflow-hidden rounded-lg">
+            <PhotoFill photo="piston" sizes="(min-width: 1024px) 22vw, 50vw" decorative />
+          </div>
+          <div className="relative aspect-square overflow-hidden rounded-lg">
+            <PhotoFill photo="brakeDisc" sizes="(min-width: 1024px) 22vw, 50vw" decorative />
+          </div>
+        </div>
+      </div>
+      <div className="chain-rule mt-14 opacity-70 sm:mt-20" aria-hidden="true" />
+    </section>
+  );
+}
+
+/** "Parts for the bikes you ride": riding photo band, then a scrollable rail of model cards. */
 export function BikesShowcase({
   models,
   brandName,
@@ -168,10 +290,10 @@ export function BikesShowcase({
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgb(14_17_21/0.92)_0%,rgb(14_17_21/0.7)_55%,rgb(14_17_21/0.35)_100%)]" />
         <div className="container-page pb-32 pt-14 sm:pb-36 sm:pt-20">
           <p className="eyebrow eyebrow-dark flex items-center gap-2">
-            <span aria-hidden="true" className="h-px w-7 bg-current" /> Shop by motorcycle
+            <span aria-hidden="true" className="h-px w-7 bg-current" /> Popular motorcycles
           </p>
           <h2 id="bikes-title" className="display mt-1.5 max-w-2xl text-[2.4rem] text-white sm:text-6xl">
-            Built around the bikes you ride
+            Parts for the bikes you ride
           </h2>
           <p className="mt-3 max-w-xl text-on-dark">
             From daily commuters to 250cc street bikes. Pick your model to see the parts listed for it.
@@ -187,7 +309,7 @@ export function BikesShowcase({
       <div className="container-page -mt-24 sm:-mt-28">
         <ul className="scrollbar-none -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
           {models.map((m) => (
-            <li key={m.id} className="w-64 shrink-0 snap-start sm:w-72">
+            <li key={m.id} className="w-60 shrink-0 snap-start sm:w-72">
               <ModelCard
                 model={m}
                 brandName={brandName(m.brand)}
@@ -203,7 +325,10 @@ export function BikesShowcase({
   );
 }
 
-/** Full-width workshop photo break with a single call to action. */
+/**
+ * "Your motorcycle. The right parts.": workshop photo break. The photo is atmosphere only; the shop
+ * sells parts and does not offer servicing.
+ */
 export function WorkshopBanner() {
   return (
     <section className="relative isolate overflow-hidden bg-graphite text-white" aria-labelledby="workshop-title">
@@ -213,21 +338,23 @@ export function WorkshopBanner() {
       <div className="container-page py-20 sm:py-28">
         <div className="max-w-xl">
           <p className="eyebrow eyebrow-dark flex items-center gap-2">
-            <span aria-hidden="true" className="h-px w-7 bg-current" /> From the workshop
+            <span aria-hidden="true" className="h-px w-7 bg-current" /> Parts advice
           </p>
           <h2 id="workshop-title" className="display mt-1.5 text-[2.6rem] text-white sm:text-6xl">
-            Everything your motorcycle needs
+            Your motorcycle. The right parts.
           </h2>
           <p className="mt-3 text-on-dark sm:text-lg">
-            From routine maintenance to replacement parts, find the products you need for your ride, then confirm fit
-            with the shop before you buy.
+            Tell us your bike&apos;s model and year, or send a photo of the old part on WhatsApp. The shop checks the fit
+            before you order.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/shop" className="btn btn-primary btn-lg">
+            <WhatsAppButton
+              size="lg"
+              message={`Hello ${business.name}, I need a part for my motorcycle. Model and year: `}
+              label="Send your bike details"
+            />
+            <Link href="/shop" className="btn btn-outline-dark btn-lg">
               Explore spare parts <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-            <Link href="/categories" className="btn btn-outline-dark btn-lg">
-              Browse categories
             </Link>
           </div>
         </div>

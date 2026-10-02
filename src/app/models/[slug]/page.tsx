@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgeCheck, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { TrackView } from "@/components/analytics/Track";
-import { bikeClassLabel } from "@/components/bikes/BikeArt";
+import { BrandMark } from "@/components/brand/BrandMark";
+import { BrandRelationBadge } from "@/components/catalog/Badges";
 import { bikeClassName, CategoryImageCard, categoryShortName } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { ProductListing } from "@/components/catalog/ProductListing";
 import { ManualFacts } from "@/components/catalog/ManualFacts";
 import { VariantSpecTable } from "@/components/catalog/VariantSpecs";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
-import { BlueprintBanner } from "@/components/layout/Banners";
+import { BikeBanner } from "@/components/layout/Banners";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { business, dealershipFor } from "@/config/business";
+import { business } from "@/config/business";
 import {
   categoryPath,
   loadCatalog,
@@ -22,6 +25,8 @@ import {
   productFitsModel,
   spreadByCategory,
 } from "@/lib/catalog/catalog";
+import { pluralize } from "@/lib/format";
+import { motorcycleImage } from "@/lib/images";
 import { pageMetadata } from "@/lib/seo";
 import type { MotorcycleModel } from "@/lib/types";
 
@@ -57,7 +62,7 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
   if (!model) notFound();
 
   const brand = catalog.brandBySlug.get(model.brand);
-  const dealer = dealershipFor(model.brand);
+  const brandName = brand?.name ?? model.brand;
   const name = modelDisplayName(model, catalog.brandBySlug);
   const fits = catalog.products.filter((p) => productFitsModel(p, model.id));
   const groups = modelCategoryGroups(catalog, model.id);
@@ -70,77 +75,95 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
     ),
     4,
   );
+  const eyebrowExtras = [model.family && model.family !== model.name ? `${model.family} family` : undefined, bikeClassName(model.class)]
+    .filter(Boolean)
+    .join(" · ");
+  const spec = !model.variants?.length ? specLine(model) : undefined;
 
   return (
     <>
       <TrackView event="model_view" props={{ model: model.id }} />
-      <BlueprintBanner
-        bikeClass={model.class}
-        eyebrow={[brand?.name, model.family && model.family !== model.name ? `${model.family} family` : undefined, bikeClassName(model.class)]
-          .filter(Boolean)
-          .join(" · ")}
-        title={`${name} parts`}
+      <BikeBanner
         crumbs={[
           { label: "Motorcycles", href: "/models" },
           ...(brand ? [{ label: brand.name, href: `/brands/${brand.slug}` }] : []),
           { label: model.name, href: `/models/${model.slug}` },
         ]}
-        aside={`Line drawing of a ${bikeClassLabel(model.class)}, not the exact model`}
-        description={
+        bikeClass={model.class}
+        image={motorcycleImage(model, brandName)}
+        imageName={name}
+        imageLink={
+          model.source && (
+            <a href={model.source} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline hover:text-white">
+              Official model page <ExternalLink className="size-3.5" aria-hidden="true" />
+            </a>
+          )
+        }
+        heading={
           <>
-            Parts listed as fitting the {name}. Confirm with the shop before ordering if you are unsure of your bike&apos;s
-            version or year.
-            {dealer && (
-              <span className="mt-3 flex items-start gap-2 rounded-md border border-brand-bright/40 bg-brand-bright/10 px-3 py-2 text-sm text-on-dark">
-                <BadgeCheck className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
-                <span>
-                  {business.name} is a dealer for <strong className="text-white">{dealer.company}</strong>. Genuine{" "}
-                  {brand?.name} parts at company price.
-                </span>
+            <BrandRelationBadge brandSlug={model.brand} detail className="px-2 py-1 text-[0.8125rem]" />
+            <h1 className="mt-3">
+              <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-display text-base font-semibold uppercase tracking-[0.14em] text-brand-bright sm:text-lg">
+                <BrandMark slug={model.brand} name={brandName} className="text-[1.35rem] tracking-[0.1em] sm:text-2xl" logoClassName="h-6 sm:h-7" />
+                {eyebrowExtras && <span className="text-on-dark-muted">· {eyebrowExtras}</span>}
               </span>
-            )}
-            <span className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-on-dark-muted">
-              <span className="rounded border border-white/15 px-2 py-0.5 text-on-dark">{modelStatusLabels[model.status]}</span>
-              {model.source && (
-                <a href={model.source} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline hover:text-white">
-                  Official model page <ExternalLink className="size-3.5" aria-hidden="true" />
-                </a>
-              )}
-            </span>
-            {/* Models without a variant table still show the brake and fuel facts from their official page. */}
-            {!model.variants?.length && specLine(model) && (
-              <span className="mt-2 block text-sm text-on-dark-muted">
-                <span className="text-on-dark">Official spec:</span> {specLine(model)}
-              </span>
-            )}
+              <span className="display mt-1 block text-[3rem] text-white sm:text-7xl lg:text-[5rem]">{model.name}</span>
+              <span className="display mt-2 block text-[1.4rem] text-on-dark sm:text-3xl">Compatible spare parts</span>
+            </h1>
           </>
         }
       >
+        <p className="mt-4 max-w-xl text-[0.9375rem] text-on-dark-muted">
+          Parts listed as fitting the {name}. Confirm with the shop before ordering if you are unsure of your bike&apos;s
+          version or year.
+        </p>
+        <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-on-dark-muted">
+          <span className="rounded border border-white/15 px-2 py-0.5 text-on-dark">{modelStatusLabels[model.status]}</span>
+          {fits.length > 0 && (
+            <span>
+              <strong className="text-white">{pluralize(fits.length, "part")}</strong> listed
+            </span>
+          )}
+        </p>
+        {/* Models without a variant table still show the brake and fuel facts from their official page. */}
+        {spec && (
+          <p className="mt-2 text-sm text-on-dark-muted">
+            <span className="text-on-dark">Official spec:</span> {spec}
+          </p>
+        )}
         <div className="mt-5 flex flex-wrap gap-2">
           <WhatsAppButton message={`Hello ${business.name}, I need parts for my ${name}. `} label="Ask on WhatsApp" />
           <CallButton variant="outline-dark" label="Call the shop" />
         </div>
-      </BlueprintBanner>
+      </BikeBanner>
 
-      <div className="container-page space-y-14 py-10">
+      <div className="container-page space-y-14 py-8 sm:py-10">
         <section aria-labelledby="model-cats-title">
-          <SectionHeader
-            id="model-cats-title"
-            eyebrow="Available part categories"
-            title={`Parts for the ${model.name}`}
-            description={groups.length > 0 ? "Choose a part type to see the listings for this bike." : undefined}
-          />
+          <h2 id="model-cats-title" className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted">
+            {groups.length > 0 ? `${model.name} parts by category` : "Parts available on request"}
+          </h2>
           {groups.length > 0 ? (
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {groups.map(({ group, count }) => (
-                <li key={group.slug}>
-                  <CategoryImageCard group={group} count={count} href={`/models/${model.slug}?category=${group.slug}#parts`} />
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="scrollbar-none -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+                {groups.map(({ group, count }) => (
+                  <li key={group.slug} className="shrink-0">
+                    <Link href={`/models/${model.slug}?category=${group.slug}#parts`} className="chip gap-2 font-semibold text-ink">
+                      <CategoryIcon name={group.icon} className="size-4 text-brand" />
+                      {group.name}
+                      <span className="font-normal text-muted">{count}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              {notListed.length > 0 && (
+                <p className="mt-3 text-sm text-muted">
+                  Also available on request: {notListed.map((g) => categoryShortName(g)).join(", ")}. Ask the shop for these parts.
+                </p>
+              )}
+            </>
           ) : (
             <>
-              <div className="card mb-4 flex flex-wrap items-center justify-between gap-3 p-5">
+              <div className="card mb-4 mt-3 flex flex-wrap items-center justify-between gap-3 p-5">
                 <p className="text-[0.9375rem] text-ink">
                   <strong className="font-semibold">Parts available on request</strong>: contact {business.name} for fitment
                   for the {name}.
@@ -156,12 +179,19 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               </ul>
             </>
           )}
-          {groups.length > 0 && notListed.length > 0 && (
-            <p className="mt-3 text-sm text-muted">
-              Also available on request: {notListed.map((g) => categoryShortName(g)).join(", ")}. Ask the shop for these parts.
-            </p>
-          )}
         </section>
+
+        {popular.length > 0 && (
+          <section aria-labelledby="model-popular-title">
+            <SectionHeader
+              id="model-popular-title"
+              eyebrow="Compatible spare parts"
+              title={`Popular parts for the ${name}`}
+              action={fits.length > popular.length ? { label: `All ${fits.length} parts`, href: "#parts" } : undefined}
+            />
+            <ProductGrid products={popular} priorityCount={4} />
+          </section>
+        )}
 
         {model.variants && model.variants.length > 0 && (
           <section aria-labelledby="model-specs-title">
@@ -184,13 +214,6 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               description="Oil grade, spark plugs, battery, tyre pressures and service intervals, from the manufacturer's manual."
             />
             <ManualFacts manual={model.manual} />
-          </section>
-        )}
-
-        {popular.length > 0 && (
-          <section aria-labelledby="model-popular-title">
-            <SectionHeader id="model-popular-title" eyebrow="Popular for your bike" title={`Popular parts for the ${name}`} />
-            <ProductGrid products={popular} priorityCount={4} />
           </section>
         )}
 

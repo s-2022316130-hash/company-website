@@ -109,7 +109,7 @@ export function ModelDirectory({
       </p>
 
       {shown.length > 0 ? (
-        <ul className="mt-3 grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {shown.map((e) => (
             <li key={e.model.id}>
               <ModelCard model={e.model} brandName={e.brandName} productCount={e.productCount} categories={e.categories} />

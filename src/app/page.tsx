@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, Layers, MapPin, MessageCircle, Search } from "lucide-react";
+import { Layers, MapPin, MessageCircle, Search } from "lucide-react";
 import { BikeFinder } from "@/components/catalog/BikeFinder";
-import {
-  BrandShowroomCard,
-  CategoryImageCard,
-  categoryShortName,
-  PopularPartCard,
-} from "@/components/catalog/DirectoryCards";
+import { CategoryImageCard, categoryShortName, PopularPartCard } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { CatalogueNotice } from "@/components/catalog/CatalogueNotice";
 import { StoreContactCard } from "@/components/contact/StoreContactCard";
-import { BikesShowcase, Hero, MechanicalDna, OilsFeature, WorkshopBanner } from "@/components/home/HomeSections";
+import { BikesShowcase, BrandShowcase, GenuineParts, Hero, OilsFeature, WorkshopBanner } from "@/components/home/HomeSections";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { business } from "@/config/business";
+import { business, dealershipFor, sellsOriginalParts } from "@/config/business";
 import {
+  brandBikeClass,
+  brandFeatureModel,
+  brandsByRelation,
   categoryCounts,
   countBy,
   hasCatalogueOnly,
@@ -34,22 +31,21 @@ export const metadata: Metadata = {
 
 const searchExamples = ["Brake pad", "Pulsar 150", "FZS V4", "Chain sprocket", "Spark plug"];
 
-/** Bikes featured in the "Built around the bikes you ride" rail, in display order. */
+/** Bikes in "Parts for the bikes you ride", in display order (the list in the brief, where in the directory). */
 const showcaseModelIds = [
-  "yamaha-fzs-v4",
-  "bajaj-pulsar-150",
-  "yamaha-r15-v4",
-  "honda-shine-100",
-  "suzuki-gixxer-sf",
   "bajaj-pulsar-n160",
+  "bajaj-pulsar-150",
+  "yamaha-fzs-v4",
+  "yamaha-mt15-v2",
+  "yamaha-r15-v4",
   "honda-sp-160",
-  "tvs-apache-rtr-160-4v",
-  "hero-splendor-plus-se",
-  "hero-hunk-150r",
+  "honda-xblade",
   "suzuki-gixxer",
-  "honda-dio",
+  "tvs-apache-rtr-160-4v",
+  "tvs-raider-125",
+  "hero-hunk-150r",
+  "runner-knight-rider-150",
   "runner-bullet-100",
-  "bajaj-platina-100-es",
 ];
 
 export default async function HomePage() {
@@ -78,49 +74,35 @@ export default async function HomePage() {
   const brandName = (slug: string) => catalog.brandBySlug.get(slug)?.name ?? slug;
   const categoriesFor = (modelId: string) => modelCategoryGroups(catalog, modelId).map(({ group }) => categoryShortName(group));
 
+  const ordered = brandsByRelation(catalog);
+  const brandCards = ordered.map((b) => {
+    const brandModels = modelsForBrand(catalog, b.slug);
+    return {
+      brand: b,
+      feature: brandFeatureModel(catalog, b.slug),
+      modelNames: brandModels.slice(0, 4).map((m) => m.name),
+      modelCount: brandModels.length,
+      productCount: brandCounts.get(b.slug) ?? 0,
+    };
+  });
+  const dealerBrands = ordered.flatMap((b) => {
+    const d = dealershipFor(b.slug);
+    return d ? [{ brand: b, company: d.company }] : [];
+  });
+  const originalBrands = ordered.filter((b) => sellsOriginalParts(b.slug));
+
   return (
     <>
       {hasCatalogueOnly(catalog) && <CatalogueNotice />}
 
-      <Hero brandNames={catalog.brands.map((b) => b.name)} searchExamples={searchExamples} />
+      <Hero
+        searchExamples={searchExamples}
+        dealers={dealerBrands.map(({ brand, company }) => (brand.slug === "bajaj" ? `${company} (Bajaj)` : company))}
+        originals={originalBrands.map((b) => b.name)}
+      />
 
       <div className="container-page space-y-16 py-12 sm:space-y-20 sm:py-16">
-        <section aria-labelledby="brands-title" className="reveal">
-          <SectionHeader
-            id="brands-title"
-            eyebrow="Shop by brand"
-            title="Parts by motorcycle brand"
-            description="Pick your bike's maker to see its models and the parts listed for them."
-            action={{ label: "All brands", href: "/brands" }}
-          />
-          <ul className="scrollbar-none -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
-            {catalog.brands.map((b) => {
-              const brandModels = modelsForBrand(catalog, b.slug);
-              return (
-                <li key={b.slug} className="w-72 shrink-0 snap-start sm:w-auto">
-                  <BrandShowroomCard
-                    brand={b}
-                    modelNames={brandModels.slice(0, 4).map((m) => m.name)}
-                    modelCount={brandModels.length}
-                    productCount={brandCounts.get(b.slug) ?? 0}
-                  />
-                </li>
-              );
-            })}
-            <li className="w-72 shrink-0 snap-start sm:w-auto">
-              <Link
-                href="/models"
-                className="group flex h-full min-h-64 flex-col justify-between rounded-[0.625rem] border-2 border-dashed border-line-strong p-5 transition-colors hover:border-brand hover:bg-surface"
-              >
-                <span className="display text-3xl text-ink">Know only your model?</span>
-                <span className="text-sm text-muted">Search the motorcycle directory by name, from Shine 100 to Gixxer SF 250.</span>
-                <span className="inline-flex items-center gap-1 font-display font-semibold uppercase tracking-[0.08em] text-brand">
-                  Find your bike <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                </span>
-              </Link>
-            </li>
-          </ul>
-        </section>
+        <BrandShowcase cards={brandCards} />
 
         <section aria-labelledby="categories-title" className="reveal">
           <SectionHeader
@@ -151,14 +133,6 @@ export default async function HomePage() {
           </section>
         )}
 
-        <section aria-label="Find parts by motorcycle" className="reveal">
-          <BikeFinder
-            brands={catalog.brands.map((b) => ({ slug: b.slug, name: b.name, bikeClass: b.bikeClass }))}
-            models={catalog.models.map((m) => ({ id: m.id, brand: m.brand, name: m.name, class: m.class }))}
-            categories={catalog.groups.map((g) => ({ slug: g.slug, name: g.name }))}
-          />
-        </section>
-
         <section aria-labelledby="popular-title" className="reveal">
           <SectionHeader
             id="popular-title"
@@ -174,13 +148,21 @@ export default async function HomePage() {
             ))}
           </ul>
         </section>
+
+        <section aria-label="Find parts by motorcycle" className="reveal">
+          <BikeFinder
+            brands={ordered.map((b) => ({ slug: b.slug, name: b.name, bikeClass: brandBikeClass(catalog, b.slug) }))}
+            models={catalog.models.map((m) => ({ id: m.id, brand: m.brand, name: m.name, class: m.class }))}
+            categories={catalog.groups.map((g) => ({ slug: g.slug, name: g.name }))}
+          />
+        </section>
       </div>
 
-      <MechanicalDna />
-
-      <div className="py-12 sm:py-16">
+      <div className="pb-12 sm:pb-16">
         <BikesShowcase models={showcase} brandName={brandName} counts={modelCounts} categoriesFor={categoriesFor} />
       </div>
+
+      <GenuineParts dealers={dealerBrands} originals={originalBrands} />
 
       <WorkshopBanner />
 
@@ -200,9 +182,9 @@ export default async function HomePage() {
           <ProductGrid products={accessories} />
         </section>
 
-        <section aria-labelledby="why-title" className="reveal">
-          <SectionHeader id="why-title" eyebrow={`Why ${business.name}`} title="Why shop with us" />
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section aria-labelledby="visit-title" className="reveal">
+          <SectionHeader id="visit-title" eyebrow="Visit or call" title="Find Nirob Autos" />
+          <ul className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { icon: Layers, title: "Organised by motorcycle", text: "Parts are listed against popular brands and models, so you can start from your bike." },
               { icon: Search, title: "Easy part identification", text: "Search by part name, bike model, brand or part number, in English or common Bangla words." },
@@ -217,10 +199,6 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
-        </section>
-
-        <section aria-labelledby="visit-title" className="reveal">
-          <SectionHeader id="visit-title" eyebrow="Visit or call" title="Find Nirob Autos" />
           <StoreContactCard />
         </section>
       </div>

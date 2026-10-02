@@ -80,7 +80,7 @@ export function ProductCard({ product, priority = false }: { product: ProductVie
         <div className="mt-auto space-y-2 pt-1.5">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <PriceDisplay price={product.price} compareAtPrice={product.compareAtPrice} />
-            <AuthenticityBadge authenticity={product.authenticity} />
+            <AuthenticityBadge authenticity={product.authenticity} hideUnknown />
           </div>
           <AvailabilityBadge status={product.inventoryStatus} />
           <AddToCartButton line={toCartLine(product)} disabled={!canRequest(product.inventoryStatus)} className="relative z-10" />

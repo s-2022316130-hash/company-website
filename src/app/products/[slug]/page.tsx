@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CircleCheck, ExternalLink, Info, ScrollText } from "lucide-react";
+import { CircleCheck, ExternalLink, Info, ScrollText, ShieldCheck } from "lucide-react";
 import { TrackView } from "@/components/analytics/Track";
 import { ProductPurchase } from "@/components/cart/AddToCartButton";
 import { AuthenticityBadge, AvailabilityBadge, ConfidenceBadge, DemoBadge, PriceDisplay } from "@/components/catalog/Badges";
 import { CompatibilityList } from "@/components/catalog/CompatibilityList";
-import { categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
+import { categoryShortName, FitsBikeList, ModelCard } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { business, dealershipFor, sellsOriginalParts } from "@/config/business";
 import { absoluteUrl } from "@/config/site";
 import {
   categoryPath,
@@ -26,6 +27,40 @@ import { canRequest, CATALOGUE_DISCLAIMER, sourceTypeLabels } from "@/lib/catalo
 import { fitmentSummary, productEyebrow, toCartLine } from "@/lib/catalog/present";
 import { productEnquiryMessage } from "@/lib/order";
 import { isIndexable, pageMetadata, productJsonLd, type Crumb } from "@/lib/seo";
+import type { Brand, MotorcycleModel } from "@/lib/types";
+
+/** Bikes shown beneath the part's picture; a longer list gets its own compatibility section. */
+const FITS_SHOWN = 4;
+
+/** Variant limits and the version caution that go with a fitment list. */
+function FitmentNotes({
+  limited,
+  recommended,
+  brands,
+}: {
+  limited: { model: MotorcycleModel; variants: string[] }[];
+  recommended: boolean;
+  brands: Map<string, Brand>;
+}) {
+  return (
+    <>
+      {limited.length > 0 && (
+        <ul className="mt-3 space-y-1 text-sm text-ink">
+          {limited.map(({ model, variants }) => (
+            <li key={model.id}>
+              <span className="font-semibold">{modelDisplayName(model, brands)}:</span> only {variants.join(", ")}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-3 text-sm text-muted">
+        {recommended
+          ? "The owner's manuals of these models name this grade. Other bikes that call for the same grade can use it too."
+          : "Bikes can differ between versions and years. If you are not sure, tell us your bike's model and year before ordering."}
+      </p>
+    </>
+  );
+}
 
 export async function generateStaticParams() {
   const { products } = await loadCatalog();
@@ -76,7 +111,14 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
     .map((m) => ({ model: m, variants: variantsFor(product, m) }))
     .filter((x) => x.variants.length > 0);
   const recommended = product.fitment === "universal" && product.models.length > 0;
+  const listedBikes = product.fitment === "unconfirmed" ? [] : product.models;
+  const shortFitList = listedBikes.length > 0 && listedBikes.length <= FITS_SHOWN;
   const enquiry = productEnquiryMessage(product.name, absoluteUrl(`/products/${product.slug}`));
+  const brandName = (slug: string) => catalog.brandBySlug.get(slug)?.name ?? slug;
+  // Brand note for parts listed for one brand's bikes: authorized dealer or original parts.
+  const onlyBrand = product.fitment === "model-specific" && product.brands.length === 1 ? product.brands[0] : undefined;
+  const dealer = onlyBrand ? dealershipFor(onlyBrand.slug) : undefined;
+  const originalBrand = onlyBrand && !dealer && sellsOriginalParts(onlyBrand.slug) ? onlyBrand : undefined;
 
   return (
     <>
@@ -87,14 +129,30 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
         <Breadcrumbs items={crumbs} />
 
         <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
-          <ProductGallery
-            images={product.images}
-            fallback={product.displayImage}
-            art={product.art}
-            icon={product.categoryIcon}
-            label={product.subcategoryName ?? product.categoryName}
-            name={product.name}
-          />
+          <div className="min-w-0 space-y-5">
+            <ProductGallery
+              images={product.images}
+              fallback={product.displayImage}
+              art={product.art}
+              icon={product.categoryIcon}
+              label={product.subcategoryName ?? product.categoryName}
+              name={product.name}
+            />
+            {/* The picture shows the part; the bikes it fits are shown beneath it, never in its place.
+                A short list is the whole compatibility section; a long one continues further down. */}
+            {listedBikes.length > 0 && (
+              <div id={shortFitList ? "compatibility" : undefined} className="scroll-mt-40">
+                <FitsBikeList
+                  title={recommended ? "Recommended by the manufacturer for" : "Fits"}
+                  models={listedBikes.slice(0, FITS_SHOWN)}
+                  brandName={brandName}
+                  moreCount={listedBikes.length - Math.min(listedBikes.length, FITS_SHOWN)}
+                  moreHref="#compatibility"
+                />
+                {shortFitList && <FitmentNotes limited={limited} recommended={recommended} brands={catalog.brandBySlug} />}
+              </div>
+            )}
+          </div>
 
           <div className="min-w-0">
             <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted">{productEyebrow(product)}</p>
@@ -135,6 +193,21 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
                 <AvailabilityBadge status={product.inventoryStatus} className="text-sm" />
               </div>
               {product.inventoryStatus === "catalogue-only" && <p className="-mt-1 text-sm text-muted">{CATALOGUE_DISCLAIMER}</p>}
+              {(dealer || originalBrand) && (
+                <p className="flex items-start gap-2 text-sm text-ink">
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" />
+                  <span>
+                    {dealer ? (
+                      <>
+                        {business.name} is an authorized dealer of <strong className="font-semibold">{dealer.company}</strong>: genuine{" "}
+                        {onlyBrand?.name} parts at company price. Ask for the genuine part when you order.
+                      </>
+                    ) : (
+                      <>{business.name} sells original {originalBrand?.name} parts. Ask for the original part when you order.</>
+                    )}
+                  </span>
+                </p>
+              )}
 
               <p className="flex items-start gap-2 rounded-lg bg-steel-soft p-3 text-sm text-ink">
                 <CircleCheck className="mt-0.5 size-4 shrink-0 text-steel" aria-hidden="true" />
@@ -178,51 +251,36 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
           </div>
         </div>
 
-        <section id="compatibility" aria-labelledby="compat-title" className="mt-12 scroll-mt-40">
-          <SectionHeader
-            id="compat-title"
-            eyebrow="Compatibility"
-            title={recommended ? "Recommended by the manufacturer for" : "Fits these bikes"}
-            description={
-              recommended
-                ? "The owner's manuals of these models name this grade. Other bikes that call for the same grade can use it too."
-                : undefined
-            }
-          />
-          {product.models.length > 0 ? (
-            <>
-              <ul className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {product.models.map((m) => (
-                  <li key={m.id}>
-                    <ModelCard
-                      model={m}
-                      brandName={catalog.brandBySlug.get(m.brand)?.name ?? m.brand}
-                      productCount={modelCounts.get(m.id) ?? 0}
-                      categories={modelCategoryGroups(catalog, m.id).map(({ group }) => categoryShortName(group))}
-                    />
-                  </li>
-                ))}
-              </ul>
-              {limited.length > 0 && (
-                <ul className="mt-3 space-y-1 text-sm text-ink">
-                  {limited.map(({ model, variants }) => (
-                    <li key={model.id}>
-                      <span className="font-semibold">{modelDisplayName(model, catalog.brandBySlug)}:</span> only {variants.join(", ")}
+        {!shortFitList && (
+          <section id="compatibility" aria-labelledby="compat-title" className="mt-12 scroll-mt-40">
+            <SectionHeader
+              id="compat-title"
+              eyebrow="Compatibility"
+              title={recommended ? "Recommended by the manufacturer for" : "Fits these bikes"}
+            />
+            {product.models.length > 0 ? (
+              <>
+                <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                  {product.models.map((m) => (
+                    <li key={m.id}>
+                      <ModelCard
+                        model={m}
+                        brandName={brandName(m.brand)}
+                        productCount={modelCounts.get(m.id) ?? 0}
+                        categories={modelCategoryGroups(catalog, m.id).map(({ group }) => categoryShortName(group))}
+                      />
                     </li>
                   ))}
                 </ul>
-              )}
-              <p className="mt-3 text-sm text-muted">
-                Bikes can differ between versions and years. If you are not sure, tell us your bike&apos;s model and year
-                before ordering.
-              </p>
-            </>
-          ) : (
-            <div className="card p-5">
-              <CompatibilityList product={product} />
-            </div>
-          )}
-        </section>
+                <FitmentNotes limited={limited} recommended={recommended} brands={catalog.brandBySlug} />
+              </>
+            ) : (
+              <div className="card p-5">
+                <CompatibilityList product={product} />
+              </div>
+            )}
+          </section>
+        )}
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
           <section aria-labelledby="details-title" className="card p-5 lg:col-span-2">

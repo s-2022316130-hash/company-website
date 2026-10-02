@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Bike, History, LayoutGrid, Package, Search, X } from "lucide-react";
 import { BikeArt } from "@/components/bikes/BikeArt";
+import { PartArt } from "@/components/parts/PartArt";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { track } from "@/lib/analytics";
 import { cx } from "@/lib/cx";
@@ -34,7 +35,7 @@ function saveRecent(query: string) {
 
 const kindIcon = { product: Package, model: Bike, category: LayoutGrid, search: Search } as const;
 
-/** Thumbnail for a suggestion row: product/category photo, bike drawing or icon. */
+/** Thumbnail for a suggestion row: product/category photo, part illustration, bike drawing (models only) or icon. */
 function SuggestionThumbnail({ s, recent }: { s: Suggestion; recent: boolean }) {
   const Icon = recent ? History : kindIcon[s.kind];
   const box = "grid size-10 shrink-0 place-items-center overflow-hidden rounded-md";
@@ -42,6 +43,13 @@ function SuggestionThumbnail({ s, recent }: { s: Suggestion; recent: boolean }) 
     return (
       <span className={cx(box, "relative bg-graphite")}>
         <Image src={s.thumb.src} alt="" fill sizes="40px" className="object-cover" />
+      </span>
+    );
+  }
+  if (!recent && s.thumb?.kind === "art") {
+    return (
+      <span className={cx(box, "blueprint text-on-dark")}>
+        <PartArt kind={s.thumb.art} className="w-9" />
       </span>
     );
   }

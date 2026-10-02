@@ -1,6 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { loadCatalog, modelDisplayName } from "@/lib/catalog/catalog";
-import { buildSearchIndex, searchProducts, suggestDirectory, type Suggestion } from "@/lib/catalog/search";
+import { loadCatalog } from "@/lib/catalog/catalog";
+import {
+  buildSearchIndex,
+  productSublabel,
+  productThumb,
+  searchProducts,
+  suggestDirectory,
+  type Suggestion,
+} from "@/lib/catalog/search";
 
 /** Instant suggestions for the search box: matching models and categories first, then products. */
 export async function GET(request: NextRequest) {
@@ -16,18 +23,9 @@ export async function GET(request: NextRequest) {
       ? result.hits.slice(0, 5).map(({ product }) => ({
           kind: "product",
           label: product.name,
-          sublabel: [
-            product.brands.length === 1 ? product.brands[0].name : undefined,
-            product.models.length > 0 ? `fits ${modelDisplayName(product.models[0], catalog.brandBySlug)}` : product.subcategoryName,
-          ]
-            .filter(Boolean)
-            .join(" · "),
+          sublabel: productSublabel(product),
           href: `/products/${product.slug}`,
-          thumb: product.displayImage
-            ? { kind: "photo", src: product.displayImage.src }
-            : product.models[0]
-              ? { kind: "bike", bikeClass: product.models[0].class }
-              : { kind: "icon", icon: product.categoryIcon },
+          thumb: productThumb(product),
         }))
       : [];
 

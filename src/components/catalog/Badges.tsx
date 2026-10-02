@@ -1,6 +1,6 @@
-import { BadgeCheck, CircleHelp, FlaskConical } from "lucide-react";
-import { dealershipFor, sellsOriginalParts } from "@/config/business";
-import { authenticityLabels, CATALOGUE_DISCLAIMER, confidenceLabels, inventoryStatusLabels } from "@/lib/catalog/labels";
+import { BadgeCheck, CircleHelp, FlaskConical, ShieldCheck } from "lucide-react";
+import { business, dealershipFor, sellsOriginalParts } from "@/config/business";
+import { authenticityBadgeLabels, CATALOGUE_DISCLAIMER, confidenceLabels, inventoryStatusLabels } from "@/lib/catalog/labels";
 import { cx } from "@/lib/cx";
 import { formatPrice } from "@/lib/format";
 import type { Authenticity, CompatibilityConfidence, InventoryStatus } from "@/lib/types";
@@ -69,34 +69,72 @@ export function PriceDisplay({
   );
 }
 
-/** Only rendered when the shop has verified it; "unknown" shows nothing. */
-export function AuthenticityBadge({ authenticity }: { authenticity: Authenticity }) {
-  if (authenticity === "unknown") return null;
+const authenticityStyles: Record<Authenticity, string> = {
+  genuine: "border-success/30 bg-success-soft text-success",
+  oem: "border-success/30 bg-success-soft text-success",
+  aftermarket: "border-line-strong bg-surface text-steel",
+  compatible: "border-line-strong bg-surface text-steel",
+  unknown: "border-dashed border-line-strong bg-surface text-muted",
+};
+
+/**
+ * Genuine, OEM, aftermarket or compatible, as recorded by the shop. An unchecked item reads
+ * "Contact store" and never implies genuine. `hideUnknown` keeps product cards uncluttered.
+ */
+export function AuthenticityBadge({ authenticity, hideUnknown = false }: { authenticity: Authenticity; hideUnknown?: boolean }) {
+  if (authenticity === "unknown" && hideUnknown) return null;
+  const Icon = authenticity === "genuine" ? ShieldCheck : authenticity === "unknown" ? CircleHelp : BadgeCheck;
   return (
-    <span className="inline-flex items-center rounded border border-line-strong bg-surface px-1.5 py-0.5 text-xs font-semibold text-steel">
-      {authenticityLabels[authenticity]}
+    <span
+      className={cx("inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-semibold", authenticityStyles[authenticity])}
+      title={authenticity === "unknown" ? "Genuine, OEM or aftermarket? Contact the store before you order." : undefined}
+    >
+      <Icon className="size-3.5 shrink-0" aria-hidden="true" />
+      {authenticity === "unknown" && <span className="font-medium">Authenticity:</span>}
+      {authenticityBadgeLabels[authenticity]}
     </span>
   );
 }
 
 /**
- * What the shop states about a motorcycle brand, from its business card: dealer (genuine parts at
- * company price) or original parts. Renders nothing for other brands.
+ * What the shop states about a motorcycle brand, from its business card: authorized dealer (genuine
+ * parts at company price) or original parts. Renders nothing for other brands. `detail` adds the
+ * dealership company when it differs from the brand name, e.g. "Authorized dealer · Uttara Motors".
  */
-export function BrandRelationBadge({ brandSlug, className }: { brandSlug: string; className?: string }) {
+export function BrandRelationBadge({
+  brandSlug,
+  detail = false,
+  tone = "dark",
+  className,
+}: {
+  brandSlug: string;
+  detail?: boolean;
+  tone?: "dark" | "light";
+  className?: string;
+}) {
   const dealer = dealershipFor(brandSlug);
   if (!dealer && !sellsOriginalParts(brandSlug)) return null;
+  const showCompany = detail && dealer && dealer.company.toLowerCase() !== brandSlug;
   return (
     <span
       className={cx(
         "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold",
-        dealer ? "bg-brand-bright text-white" : "border border-white/20 bg-black/40 text-on-dark",
+        dealer
+          ? "bg-brand-bright text-white"
+          : tone === "dark"
+            ? "border border-white/25 bg-black/40 text-on-dark"
+            : "border border-line-strong bg-surface text-steel",
         className,
       )}
-      title={dealer ? `Dealer for ${dealer.company}: genuine parts at company price` : "Original parts sold"}
+      title={
+        dealer
+          ? `${business.name} is an authorized dealer of ${dealer.company}${"note" in dealer ? ` (${dealer.note})` : ""}: genuine parts at company price`
+          : `${business.name} sells original parts for this brand`
+      }
     >
-      <BadgeCheck className="size-3" aria-hidden="true" />
-      {dealer ? "Dealer · genuine parts" : "Original parts"}
+      {dealer ? <ShieldCheck className="size-3.5" aria-hidden="true" /> : <BadgeCheck className="size-3.5" aria-hidden="true" />}
+      {dealer ? "Authorized dealer" : "Original parts"}
+      {showCompany && <span className="font-medium opacity-90">· {dealer.company}</span>}
     </span>
   );
 }
