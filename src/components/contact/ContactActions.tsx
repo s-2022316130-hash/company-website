@@ -4,12 +4,13 @@ import { business, primaryWhatsApp, type WhatsAppNumber } from "@/config/busines
 import { cx } from "@/lib/cx";
 import { whatsAppUrl } from "@/lib/order";
 
-type Variant = "primary" | "outline" | "dark";
+type Variant = "primary" | "outline" | "dark" | "outline-dark";
 
 const variantClass: Record<Variant, string> = {
   primary: "btn-primary",
   outline: "btn-outline",
   dark: "btn-dark",
+  "outline-dark": "btn-outline-dark",
 };
 
 export function CallButton({

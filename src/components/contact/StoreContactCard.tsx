@@ -1,15 +1,20 @@
 import { Clock, MapPin, MessageCircle, Phone, Store, Truck } from "lucide-react";
+import { GearRing } from "@/components/ui/Mechanical";
 import { business } from "@/config/business";
 import { CallButton, DirectionsButton, WhatsAppButton } from "./ContactActions";
 
-/** Store details with call / WhatsApp / directions actions. Everything comes from config/business.ts. */
+/**
+ * Store details with call / WhatsApp / directions actions, on a dark panel.
+ * Everything comes from config/business.ts. No storefront photo is shown because none has
+ * been supplied; a stock photo of another shop would be misleading.
+ */
 export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
   return (
-    <div className="card grid overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <div className="space-y-5 p-5 sm:p-6">
+    <div className="card-dark grid overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="space-y-5 p-5 sm:p-7">
         <div>
-          <p className="font-display text-2xl font-bold text-ink">{business.name}</p>
-          <p lang="bn" className="text-muted">
+          <p className="display text-3xl text-white">{business.name}</p>
+          <p lang="bn" className="text-on-dark-muted">
             {business.banglaName}
           </p>
         </div>
@@ -23,13 +28,13 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
           <Row icon={Phone} label="Phone">
             <span className="block">
               Orders:{" "}
-              <a href={`tel:${business.phones.orders.e164}`} className="font-semibold text-brand hover:underline">
+              <a href={`tel:${business.phones.orders.e164}`} className="font-semibold text-brand-bright hover:underline">
                 {business.phones.orders.display}
               </a>
             </span>
             <span className="block">
               Store:{" "}
-              <a href={`tel:${business.phones.store.e164}`} className="font-semibold text-brand hover:underline">
+              <a href={`tel:${business.phones.store.e164}`} className="font-semibold text-brand-bright hover:underline">
                 {business.phones.store.display}
               </a>
             </span>
@@ -41,7 +46,7 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
                 href={`https://wa.me/${w.waId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block font-semibold text-whatsapp hover:underline"
+                className="block font-semibold text-[#4ade80] hover:underline"
               >
                 {w.display}
               </a>
@@ -60,7 +65,7 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
           <DirectionsButton />
         </div>
       </div>
-      <div className="tech-grid min-h-56 border-t border-line md:border-l md:border-t-0">
+      <div className="blueprint relative min-h-60 border-t border-graphite-3 md:border-l md:border-t-0">
         {showMap && business.mapEmbedUrl ? (
           <iframe
             src={business.mapEmbedUrl}
@@ -70,12 +75,14 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
             referrerPolicy="no-referrer-when-downgrade"
           />
         ) : (
-          <div className="flex size-full min-h-56 flex-col items-center justify-center gap-3 p-6 text-center">
-            <MapPin className="size-10 text-brand" aria-hidden="true" />
-            <p className="max-w-xs text-sm text-muted">
-              {business.address.full}. Open Google Maps for directions to the shop.
-            </p>
-            <DirectionsButton size="sm" />
+          <div className="relative flex size-full min-h-60 flex-col items-center justify-center gap-3 overflow-hidden p-6 text-center">
+            <GearRing teeth={28} className="absolute size-72 text-white/[0.06]" />
+            <span className="relative grid size-14 place-items-center rounded-full bg-brand text-white shadow-[0_0_0_10px_rgb(194_65_12/0.2)]">
+              <MapPin className="size-7" aria-hidden="true" />
+            </span>
+            <p className="display relative text-2xl text-white">{business.address.full}</p>
+            <p className="relative max-w-xs text-sm text-on-dark-muted">Open Google Maps for directions to the shop.</p>
+            <DirectionsButton size="sm" className="relative" />
           </div>
         )}
       </div>
@@ -86,10 +93,10 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
 function Row({ icon: Icon, label, children }: { icon: typeof MapPin; label: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-3">
-      <Icon className="mt-0.5 size-5 shrink-0 text-steel" aria-hidden="true" />
+      <Icon className="mt-0.5 size-5 shrink-0 text-brand-bright" aria-hidden="true" />
       <div>
-        <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</dt>
-        <dd className="text-ink">{children}</dd>
+        <dt className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-on-dark-muted">{label}</dt>
+        <dd className="text-on-dark">{children}</dd>
       </div>
     </div>
   );

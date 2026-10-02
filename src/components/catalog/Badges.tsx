@@ -68,10 +68,10 @@ export function SampleBadge({ className }: { className?: string }) {
         "inline-flex items-center gap-1 rounded border border-warning/30 bg-warning-soft px-1.5 py-0.5 text-xs font-semibold text-warning",
         className,
       )}
-      title="Development sample, not confirmed store inventory"
+      title="Demo catalogue entry, not confirmed store stock"
     >
       <FlaskConical className="size-3" aria-hidden="true" />
-      Sample listing
+      Demo catalogue
     </span>
   );
 }

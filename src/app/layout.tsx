@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, Inter, Noto_Sans_Bengali } from "next/font/google";
+import { Barlow_Condensed, Inter, Noto_Sans_Bengali } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileActionBar } from "@/components/layout/HeaderClient";
@@ -9,10 +9,11 @@ import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
 
-const barlow = Barlow({
-  variable: "--font-barlow",
+// Condensed display face for headings: reads as technical / workshop signage.
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow-condensed",
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -41,12 +42,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2b3440",
+  themeColor: "#0e1115",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${barlow.variable} ${bengali.variable} antialiased`}>
+    <html lang="en" className={`${inter.variable} ${barlowCondensed.variable} ${bengali.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <a
           href="#main"
