@@ -1,14 +1,24 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ExternalLink } from "lucide-react";
 import { TrackView } from "@/components/analytics/Track";
+import { bikeClassLabel } from "@/components/bikes/BikeArt";
+import { bikeClassName, CategoryImageCard, categoryShortName } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { ProductListing } from "@/components/catalog/ProductListing";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { BlueprintBanner } from "@/components/layout/Banners";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { business } from "@/config/business";
-import { categoryCounts, loadCatalog, modelDisplayName, productFitsModel } from "@/lib/catalog/catalog";
+import {
+  loadCatalog,
+  modelCategoryGroups,
+  modelDisplayName,
+  modelStatusLabels,
+  popularForModel,
+  productFitsModel,
+  spreadByCategory,
+} from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(props: PageProps<"/models/[slug]">): Promise<Metadata> {
@@ -33,64 +43,110 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
   const brand = catalog.brandBySlug.get(model.brand);
   const name = modelDisplayName(model, catalog.brandBySlug);
   const fits = catalog.products.filter((p) => productFitsModel(p, model.id));
-  const counts = categoryCounts(fits);
-  const groupsWithParts = catalog.groups.filter((g) => counts.has(g.slug));
+  const groups = modelCategoryGroups(catalog, model.id);
+  const notListed = catalog.groups.filter((g) => !groups.some((x) => x.group.slug === g.slug));
+  const popular = popularForModel(catalog, model.id, 8);
   // Not model-specific maintenance items and accessories, clearly labelled as such.
-  const maintenance = catalog.products
-    .filter((p) => p.fitment === "universal" && (p.category === "oils-fluids" || p.category === "accessories"))
-    .slice(0, 4);
+  const maintenance = spreadByCategory(
+    catalog.products.filter(
+      (p) => p.fitment === "universal" && (p.category === "oils-fluids" || p.category === "accessories"),
+    ),
+    4,
+  );
 
   return (
     <>
       <TrackView event="model_view" props={{ model: model.id }} />
-      <PageHeader
+      <BlueprintBanner
+        bikeClass={model.class}
+        eyebrow={`${brand?.name ?? ""} · ${bikeClassName(model.class)}`}
         title={`${name} parts`}
-        description={`Parts listed as fitting the ${name}. Confirm with the store before ordering if you are unsure of your bike's version.`}
         crumbs={[
           { label: "Motorcycles", href: "/models" },
           ...(brand ? [{ label: brand.name, href: `/brands/${brand.slug}` }] : []),
           { label: model.name, href: `/models/${model.slug}` },
         ]}
+        aside={`Line drawing of a ${bikeClassLabel(model.class)}, not the exact model`}
+        description={
+          <>
+            Parts listed as fitting the {name}. Confirm with the shop before ordering if you are unsure of your bike&apos;s
+            version or year.
+            <span className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-on-dark-muted">
+              <span className="rounded border border-white/15 px-2 py-0.5 text-on-dark">{modelStatusLabels[model.status]}</span>
+              {model.source && (
+                <a href={model.source} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline hover:text-white">
+                  Official model page <ExternalLink className="size-3.5" aria-hidden="true" />
+                </a>
+              )}
+            </span>
+          </>
+        }
       >
-        {groupsWithParts.length > 0 && (
-          <ul className="mt-5 flex flex-wrap gap-2" aria-label="Part types for this bike">
-            {groupsWithParts.map((g) => (
-              <li key={g.slug}>
-                <Link href={`/part-finder?brand=${model.brand}&model=${model.id}&category=${g.slug}`} className="chip">
-                  {g.name}
-                  <span className="text-xs text-muted">{counts.get(g.slug)}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <WhatsAppButton message={`Hello ${business.name}, I need parts for my ${name}. `} label="Ask on WhatsApp" />
+          <CallButton variant="outline-dark" label="Call the shop" />
+        </div>
+      </BlueprintBanner>
+
+      <div className="container-page space-y-14 py-10">
+        <section aria-labelledby="model-cats-title">
+          <SectionHeader
+            id="model-cats-title"
+            eyebrow="Available part categories"
+            title={`Parts for the ${model.name}`}
+            description={groups.length > 0 ? "Choose a part type to see the listings for this bike." : undefined}
+          />
+          {groups.length > 0 ? (
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {groups.map(({ group, count }) => (
+                <li key={group.slug}>
+                  <CategoryImageCard group={group} count={count} href={`/models/${model.slug}?category=${group.slug}#parts`} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="card p-6">
+              <p className="display text-2xl text-ink">No parts listed online for the {name} yet</p>
+              <p className="mt-1 text-sm text-muted">
+                The online catalogue is still being filled in. The shop may well have what you need: ask by WhatsApp or phone.
+              </p>
+            </div>
+          )}
+          {groups.length > 0 && notListed.length > 0 && (
+            <p className="mt-3 text-sm text-muted">
+              Not listed online yet: {notListed.map((g) => categoryShortName(g)).join(", ")}. Ask the shop about these.
+            </p>
+          )}
+        </section>
+
+        {popular.length > 0 && (
+          <section aria-labelledby="model-popular-title">
+            <SectionHeader id="model-popular-title" eyebrow="Popular for your bike" title={`Popular parts for the ${name}`} />
+            <ProductGrid products={popular} priorityCount={4} />
+          </section>
         )}
-      </PageHeader>
 
-      <div className="container-page space-y-12 py-6">
-        <ProductListing
-          basePath={`/models/${model.slug}`}
-          searchParams={searchParams}
-          scope={{ model: model.id }}
-          emptyTitle={`No parts listed for the ${name} yet`}
-          emptyDescription={`The online catalogue does not list ${name} parts yet, but the store may have them. Ask by phone or WhatsApp.`}
-        />
-
-        {fits.length === 0 && (
-          <div className="flex flex-wrap justify-center gap-2">
-            <WhatsAppButton
-              message={`Hello ${business.name}, I need parts for my ${name}. `}
-              label={`Ask about ${model.name} parts`}
+        {fits.length > popular.length && (
+          <section id="parts" aria-labelledby="model-all-title" className="scroll-mt-40">
+            <SectionHeader id="model-all-title" eyebrow="Catalogue" title={`All ${model.name} parts`} />
+            <ProductListing
+              basePath={`/models/${model.slug}`}
+              searchParams={searchParams}
+              scope={{ model: model.id }}
+              emptyTitle={`No parts listed for the ${name} yet`}
+              emptyDescription={`The online catalogue does not list ${name} parts yet, but the shop may have them. Ask by phone or WhatsApp.`}
             />
-            <CallButton variant="outline" />
-          </div>
+          </section>
         )}
+        {fits.length > 0 && fits.length <= popular.length && <div id="parts" />}
 
         {maintenance.length > 0 && (
           <section aria-labelledby="maint-title">
             <SectionHeader
               id="maint-title"
-              title="Maintenance products & accessories"
-              description="These are not specific to one model. Ask the store which grade or size suits your bike."
+              eyebrow="Maintenance & accessories"
+              title="For every bike"
+              description="These are not specific to one model. Ask the shop which grade or size suits your bike."
               action={{ label: "Engine oil & fluids", href: "/engine-oil" }}
             />
             <ProductGrid products={maintenance} />

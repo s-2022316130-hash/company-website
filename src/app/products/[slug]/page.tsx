@@ -5,6 +5,7 @@ import { TrackView } from "@/components/analytics/Track";
 import { ProductPurchase } from "@/components/cart/AddToCartButton";
 import { AvailabilityBadge, PriceDisplay, ProductTypeBadge, SampleBadge } from "@/components/catalog/Badges";
 import { CompatibilityList } from "@/components/catalog/CompatibilityList";
+import { categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
@@ -12,7 +13,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { absoluteUrl } from "@/config/site";
-import { categoryPath, loadCatalog, relatedProducts } from "@/lib/catalog/catalog";
+import { categoryPath, countBy, loadCatalog, modelCategoryGroups, relatedProducts } from "@/lib/catalog/catalog";
 import { canRequest } from "@/lib/catalog/labels";
 import { fitmentSummary, productEyebrow, toCartLine } from "@/lib/catalog/present";
 import { productEnquiryMessage } from "@/lib/order";
@@ -36,7 +37,7 @@ export async function generateMetadata(props: PageProps<"/products/[slug]">): Pr
       product.shortDescription ??
       `${product.name}. ${fit}. Check price and availability with Nirob Autos, Madhupur.`,
     path: `/products/${product.slug}`,
-    // Sample records are placeholders, not real stock: keep them out of search engines.
+    // Demo catalogue records are not real stock: keep them out of search engines.
     noindex: product.isSample,
   });
   if (product.images[0]) {
@@ -60,6 +61,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
     { label: product.name, href: `/products/${product.slug}` },
   ];
   const rails = relatedProducts(catalog, product);
+  const modelCounts = countBy(catalog.products, (p) => p.compatibleModels);
   const requestable = canRequest(product.stockStatus);
   const enquiry = productEnquiryMessage(product.name, absoluteUrl(`/products/${product.slug}`));
 
@@ -72,13 +74,18 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
         <Breadcrumbs items={crumbs} />
 
         <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
-          <ProductGallery images={product.images} icon={product.categoryIcon} name={product.name} />
+          <ProductGallery
+            images={product.images}
+            fallback={product.displayImage}
+            icon={product.categoryIcon}
+            bikeClass={product.models[0]?.class}
+            label={product.subcategoryName ?? product.categoryName}
+            name={product.name}
+          />
 
           <div className="min-w-0">
-            <p className="text-sm font-medium uppercase tracking-wide text-muted">{productEyebrow(product)}</p>
-            <h1 className="mt-1 font-display text-[1.75rem] font-bold leading-tight tracking-tight text-ink sm:text-4xl">
-              {product.name}
-            </h1>
+            <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted">{productEyebrow(product)}</p>
+            <h1 className="display mt-1 text-[2.25rem] text-ink sm:text-5xl">{product.name}</h1>
             {product.nameBn && (
               <p lang="bn" className="mt-1 text-lg text-muted">
                 {product.nameBn}
@@ -142,16 +149,37 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
-          <section id="compatibility" aria-labelledby="compat-title" className="card scroll-mt-40 p-5">
-            <h2 id="compat-title" className="mb-4 font-display text-xl font-bold text-ink">
-              Compatible motorcycles
-            </h2>
-            <CompatibilityList product={product} />
-          </section>
+        <section id="compatibility" aria-labelledby="compat-title" className="mt-12 scroll-mt-40">
+          <SectionHeader id="compat-title" eyebrow="Compatibility" title="Fits these bikes" />
+          {product.models.length > 0 ? (
+            <>
+              <ul className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {product.models.map((m) => (
+                  <li key={m.id}>
+                    <ModelCard
+                      model={m}
+                      brandName={catalog.brandBySlug.get(m.brand)?.name ?? m.brand}
+                      productCount={modelCounts.get(m.id) ?? 0}
+                      categories={modelCategoryGroups(catalog, m.id).map(({ group }) => categoryShortName(group))}
+                    />
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-sm text-muted">
+                Bikes can differ between versions and years. If you are not sure, tell us your bike&apos;s model and year
+                before ordering.
+              </p>
+            </>
+          ) : (
+            <div className="card p-5">
+              <CompatibilityList product={product} />
+            </div>
+          )}
+        </section>
 
-          <section aria-labelledby="details-title" className="card p-5">
-            <h2 id="details-title" className="mb-3 font-display text-xl font-bold text-ink">
+        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
+          <section aria-labelledby="details-title" className="card p-5 lg:col-span-2">
+            <h2 id="details-title" className="display mb-3 text-2xl text-ink">
               Product details
             </h2>
             {product.description || product.shortDescription ? (
