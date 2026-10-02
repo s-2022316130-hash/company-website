@@ -78,6 +78,80 @@ export interface MotorcycleModel {
   description?: string;
   /** Extra spellings customers type, e.g. "fz v4". */
   aliases?: string[];
+  /** Official per-variant specifications, where they have been collected. */
+  variants?: VariantSpec[];
+  /** Maintenance facts from the official owner's manual, where it has been read. */
+  manual?: OwnerManualFacts;
+}
+
+/**
+ * Parts-relevant maintenance facts restated from an official owner's manual (no copied text or images).
+ * A manual can be an older edition than the current line-up, so these sit apart from `variants`.
+ */
+export interface OwnerManualFacts {
+  /** Models and edition the manual covers, as printed. */
+  covers: string;
+  /** Official PDF. */
+  source: string;
+  checked: string;
+  engineOil?: {
+    grade: string;
+    /** Oil to add at a routine oil change. */
+    serviceFillMl?: number;
+    overhaulFillMl?: number;
+    changeEvery?: string;
+    topUpEvery?: string;
+  };
+  sparkPlug?: { types: string; count?: number; gap?: string };
+  battery?: string;
+  brakeFluid?: string;
+  /** Wear-part replacement intervals as stated, e.g. "Brake shoes and pads: every 15,000 km". */
+  replaceIntervals?: string[];
+  tyrePressurePsi?: { front: number; rearSolo: number; rearPillion: number };
+  chain?: { slackMm: string; lubrication?: string };
+  bulbs?: { label: string; value: string }[];
+  fuelSystem?: FuelSystem;
+  /** Service visits, e.g. "500–750 km, 4,500–5,000 km, 9,500–10,000 km, then every 5,000 km". */
+  serviceSchedule?: string;
+  /** Contradictions or gaps in the manual itself. */
+  notes?: string[];
+}
+
+export type Cooling = "air" | "oil" | "liquid";
+
+export interface BrakeSpec {
+  type: BrakeType;
+  sizeMm?: number;
+}
+
+/**
+ * One variant's published specification, restated from the official spec page (facts only, no copied
+ * text). Fields are left out when the page doesn't state them or contradicts itself.
+ */
+export interface VariantSpec {
+  /** Variant name as the official site titles it, e.g. "Pulsar 150 TD ABS". */
+  name: string;
+  /** Official spec page. */
+  source: string;
+  /** Date the page was read, YYYY-MM-DD. */
+  checked: string;
+  engineCc?: number;
+  valves?: number;
+  fuel?: FuelSystem;
+  cooling?: Cooling;
+  /** True only when the page says the brakes have ABS. */
+  abs?: boolean;
+  frontBrake?: BrakeSpec;
+  rearBrake?: BrakeSpec;
+  /** Size as published, e.g. "80/100-17 46P, tubeless". */
+  frontTyre?: string;
+  rearTyre?: string;
+  frontSuspension?: string;
+  rearSuspension?: string;
+  battery?: string;
+  gears?: number;
+  /** Shown with the table, e.g. when the official page contradicts itself. */
+  note?: string;
 }
 
 export type CategoryIcon =

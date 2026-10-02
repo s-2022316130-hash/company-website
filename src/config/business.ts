@@ -24,14 +24,37 @@ export const business = {
   description:
     "Motorcycle spare parts, maintenance products and accessories for popular bike brands, from our store in Madhupur.",
 
+  /** Proprietor, as printed on the shop's business card. */
+  proprietor: "Basir Uddin Ahmed",
+
+  /** Business card address, with the N401 road number the owner gave earlier. */
   address: {
-    street: "N401",
+    street: "Mymensingh Road (N401), Natun Bazar",
     locality: "Madhupur",
+    region: "Tangail",
     country: "Bangladesh",
     countryCode: "BD",
     /** One line, for display. */
-    full: "N401, Madhupur, Bangladesh",
+    full: "Mymensingh Road (N401), Natun Bazar, Madhupur, Tangail",
+    /** For tight spaces such as the top bar. */
+    short: "Natun Bazar, Madhupur, Tangail",
   },
+
+  /**
+   * Dealerships printed on the shop's business card (shown by the owner, 2026-10-02):
+   * dealer for these companies, selling their genuine parts at company price.
+   * `brand` links each one to the motorcycle brand it supplies parts for.
+   * The card prints "Hero Honda", the brand's name before 2011; the owner asked for it to read "Hero".
+   */
+  dealerships: [
+    { company: "Uttara Motors", brand: "bajaj", note: "Bajaj distributor in Bangladesh" },
+    { company: "TVS Motors", brand: "tvs" },
+    { company: "Runner Automobiles", brand: "runner" },
+    { company: "Hero", brand: "hero" },
+  ],
+
+  /** Card: "all kinds of original parts of Yamaha, Suzuki and Honda sold at affordable prices". Not a dealership. */
+  originalPartsBrands: ["yamaha", "suzuki", "honda"],
 
   phones: {
     /** Number customers should call to place or confirm an order. */
@@ -57,7 +80,7 @@ export const business = {
   fulfilment: {
     pickup: {
       label: "Store pickup",
-      description: "Collect from our shop at N401, Madhupur.",
+      description: "Collect from our shop on Mymensingh Road (N401), Natun Bazar, Madhupur.",
     },
     courier: {
       label: "Courier delivery",
@@ -71,7 +94,7 @@ export const business = {
    */
   directionsUrl:
     "https://www.google.com/maps/search/?api=1&query=" +
-    encodeURIComponent("Nirob Autos, N401, Madhupur, Bangladesh"),
+    encodeURIComponent("Nirob Autos, Natun Bazar, Madhupur, Tangail, Bangladesh"),
 
   /** Paste a Google Maps "Embed a map" src URL here to show a map on the contact page. */
   mapEmbedUrl: null as string | null,
@@ -81,6 +104,24 @@ export const business = {
 } as const;
 
 export const primaryWhatsApp = business.whatsapp[0];
+
+export type Dealership = (typeof business.dealerships)[number];
+
+/** The dealership that covers a motorcycle brand, if the shop holds one. */
+export function dealershipFor(brandSlug: string): Dealership | undefined {
+  return business.dealerships.find((d) => d.brand === brandSlug);
+}
+
+/** True when the shop states it sells original parts for this brand without being its dealer. */
+export function sellsOriginalParts(brandSlug: string): boolean {
+  return (business.originalPartsBrands as readonly string[]).includes(brandSlug);
+}
+
+/** "Uttara Motors (Bajaj), TVS Motors, Runner Automobiles and Hero Honda" */
+export function dealerList(): string {
+  const parts = business.dealerships.map((d) => (d.brand === "bajaj" ? `${d.company} (Bajaj)` : d.company));
+  return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
+}
 
 /** Text used wherever a price is not listed. */
 export const PRICE_FALLBACK_LABEL = "Call for price";

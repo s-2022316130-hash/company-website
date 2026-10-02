@@ -50,6 +50,7 @@ export function localBusinessJsonLd() {
       "@type": "PostalAddress",
       streetAddress: business.address.street,
       addressLocality: business.address.locality,
+      addressRegion: business.address.region,
       addressCountry: business.address.countryCode,
     },
     openingHoursSpecification: [

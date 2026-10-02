@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BrandShowroomCard, categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { business, dealerList } from "@/config/business";
 import { countBy, loadCatalog, modelCategoryGroups, modelsForBrand } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
@@ -22,7 +23,7 @@ export default async function BrandsPage() {
       <PageHeader
         eyebrow="Shop by brand"
         title="Motorcycle brands"
-        description="Choose your bike's brand, then your model, to see the parts listed for it. Brand names show compatibility only; Nirob Autos is not an official dealer."
+        description={`Choose your bike's brand, then your model, to see the parts listed for it. ${business.name} is a dealer for ${dealerList()}, with genuine parts at company price, and sells original Yamaha, Suzuki and Honda parts.`}
         crumbs={[{ label: "Brands", href: "/brands" }]}
       />
       <div className="container-page space-y-14 py-10">

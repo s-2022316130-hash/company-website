@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { business } from "@/config/business";
+import { business, dealerList } from "@/config/business";
 import { loadCatalog } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
@@ -30,7 +30,12 @@ export default async function AboutPage() {
         <div className="card space-y-4 p-5 text-[0.9375rem] leading-relaxed text-ink sm:p-6">
           <p>
             {business.name} is a motorcycle spare parts shop at {business.address.full}. We sell spare parts, maintenance
-            products and accessories for motorcycles, and we are open {business.hours.label.toLowerCase()}.
+            products and accessories for motorcycles, and we are open {business.hours.label.toLowerCase()}. The proprietor
+            is {business.proprietor}.
+          </p>
+          <p>
+            We are a dealer for {dealerList()}, and sell their genuine parts at company price. We also sell all kinds of
+            original Yamaha, Suzuki and Honda parts at affordable prices.
           </p>
           <p>
             This website organises parts around the bikes people ride: {brands.map((b) => b.name).join(", ")}. Search by

@@ -1,4 +1,6 @@
-import type { BikeClass, BrakeType, FuelSystem, ModelStatus, MotorcycleModel } from "@/lib/types";
+import type { BikeClass, BrakeType, FuelSystem, ModelSpec, ModelStatus, MotorcycleModel, VariantSpec } from "@/lib/types";
+import { ownerManuals } from "./manuals";
+import { modelVariants } from "./variants";
 
 /**
  * Motorcycle model directory, checked against official manufacturer sites on 2026-10-02.
@@ -10,6 +12,7 @@ import type { BikeClass, BrakeType, FuelSystem, ModelStatus, MotorcycleModel } f
  *
  * Names follow the official sites, normalised to title case (e.g. "GIXXER SF" → "Gixxer SF").
  * spec values come from the official model pages and are left out when the page doesn't state them.
+ * Where per-variant specs exist (src/data/variants.ts), the model spec is derived from them instead.
  * Listing a model here does NOT mean Nirob Autos stocks parts for it; products say that.
  */
 
@@ -34,6 +37,10 @@ function model(
   },
 ): MotorcycleModel {
   const slug = `${brand}-${key}`;
+  const variants = modelVariants[slug];
+  // Variant names ("pulsar 150 td abs") are searchable spellings of the model.
+  const variantNames = (variants ?? []).map((v) => v.name.toLowerCase()).filter((n) => n !== name.toLowerCase());
+  const aliases = [...(opts.aliases ?? []), ...variantNames];
   return {
     id: slug,
     slug,
@@ -42,10 +49,29 @@ function model(
     type: opts.type ?? (opts.cls === "scooter" ? "scooter" : "motorcycle"),
     class: opts.cls,
     status: opts.status,
-    spec: opts.spec ? { frontBrake: opts.spec.f, rearBrake: opts.spec.r, fuel: opts.spec.fuel } : undefined,
+    spec: variants
+      ? specFromVariants(variants)
+      : opts.spec
+        ? { frontBrake: opts.spec.f, rearBrake: opts.spec.r, fuel: opts.spec.fuel }
+        : undefined,
     source: opts.source,
-    aliases: opts.aliases,
+    aliases: aliases.length > 0 ? aliases : undefined,
     variant: opts.variant,
+    variants,
+    manual: ownerManuals[slug],
+  };
+}
+
+/** Every brake type and fuel system stated across a model's variants. */
+function specFromVariants(variants: VariantSpec[]): ModelSpec {
+  const uniq = <T,>(values: (T | undefined)[]) => {
+    const set = [...new Set(values.filter((v): v is T => v !== undefined))];
+    return set.length > 0 ? set : undefined;
+  };
+  return {
+    frontBrake: uniq(variants.map((v) => v.frontBrake?.type)),
+    rearBrake: uniq(variants.map((v) => v.rearBrake?.type)),
+    fuel: uniq(variants.map((v) => v.fuel)),
   };
 }
 
@@ -67,16 +93,16 @@ const RUNNER_ABOUT = "https://www.runnerbd.com/runner-group/post4.php";
 
 export const models: MotorcycleModel[] = [
   // ── Bajaj ── bajajauto.com/en-bd (Uttara Motors) ──────────────────────────
-  model("bajaj", "pulsar-n250", "Pulsar N250", { cls: "street", status: "bd-current", spec: { f: D, r: D, fuel: FI }, source: `${BAJAJ_BD}pulsar-n250`, aliases: ["n250"] }),
-  model("bajaj", "pulsar-f250", "Pulsar F250", { cls: "sport", status: "bd-current", spec: { f: D, r: D }, source: `${BAJAJ_BD}pulsar-f250`, aliases: ["f250"] }),
-  model("bajaj", "pulsar-n160", "Pulsar N160", { cls: "street", status: "bd-current", spec: { f: D, r: D, fuel: ["fi", "carburettor"] }, source: `${BAJAJ_BD}pulsar-n160`, aliases: ["n160"] }),
-  model("bajaj", "pulsar-150", "Pulsar 150", { cls: "street", status: "bd-current", spec: { f: D, r: DD }, source: `${BAJAJ_BD}pulsar-150-td-abs`, aliases: ["pulsar150", "p150", "pulsar 150 td", "pulsar 150 sd"] }),
-  model("bajaj", "pulsar-ns125", "Pulsar NS125", { cls: "street", status: "bd-current", spec: { f: D, r: DR }, source: `${BAJAJ_BD}pulsar-ns125`, aliases: ["ns125", "ns 125"] }),
-  model("bajaj", "discover-125", "Discover 125", { cls: "commuter", status: "bd-current", spec: { f: D, r: DR }, source: `${BAJAJ_BD}discover-125-disc`, variant: "Disc", aliases: ["discover"] }),
-  model("bajaj", "discover-110", "Discover 110", { cls: "commuter", status: "bd-current", spec: { f: D, r: DR }, source: `${BAJAJ_BD}discover-110-disc`, variant: "Disc" }),
-  model("bajaj", "platina-110-h", "Platina 110 H", { cls: "commuter", status: "bd-current", spec: { f: D, r: DR }, source: `${BAJAJ_BD}platina-110-h`, aliases: ["platina 110", "h gear"] }),
-  model("bajaj", "platina-100-es", "Platina 100 ES", { cls: "commuter", status: "bd-current", spec: { f: DR, r: DR }, source: `${BAJAJ_BD}platina-100-es`, aliases: ["platina 100", "platina"] }),
-  model("bajaj", "ct-100-es", "CT 100 ES", { cls: "commuter", status: "bd-current", spec: { f: DR, r: DR }, source: `${BAJAJ_BD}ct-100-es`, aliases: ["ct100", "ct 100"] }),
+  model("bajaj", "pulsar-n250", "Pulsar N250", { cls: "street", status: "bd-current", source: `${BAJAJ_BD}pulsar-n250`, aliases: ["n250"] }),
+  model("bajaj", "pulsar-f250", "Pulsar F250", { cls: "sport", status: "bd-current", source: `${BAJAJ_BD}pulsar-f250`, aliases: ["f250"] }),
+  model("bajaj", "pulsar-n160", "Pulsar N160", { cls: "street", status: "bd-current", source: `${BAJAJ_BD}pulsar-n160`, aliases: ["n160"] }),
+  model("bajaj", "pulsar-150", "Pulsar 150", { cls: "street", status: "bd-current", source: `${BAJAJ_BD}pulsar-150-td`, aliases: ["pulsar150", "p150"] }),
+  model("bajaj", "pulsar-ns125", "Pulsar NS125", { cls: "street", status: "bd-current", source: `${BAJAJ_BD}pulsar-ns125`, aliases: ["ns125", "ns 125"] }),
+  model("bajaj", "discover-125", "Discover 125", { cls: "commuter", status: "bd-current", source: `${BAJAJ_BD}discover-125-disc`, variant: "Disc", aliases: ["discover"] }),
+  model("bajaj", "discover-110", "Discover 110", { cls: "commuter", status: "bd-current", source: `${BAJAJ_BD}discover-110-disc`, variant: "Disc" }),
+  model("bajaj", "platina-110-h", "Platina 110 H", { cls: "commuter", status: "bd-current", source: `${BAJAJ_BD}platina-110-h`, aliases: ["platina 110", "h gear"] }),
+  model("bajaj", "platina-100-es", "Platina 100 ES", { cls: "commuter", status: "bd-current", source: `${BAJAJ_BD}platina-100-es`, aliases: ["platina 100", "platina"] }),
+  model("bajaj", "ct-100-es", "CT 100 ES", { cls: "commuter", status: "bd-current", source: `${BAJAJ_BD}ct-100-es`, aliases: ["ct100", "ct 100"] }),
   model("bajaj", "pulsar-ns160", "Pulsar NS160", { cls: "street", status: "official-other", source: `${BAJAJ_IN}pulsar/pulsar-ns160`, aliases: ["ns160", "ns 160"] }),
   model("bajaj", "pulsar-n125", "Pulsar N125", { cls: "street", status: "official-other", source: `${BAJAJ_IN}pulsar/pulsar-n125`, aliases: ["n125"] }),
   model("bajaj", "pulsar-ns200", "Pulsar NS200", { cls: "street", status: "official-other", source: `${BAJAJ_IN}pulsar/pulsar-ns200`, aliases: ["ns200"] }),

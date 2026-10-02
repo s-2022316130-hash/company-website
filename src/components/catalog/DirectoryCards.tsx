@@ -5,6 +5,7 @@ import { BikeVisual } from "@/components/bikes/BikeVisual";
 import { PhotoFill } from "@/components/media/Photo";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { GearRing } from "@/components/ui/Mechanical";
+import { BrandRelationBadge } from "./Badges";
 import type { PopularPart } from "@/lib/catalog/catalog";
 import { categoryPath } from "@/lib/catalog/paths";
 import { cx } from "@/lib/cx";
@@ -111,6 +112,7 @@ export function BrandShowroomCard({
           bikeClass={brand.bikeClass}
           className="absolute inset-x-[6%] bottom-0 w-[88%] text-on-dark transition-transform duration-500 group-hover:-translate-x-1 group-hover:scale-[1.03]"
         />
+        <BrandRelationBadge brandSlug={brand.slug} className="absolute right-3 top-3" />
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-baseline justify-between gap-2">

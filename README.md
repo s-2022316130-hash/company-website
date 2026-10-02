@@ -123,6 +123,51 @@ Brake and fuel-system specs are filled in only when the official page states the
 sold through Runner showrooms are not listed under Runner. Review the list against the bikes the shop
 actually supplies parts for. For example, the FZS V3 is no longer on yamahabd.com and is not listed.
 
+### Variant specifications
+
+`src/data/variants.ts` holds official per-variant specs, keyed by model id: engine, fuel system,
+cooling, ABS, brake type and size, tyre sizes, suspension, battery and gearbox. Bajaj's 10 Bangladesh
+models (16 variant pages on bajajauto.com/en-bd) are covered so far, checked on 2 October 2026.
+
+- These are facts restated in our own words. No text or images are copied from the manufacturer's site.
+- A field is left out when the page doesn't state it. It is also left out when the page contradicts
+  itself; for example, the Pulsar 150 TD ABS page gives single-disc figures. Each variant's `note`
+  explains any gap.
+- When a model has variants, its brake and fuel `spec` is derived from them, and variant names become
+  searchable aliases ("pulsar 150 td abs").
+- Model pages show a variant comparison table and the parts that depend on the variant. Brand pages
+  show a line-up table.
+
+### Owner's manual facts
+
+`src/data/manuals.ts` holds maintenance facts from official owner's manuals, keyed by model id. Each
+entry records:
+
+- engine oil grade and quantity, and the change and top-up intervals
+- spark plug type and gap
+- battery and brake fluid
+- tyre pressures and chain slack
+- bulbs and the service schedule
+
+Bajaj publishes two manuals on its Bangladesh Owner's Zone: Pulsar 150 (which also covers the Classic
+and Twin Disc) and Discover 110/125. Both were read on 2 October 2026.
+
+- Only facts are restated. The PDFs are not stored in the repo, and pages link to the official PDF.
+- Where a manual contradicts itself, the value is left out or both figures are given in `notes`. The
+  Discover manual, for example, gives two oil-change intervals.
+- Manuals can be older editions than the current line-up, so brake and tyre details still come from
+  `variants.ts`.
+- Model pages show the facts as cards. `/engine-oil` shows a "Recommended engine oil by model" table.
+
+### Dealerships
+
+The shop's business card lists it as a dealer for Uttara Motors (Bajaj), TVS Motors, Runner Automobiles
+and Hero, with genuine parts at company price. The card prints "Hero Honda", the brand's name before
+2011, and the site shows "Hero" at the owner's request. The shop also sells original Yamaha, Suzuki and
+Honda parts. These details live in `business.dealerships` and `business.originalPartsBrands` in
+`src/config/business.ts`. Brand cards, brand and model pages, the About page, the footer and the terms
+read from there.
+
 ### Images
 
 - **Photos**: 31 photos from [Unsplash](https://unsplash.com) under the

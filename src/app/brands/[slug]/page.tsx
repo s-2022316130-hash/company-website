@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Search } from "lucide-react";
+import { BadgeCheck, Search } from "lucide-react";
 import { TrackView } from "@/components/analytics/Track";
 import { CategoryImageCard, categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
+import { LineupSpecTable } from "@/components/catalog/VariantSpecs";
+import { business, dealershipFor, sellsOriginalParts } from "@/config/business";
 import { ProductListing } from "@/components/catalog/ProductListing";
 import { BlueprintBanner } from "@/components/layout/Banners";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -46,6 +48,8 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
   const current = models.filter((m) => m.status !== "official-other");
   const other = models.filter((m) => m.status === "official-other");
   const q = typeof searchParams.q === "string" ? searchParams.q : "";
+  const dealer = dealershipFor(brand.slug);
+  const withSpecs = current.filter((m) => m.variants && m.variants.length > 0);
 
   return (
     <>
@@ -62,6 +66,19 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
         description={
           <>
             Parts and maintenance products listed for {brand.name} motorcycles. Pick your model for the most accurate list.
+            {(dealer || sellsOriginalParts(brand.slug)) && (
+              <span className="mt-3 flex items-start gap-2 rounded-md border border-brand-bright/40 bg-brand-bright/10 px-3 py-2 text-sm text-on-dark">
+                <BadgeCheck className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
+                {dealer ? (
+                  <span>
+                    {business.name} is a dealer for <strong className="text-white">{dealer.company}</strong>
+                    {"note" in dealer ? `, ${dealer.note}` : ""}. Genuine {brand.name} parts at company price.
+                  </span>
+                ) : (
+                  <span>Original {brand.name} parts sold at affordable prices. Ask for availability.</span>
+                )}
+              </span>
+            )}
             <span className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-dark-muted">
               <span>
                 <strong className="text-white">{pluralize(models.length, "model")}</strong> in the directory
@@ -123,6 +140,18 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
                 </li>
               ))}
             </ul>
+          </section>
+        )}
+
+        {withSpecs.length > 0 && (
+          <section aria-labelledby="lineup-specs-title">
+            <SectionHeader
+              id="lineup-specs-title"
+              eyebrow="Official specifications"
+              title={`${brand.name} line-up at a glance`}
+              description="Engine, brakes and tyres for each model, as published by the manufacturer. Choose a model for every variant's details."
+            />
+            <LineupSpecTable models={withSpecs} brandName={brand.name} />
           </section>
         )}
 
