@@ -1,9 +1,12 @@
 "use client";
 
 import Form from "next/form";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Bike, History, LayoutGrid, Package, Search, X } from "lucide-react";
+import { BikeArt } from "@/components/bikes/BikeArt";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { track } from "@/lib/analytics";
 import { cx } from "@/lib/cx";
 import type { Suggestion } from "@/lib/catalog/search";
@@ -29,7 +32,39 @@ function saveRecent(query: string) {
   }
 }
 
-const kindIcon = { product: Package, model: Bike, category: LayoutGrid } as const;
+const kindIcon = { product: Package, model: Bike, category: LayoutGrid, search: Search } as const;
+
+/** Thumbnail for a suggestion row: product/category photo, bike drawing or icon. */
+function SuggestionThumbnail({ s, recent }: { s: Suggestion; recent: boolean }) {
+  const Icon = recent ? History : kindIcon[s.kind];
+  const box = "grid size-10 shrink-0 place-items-center overflow-hidden rounded-md";
+  if (!recent && s.thumb?.kind === "photo") {
+    return (
+      <span className={cx(box, "relative bg-graphite")}>
+        <Image src={s.thumb.src} alt="" fill sizes="40px" className="object-cover" />
+      </span>
+    );
+  }
+  if (!recent && s.thumb?.kind === "bike") {
+    return (
+      <span className={cx(box, "blueprint text-on-dark")}>
+        <BikeArt bikeClass={s.thumb.bikeClass} className="w-9" />
+      </span>
+    );
+  }
+  if (!recent && s.thumb?.kind === "icon") {
+    return (
+      <span className={cx(box, "bg-graphite text-brand-bright")}>
+        <CategoryIcon name={s.thumb.icon} className="size-5" />
+      </span>
+    );
+  }
+  return (
+    <span className={cx(box, "bg-canvas text-muted")}>
+      <Icon className="size-4" aria-hidden="true" />
+    </span>
+  );
+}
 
 /**
  * Search box with instant suggestions (models, categories, products) and recent searches.
@@ -88,7 +123,7 @@ export function SearchBar({
 
   const showingRecent = query.trim().length < 2;
   const items: Suggestion[] = showingRecent
-    ? recent.map((r) => ({ kind: "product" as const, label: r, href: `/search?q=${encodeURIComponent(r)}` }))
+    ? recent.map((r) => ({ kind: "search" as const, label: r, href: `/search?q=${encodeURIComponent(r)}` }))
     : suggestions;
   const expanded = open && items.length > 0;
 
@@ -163,7 +198,7 @@ export function SearchBar({
               setOpen(true);
             }}
             onKeyDown={onKeyDown}
-            placeholder="Search parts, bike models or part numbers"
+            placeholder="Search parts, bike models, brands or part numbers…"
             className={cx(
               "w-full rounded-lg border border-line-strong bg-surface pl-10 pr-24 text-ink placeholder:text-muted focus:border-ink",
               tall ? "h-14 text-base" : "h-11 text-base",
@@ -207,7 +242,6 @@ export function SearchBar({
           </li>
         )}
         {items.map((s, i) => {
-          const Icon = showingRecent ? History : kindIcon[s.kind];
           return (
             <li
               key={`${s.href}-${i}`}
@@ -217,9 +251,9 @@ export function SearchBar({
               onPointerDown={(e) => e.preventDefault()}
               onClick={() => go(s)}
               onPointerMove={() => setActive(i)}
-              className={cx("flex min-h-11 cursor-pointer items-center gap-3 px-3 py-2", i === active && "bg-steel-soft")}
+              className={cx("flex min-h-12 cursor-pointer items-center gap-3 px-3 py-1.5", i === active && "bg-steel-soft")}
             >
-              <Icon className="size-4 shrink-0 text-muted" aria-hidden="true" />
+              <SuggestionThumbnail s={s} recent={showingRecent} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-ink">{s.label}</span>
                 {s.sublabel && <span className="block truncate text-xs text-muted">{s.sublabel}</span>}

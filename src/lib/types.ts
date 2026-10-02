@@ -1,3 +1,5 @@
+import type { PhotoKey } from "@/config/photos";
+
 /**
  * Catalogue domain types. Text fields accept any Unicode, so Bangla names and
  * descriptions can be stored alongside English ones (the optional *Bn fields).
@@ -20,11 +22,39 @@ export type ProductType = "genuine" | "oem" | "aftermarket" | "compatible" | "un
  */
 export type Fitment = "model-specific" | "universal" | "unconfirmed";
 
+/** Body style, used to pick the line drawing shown for a model. */
+export type BikeClass = "commuter" | "street" | "sport" | "cruiser" | "scooter" | "offroad";
+
+/**
+ * Where a model's existence was verified:
+ * bd-current     on the brand's official Bangladesh line-up when checked
+ * bd-earlier     an older model with an official Bangladesh page, no longer in the line-up
+ * official-other in the manufacturer's official catalogue outside Bangladesh only
+ */
+export type ModelStatus = "bd-current" | "bd-earlier" | "official-other";
+
+export type BrakeType = "disc" | "drum";
+export type FuelSystem = "fi" | "carburettor";
+
+/** Facts taken from the official model or spec page. Used to keep demo parts plausible. */
+export interface ModelSpec {
+  /** Every brake type offered across variants, e.g. ["disc", "drum"]. */
+  frontBrake?: BrakeType[];
+  rearBrake?: BrakeType[];
+  fuel?: FuelSystem[];
+}
+
 export interface Brand {
   slug: string;
   name: string;
   nameBn?: string;
   description?: string;
+  /** Drawing used for the brand when no licensed photo exists. */
+  bikeClass: BikeClass;
+  /** Licensed photo for brand cards and banners, if one is ever supplied. */
+  image?: PhotoKey;
+  /** Official site the model list was checked against. */
+  officialSource?: { label: string; url: string; checked: string };
 }
 
 export interface MotorcycleModel {
@@ -33,14 +63,20 @@ export interface MotorcycleModel {
   slug: string;
   /** Brand slug. */
   brand: string;
-  /** Model name without the brand, e.g. "Pulsar 150". */
+  /** Model name without the brand, as the official site writes it (lightly normalised). */
   name: string;
+  type: "motorcycle" | "scooter";
+  class: BikeClass;
+  status: ModelStatus;
+  spec?: ModelSpec;
+  /** Official page the model was verified on. */
+  source?: string;
   variant?: string;
-  segment?: string;
   yearRange?: string;
-  image?: string;
+  /** Licensed photo of this exact model, if one is ever supplied. */
+  image?: PhotoKey;
   description?: string;
-  /** Extra spellings customers type, e.g. "fz v3". */
+  /** Extra spellings customers type, e.g. "fz v4". */
   aliases?: string[];
 }
 
@@ -68,6 +104,8 @@ export interface Subcategory {
   aliases?: string[];
   /** Shown in "Popular parts". */
   popular?: boolean;
+  /** Representative photo of this part type. */
+  image?: PhotoKey;
 }
 
 export interface CategoryGroup {
@@ -76,6 +114,10 @@ export interface CategoryGroup {
   nameBn?: string;
   icon: CategoryIcon;
   description: string;
+  /** Short line under the name on cards, e.g. "Pads • Shoes • Discs". */
+  shortLabel: string;
+  /** Photo for cards and the category banner. */
+  image?: PhotoKey;
   subcategories: Subcategory[];
 }
 
@@ -108,7 +150,10 @@ export interface Product {
   shortDescription?: string;
   description?: string;
 
+  /** Photos of this exact item. Leave empty until the shop supplies them. */
   images: ProductImage[];
+  /** Representative photo of the part type, used when there is no photo of the exact item. */
+  photo?: PhotoKey;
 
   /** Whole taka. Leave undefined when the store has not set a price. */
   price?: number;
@@ -137,10 +182,19 @@ export interface Product {
   updatedAt?: string;
 
   /**
-   * True for development seed records that are not confirmed store inventory.
-   * Sample products carry a visible label, are excluded from the sitemap and set to noindex.
+   * True for demo catalogue records that are not confirmed store inventory.
+   * Demo products carry a visible label, are excluded from the sitemap and set to noindex.
    */
   isSample?: boolean;
+}
+
+/** The image a product actually displays, after falling back through the photo chain. */
+export interface DisplayImage {
+  src: string;
+  alt: string;
+  /** True when this is a photo of the part type rather than the exact item. */
+  representative: boolean;
+  position?: string;
 }
 
 /** A product joined with the records it references, ready for display. */
@@ -150,4 +204,5 @@ export interface ProductView extends Product {
   subcategoryName?: string;
   models: MotorcycleModel[];
   brands: Brand[];
+  displayImage?: DisplayImage;
 }

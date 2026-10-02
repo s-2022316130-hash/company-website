@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { BrandCard, ModelLink } from "@/components/catalog/DirectoryCards";
+import { BrandShowroomCard, categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { countBy, loadCatalog, modelsForBrand } from "@/lib/catalog/catalog";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { countBy, loadCatalog, modelCategoryGroups, modelsForBrand } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -19,33 +20,53 @@ export default async function BrandsPage() {
   return (
     <>
       <PageHeader
-        title="Shop by motorcycle brand"
-        description="Choose your bike's brand, then your model, to see the parts listed for it."
+        eyebrow="Shop by brand"
+        title="Motorcycle brands"
+        description="Choose your bike's brand, then your model, to see the parts listed for it. Brand names show compatibility only; Nirob Autos is not an official dealer."
         crumbs={[{ label: "Brands", href: "/brands" }]}
       />
-      <div className="container-page space-y-10 py-6">
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">
-          {catalog.brands.map((b) => (
-            <li key={b.slug}>
-              <BrandCard brand={b} modelCount={modelsForBrand(catalog, b.slug).length} productCount={brandCounts.get(b.slug) ?? 0} />
-            </li>
-          ))}
+      <div className="container-page space-y-14 py-10">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {catalog.brands.map((b) => {
+            const models = modelsForBrand(catalog, b.slug);
+            return (
+              <li key={b.slug}>
+                <BrandShowroomCard
+                  brand={b}
+                  modelNames={models.slice(0, 4).map((m) => m.name)}
+                  modelCount={models.length}
+                  productCount={brandCounts.get(b.slug) ?? 0}
+                />
+              </li>
+            );
+          })}
         </ul>
 
-        {catalog.brands.map((b) => (
-          <section key={b.slug} aria-labelledby={`brand-${b.slug}`}>
-            <h2 id={`brand-${b.slug}`} className="mb-3 font-display text-xl font-bold text-ink">
-              {b.name} models
-            </h2>
-            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {modelsForBrand(catalog, b.slug).map((m) => (
-                <li key={m.id}>
-                  <ModelLink model={m} productCount={modelCounts.get(m.id) ?? 0} showBrand={false} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+        {catalog.brands.map((b) => {
+          const models = modelsForBrand(catalog, b.slug).filter((m) => m.status !== "official-other");
+          if (models.length === 0) return null;
+          return (
+            <section key={b.slug} aria-labelledby={`brand-${b.slug}`}>
+              <SectionHeader
+                id={`brand-${b.slug}`}
+                title={`${b.name} models`}
+                action={{ label: `All ${b.name} parts`, href: `/brands/${b.slug}` }}
+              />
+              <ul className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {models.slice(0, 8).map((m) => (
+                  <li key={m.id}>
+                    <ModelCard
+                      model={m}
+                      brandName={b.name}
+                      productCount={modelCounts.get(m.id) ?? 0}
+                      categories={modelCategoryGroups(catalog, m.id).map(({ group }) => categoryShortName(group))}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
       </div>
     </>
   );

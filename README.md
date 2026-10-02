@@ -9,7 +9,7 @@ courier anywhere in Bangladesh. The site does not take payments online.
 
 - Next.js 16 (App Router, Turbopack), React 19, TypeScript (strict)
 - Tailwind CSS v4 with design tokens in `src/app/globals.css`
-- `lucide-react` icons, `next/font` (Inter, Barlow, Noto Sans Bengali)
+- `lucide-react` icons, `next/font` (Inter, Barlow Condensed, Noto Sans Bengali)
 - Vitest for unit tests
 - No database, auth or third-party services. The catalogue renders with no environment variables at all.
 
@@ -43,7 +43,9 @@ Any Node host that runs `next start` works the same way.
 | --- | --- |
 | Name, address, phone numbers, WhatsApp numbers, hours, pickup/courier text, map embed, social links | `src/config/business.ts` |
 | Main and footer navigation | `src/config/navigation.ts` |
-| Colours, fonts, button styles | `src/app/globals.css` (`@theme` block) |
+| Colours, fonts, button styles, textures (blueprint grid, fins, chain rule) | `src/app/globals.css` (`@theme` block) |
+| Photos and their credits | `src/config/photos.ts`, files in `public/images/` |
+| Bike line drawings | `src/components/bikes/BikeArt.tsx` |
 | Products | `src/data/products.ts` |
 | Motorcycle models | `src/data/models.ts` |
 | Brands | `src/data/brands.ts` |
@@ -77,40 +79,82 @@ Seed data           src/data/*.ts
 - Filters only appear when they can actually narrow the results, and all filter state lives in the URL
   (`/shop?brand=yamaha&category=brake-pads`).
 
-### Sample data
+### Demo catalogue
 
-`src/data/products.ts` holds **27 sample products** (`isSample: true`) so the site can be built and
-tested. They are not confirmed Nirob Autos stock, and:
+`src/data/products.ts` generates **159 demo products** (`isSample: true`). 131 are model-specific
+listings from `demoAssignments` (model plus part kind) and 28 are universal items (oils, fluids,
+accessories). They show how the shop is organised and are **not confirmed Nirob Autos stock**. Every
+demo product:
 
-- show a "Sample listing" badge and a catalogue-preview banner
-- are set to `noindex` and left out of the sitemap
-- have no price, SKU, part number, specification or verified type
-- list only the model named in the product itself
+- shows a "Demo catalogue" badge, and the pages show a catalogue-preview banner
+- is `noindex` and left out of the sitemap
+- has no price, SKU, part number, specification, photo of its own or verified type
+- uses "call to confirm" availability
+- is listed only where the bike has that part according to its official spec. Examples: brake pads
+  only for a wheel with a disc, brake shoes only for a drum, CVT belts only on scooters, carburettors
+  only on carburettor bikes. Each entry in `partKinds` has a `requires` rule for this.
 
-A unit test fails if a sample product is ever given a price, part number, specs or a verified type.
-**Replace this file with the real inventory before launch.** Remove `isSample` from real records.
+Unit tests fail if a demo product gets a price, part number, specs, a verified type or a photo. They
+also fail if an assignment breaks its `requires` rule. **Replace the demo records with the real
+inventory before launch.** Remove `isSample` from real records.
 
-The model list in `src/data/models.ts` is a starting set of popular models. Review it against the
-bikes the shop actually supplies parts for.
+### Motorcycle directory
+
+`src/data/models.ts` lists **118 models** across 7 brands, checked on 2 October 2026 against each
+brand's official site. Every model stores its source URL.
+
+| Brand | Official source | Models |
+| --- | --- | --- |
+| Bajaj | bajajauto.com/en-bd, plus bajajauto.com for models sold outside BD | 10 current, 13 outside BD |
+| Honda | bdhonda.com | 11 current, 2 earlier |
+| Yamaha | yamahabd.com | 16 current, 1 outside BD |
+| Suzuki | suzuki.com.bd | 10 current, 1 outside BD |
+| TVS | bangladesh.tvsmotor.com | 4 current, 1 earlier, 6 outside BD |
+| Hero | heromotocorp.com/en-bd | 25 current, 1 outside BD |
+| Runner | motorcycles.runnerautomobiles.com, runnerbd.com | 15 current, 2 earlier |
+
+`status` takes one of three values:
+
+- `bd-current`: in the official Bangladesh line-up
+- `bd-earlier`: an older official Bangladesh model
+- `official-other`: in the official catalogue outside Bangladesh only. These are hidden behind a toggle in the directory.
+
+Brake and fuel-system specs are filled in only when the official page states them. UM-branded bikes
+sold through Runner showrooms are not listed under Runner. Review the list against the bikes the shop
+actually supplies parts for. For example, the FZS V3 is no longer on yamahabd.com and is not listed.
+
+### Images
+
+- **Photos**: 31 photos from [Unsplash](https://unsplash.com) under the
+  [Unsplash License](https://unsplash.com/license). They are stored as WebP in `public/images/` and
+  registered in `src/config/photos.ts` with alt text, photographer and source page. `/credits` lists
+  them all. The hero photo's number plate is blurred. These photos are **temporary**: replace them with
+  the shop's own photos when available.
+- **Product images** fall back in this order: the product's own photo, then its representative `photo`,
+  then its subcategory photo, then its category photo, then a line drawing of the bike type, then a gear
+  placeholder. Anything other than the product's own photo is captioned "Representative photo, not the
+  exact item for sale".
+- **Bikes** are shown as original line drawings of six body styles (commuter, street, sport, cruiser,
+  scooter, offroad), never as photos of a specific model, so no page shows the wrong bike.
 
 ### Adding real products
 
 ```ts
 {
   id: "p-0001",
-  slug: "yamaha-fzs-v3-front-brake-pad",
-  name: "Yamaha FZS V3 Front Brake Pad",
+  slug: "yamaha-fzs-v4-front-brake-pad",
+  name: "Yamaha FZS V4 Front Brake Pad",
   category: "brakes",
   subcategory: "brake-pads",
   partBrand: "…",                 // maker of the part, if known
   sku: "…", partNumber: "…",      // only real values
-  images: [{ src: "/images/products/fzs-v3-front-pad.jpg", alt: "Front brake pad set for Yamaha FZS V3" }],
+  images: [{ src: "/images/products/fzs-v4-front-pad.jpg", alt: "Front brake pad set for Yamaha FZS V4" }],
   price: 650,                     // whole taka; omit for "Call for price"
   currency: "BDT",
   stockStatus: "in-stock",
   productType: "aftermarket",     // only if verified
   fitment: "model-specific",
-  compatibleModels: ["yamaha-fzs-v3", "yamaha-fzs-v2"],
+  compatibleModels: ["yamaha-fzs-v4"],
   isFeatured: true,
 }
 ```
@@ -168,7 +212,8 @@ events.
 
 ## Known limitations
 
-- The catalogue is sample data. Real inventory, prices, photos and part numbers are still needed.
+- The catalogue is demo data. Real inventory, prices, photos and part numbers are still needed.
+- The photos are temporary Unsplash stock (see `/credits`). There are no photos of the shop or its stock.
 - There is no order backend: requests are not stored, and the store must reply on WhatsApp or phone.
 - Stock is not live.
 - The site is English only, though the data and layout are Bangla-ready. A language switch has not been built.

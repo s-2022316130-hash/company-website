@@ -1,25 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, ChevronRight } from "lucide-react";
+import { Check } from "lucide-react";
+import { BikeArt } from "@/components/bikes/BikeArt";
+import { BikeVisual } from "@/components/bikes/BikeVisual";
+import { bikeClassName, CategoryImageCard, categoryShortName, ModelCard } from "@/components/catalog/DirectoryCards";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { business } from "@/config/business";
 import {
-  categoryCounts,
   countBy,
   loadCatalog,
+  modelCategoryGroups,
   modelDisplayName,
   modelsForBrand,
   productFitsModel,
   productInCategory,
+  spreadByCategory,
 } from "@/lib/catalog/catalog";
-import { sortProducts } from "@/lib/catalog/listing";
 import { cx } from "@/lib/cx";
 import { pluralize } from "@/lib/format";
 import { pageMetadata } from "@/lib/seo";
+import type { MotorcycleModel } from "@/lib/types";
 
 export const metadata: Metadata = pageMetadata({
   title: "Part Finder: Find Parts for Your Motorcycle",
@@ -37,36 +40,36 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
   const brand = catalog.brandBySlug.get(first(sp.brand));
   const model = brand ? catalog.models.find((m) => m.id === first(sp.model) && m.brand === brand.slug) : undefined;
   const fits = model ? catalog.products.filter((p) => productFitsModel(p, model.id)) : [];
-  const counts = categoryCounts(fits);
+  const groups = model ? modelCategoryGroups(catalog, model.id) : [];
   const categorySlug = first(sp.category);
   const group = model ? catalog.groups.find((g) => g.slug === categorySlug) : undefined;
   const showAll = Boolean(model) && categorySlug === "all";
 
   const step = !brand ? 1 : !model ? 2 : !group && !showAll ? 3 : 4;
   const bikeName = model ? modelDisplayName(model, catalog.brandBySlug) : "";
-  const results = model && (group || showAll) ? sortProducts(group ? fits.filter((p) => productInCategory(p, group.slug)) : fits, "popular") : [];
+  const results =
+    model && (group || showAll)
+      ? spreadByCategory(group ? fits.filter((p) => productInCategory(p, group.slug)) : fits, 200)
+      : [];
   const modelCounts = countBy(catalog.products, (p) => p.compatibleModels);
+  const modelHref = model ? `/part-finder?brand=${model.brand}&model=${model.id}` : "";
 
   const steps = [
     { n: 1, label: "Brand", value: brand?.name, href: "/part-finder" },
-    { n: 2, label: "Model", value: model?.name, href: brand ? `/part-finder?brand=${brand.slug}` : undefined },
-    {
-      n: 3,
-      label: "Part type",
-      value: group?.name ?? (showAll ? "All parts" : undefined),
-      href: model ? `/part-finder?brand=${model.brand}&model=${model.id}` : undefined,
-    },
-    { n: 4, label: "Results", value: undefined, href: undefined },
+    { n: 2, label: "Bike", value: model?.name, href: brand ? `/part-finder?brand=${brand.slug}` : undefined },
+    { n: 3, label: "Part type", value: group?.name ?? (showAll ? "All parts" : undefined), href: model ? modelHref : undefined },
+    { n: 4, label: "Parts", value: undefined, href: undefined },
   ];
 
   return (
     <>
       <PageHeader
-        title="Part finder"
-        description="Choose your bike, then what you need. We'll show the parts listed for it."
+        eyebrow="Part finder"
+        title="Find parts for your motorcycle"
+        description="Choose your brand, then your bike, then what you need. We'll show the parts listed as fitting it."
         crumbs={[{ label: "Part finder", href: "/part-finder" }]}
       >
-        <ol className="mt-5 grid grid-cols-4 gap-1 sm:gap-2" aria-label="Steps">
+        <ol className="mt-6 grid grid-cols-4 gap-1.5 sm:gap-3" aria-label="Steps">
           {steps.map((s) => {
             const done = s.n < step;
             const current = s.n === step;
@@ -74,15 +77,17 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
               <>
                 <span
                   className={cx(
-                    "grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold",
-                    done ? "bg-ink text-white" : current ? "bg-brand text-white" : "bg-steel-soft text-muted",
+                    "grid size-8 shrink-0 place-items-center rounded-full font-display text-sm font-bold",
+                    done ? "bg-white text-graphite" : current ? "bg-brand text-white" : "bg-white/10 text-on-dark-muted",
                   )}
                 >
-                  {done ? <Check className="size-4" aria-hidden="true" /> : s.n}
+                  {done ? <Check className="size-4" aria-hidden="true" /> : `0${s.n}`}
                 </span>
                 <span className="min-w-0">
-                  <span className={cx("block text-xs", current ? "font-semibold text-ink" : "text-muted")}>{s.label}</span>
-                  {s.value && <span className="block truncate text-sm font-semibold text-ink">{s.value}</span>}
+                  <span className={cx("block font-display text-xs uppercase tracking-[0.12em]", current ? "text-white" : "text-on-dark-muted")}>
+                    {s.label}
+                  </span>
+                  {s.value && <span className="block truncate text-sm font-semibold text-white">{s.value}</span>}
                 </span>
               </>
             );
@@ -90,7 +95,7 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
               <li
                 key={s.n}
                 aria-current={current ? "step" : undefined}
-                className={cx("border-t-4 pt-2", done || current ? "border-brand" : "border-line")}
+                className={cx("border-t-[3px] pt-2.5", done || current ? "border-brand-bright" : "border-white/15")}
               >
                 {done && s.href ? (
                   <Link href={s.href} className="flex min-h-10 items-start gap-2 hover:opacity-80" aria-label={`Change ${s.label.toLowerCase()}: ${s.value}`}>
@@ -105,17 +110,23 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
         </ol>
       </PageHeader>
 
-      <div className="container-page py-6">
+      <div className="container-page py-8 sm:py-10">
         {step === 1 && (
-          <StepSection title="1. Choose your motorcycle brand">
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          <StepSection title="Choose your motorcycle brand">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {catalog.brands.map((b) => (
                 <li key={b.slug}>
                   <Link
                     href={`/part-finder?brand=${b.slug}`}
-                    className="card flex min-h-20 items-center justify-center p-4 font-display text-xl font-bold text-ink transition-colors hover:border-ink hover:text-brand"
+                    className="group card-dark flex h-full flex-col overflow-hidden transition-colors hover:border-brand-bright/60"
                   >
-                    {b.name}
+                    <span className="blueprint block px-3 pt-3">
+                      <BikeArt bikeClass={b.bikeClass} className="w-full text-on-dark transition-transform duration-500 group-hover:scale-[1.04]" />
+                    </span>
+                    <span className="flex items-center justify-between gap-2 p-3">
+                      <span className="display text-2xl text-white">{b.name}</span>
+                      <span className="text-xs text-on-dark-muted">{pluralize(modelsForBrand(catalog, b.slug).length, "model")}</span>
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -124,65 +135,61 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
         )}
 
         {step === 2 && brand && (
-          <StepSection title={`2. Choose your ${brand.name} model`}>
-            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <StepSection title={`Choose your ${brand.name}`}>
+            <ul className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {modelsForBrand(catalog, brand.slug).map((m) => (
                 <li key={m.id}>
-                  <Link
+                  <ModelCard
+                    model={m}
+                    brandName={brand.name}
+                    productCount={modelCounts.get(m.id) ?? 0}
+                    categories={modelCategoryGroups(catalog, m.id).map(({ group }) => categoryShortName(group))}
                     href={`/part-finder?brand=${brand.slug}&model=${m.id}`}
-                    className="card flex min-h-14 items-center justify-between gap-2 px-4 py-3 transition-colors hover:border-ink"
-                  >
-                    <span className="font-semibold text-ink">{m.name}</span>
-                    <span className="flex items-center gap-1 text-xs text-muted">
-                      {(modelCounts.get(m.id) ?? 0) > 0 ? pluralize(modelCounts.get(m.id)!, "part") : "Ask us"}
-                      <ChevronRight className="size-4" aria-hidden="true" />
-                    </span>
-                  </Link>
+                    cta="Choose this bike"
+                  />
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-sm text-muted">
-              Model not listed?{" "}
+            <p className="mt-5 text-sm text-muted">
+              Bike not listed?{" "}
               <a href={`tel:${business.phones.orders.e164}`} className="font-semibold text-brand underline">
                 Call {business.phones.orders.display}
               </a>{" "}
-              and tell us your bike.
+              and tell us your model.
             </p>
           </StepSection>
         )}
 
+        {model && step >= 3 && <SelectedBike name={bikeName} model={model} partCount={fits.length} changeHref={`/part-finder?brand=${model.brand}`} />}
+
         {step === 3 && model && (
-          <StepSection title={`3. What do you need for the ${bikeName}?`}>
-            {fits.length > 0 && (
-              <Link
-                href={`/part-finder?brand=${model.brand}&model=${model.id}&category=all`}
-                className="btn btn-dark mb-4"
-              >
-                Show all {pluralize(fits.length, "part")} for this bike
-              </Link>
+          <StepSection title={`What do you need for the ${bikeName}?`}>
+            {groups.length > 0 ? (
+              <>
+                <Link href={`${modelHref}&category=all`} className="btn btn-dark mb-5">
+                  Show all {pluralize(fits.length, "part")} for this bike
+                </Link>
+                <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {groups.map(({ group: g, count }) => (
+                    <li key={g.slug}>
+                      <CategoryImageCard group={g} count={count} href={`${modelHref}&category=${g.slug}`} />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <AskInstead bikeName={bikeName} what="parts" />
             )}
-            <ul className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {catalog.groups.map((g) => {
-                const n = counts.get(g.slug) ?? 0;
-                return (
-                  <li key={g.slug}>
-                    <Link
-                      href={`/part-finder?brand=${model.brand}&model=${model.id}&category=${g.slug}`}
-                      className={cx(
-                        "card flex items-center gap-3 p-3 transition-colors hover:border-ink",
-                        n === 0 && "bg-canvas",
-                      )}
-                    >
-                      <CategoryIcon name={g.icon} className="size-6 shrink-0 text-steel" />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold leading-tight text-ink">{g.name}</span>
-                        <span className="text-xs text-muted">{n > 0 ? pluralize(n, "listing") : "Not listed online, ask us"}</span>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            {groups.length > 0 && (
+              <p className="mt-4 text-sm text-muted">
+                Need something else?{" "}
+                {catalog.groups
+                  .filter((g) => !groups.some((x) => x.group.slug === g.slug))
+                  .map((g) => categoryShortName(g))
+                  .join(", ")}{" "}
+                are not listed online for this bike yet. Ask the shop.
+              </p>
+            )}
           </StepSection>
         )}
 
@@ -190,22 +197,16 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
           <StepSection title={group ? `${group.name} for the ${bikeName}` : `All parts for the ${bikeName}`}>
             {results.length > 0 ? (
               <>
-                <p className="mb-4 text-sm text-muted">{pluralize(results.length, "product")} listed as fitting this bike.</p>
+                <p className="mb-4 text-sm text-muted">{pluralize(results.length, "part")} listed as fitting this bike.</p>
                 <ProductGrid products={results} priorityCount={4} />
               </>
             ) : (
               <EmptyState
                 title="Nothing listed online for this yet"
-                description={`We haven't listed ${group ? group.name.toLowerCase() : "parts"} for the ${bikeName} online. The store may still have it. Send a quick message and we'll check.`}
-                actions={[{ label: "Choose another part type", href: `/part-finder?brand=${model.brand}&model=${model.id}`, variant: "outline" }]}
+                description={`We haven't listed ${group ? group.name.toLowerCase() : "parts"} for the ${bikeName} online. The shop may still have it. Send a quick message and we'll check.`}
+                actions={[{ label: "Choose another part type", href: modelHref, variant: "outline" }]}
               >
-                <div className="mt-5 flex flex-wrap justify-center gap-2">
-                  <WhatsAppButton
-                    message={`Hello ${business.name}, I need ${group ? group.name.toLowerCase() : "parts"} for my ${bikeName}. Do you have them?`}
-                    label="Ask on WhatsApp"
-                  />
-                  <CallButton variant="outline" />
-                </div>
+                <AskButtons bikeName={bikeName} what={group ? group.name.toLowerCase() : "parts"} />
               </EmptyState>
             )}
           </StepSection>
@@ -218,10 +219,62 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
 function StepSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section aria-labelledby="step-title">
-      <h2 id="step-title" className="mb-4 font-display text-xl font-bold text-ink sm:text-2xl">
+      <h2 id="step-title" className="display mb-5 text-3xl text-ink sm:text-4xl">
         {title}
       </h2>
       {children}
     </section>
+  );
+}
+
+/** Banner showing the chosen bike once steps 1–2 are done. */
+function SelectedBike({
+  name,
+  model,
+  partCount,
+  changeHref,
+}: {
+  name: string;
+  model: MotorcycleModel;
+  partCount: number;
+  changeHref: string;
+}) {
+  return (
+    <div className="card-dark mb-8 grid overflow-hidden sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+      <BikeVisual bikeClass={model.class} image={model.image} name={name} className="aspect-[16/10] sm:aspect-auto sm:min-h-36" />
+      <div className="flex flex-col justify-center gap-1 p-5">
+        <p className="eyebrow eyebrow-dark">Your bike · {bikeClassName(model.class)}</p>
+        <p className="display text-3xl text-white">{name}</p>
+        <p className="text-sm text-on-dark-muted">{partCount > 0 ? `${pluralize(partCount, "part")} listed for this bike` : "No parts listed online yet"}</p>
+        <p className="mt-2 flex flex-wrap gap-3 text-sm">
+          <Link href={`/models/${model.slug}`} className="font-semibold text-brand-bright underline">
+            Open bike page
+          </Link>
+          <Link href={changeHref} className="text-on-dark-muted underline hover:text-white">
+            Change bike
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function AskButtons({ bikeName, what }: { bikeName: string; what: string }) {
+  return (
+    <div className="mt-5 flex flex-wrap justify-center gap-2">
+      <WhatsAppButton message={`Hello ${business.name}, I need ${what} for my ${bikeName}. Do you have them?`} label="Ask on WhatsApp" />
+      <CallButton variant="outline" />
+    </div>
+  );
+}
+
+function AskInstead({ bikeName, what }: { bikeName: string; what: string }) {
+  return (
+    <EmptyState
+      title="Nothing listed online for this bike yet"
+      description={`The online catalogue doesn't list ${what} for the ${bikeName} yet, but the shop may have them.`}
+    >
+      <AskButtons bikeName={bikeName} what={what} />
+    </EmptyState>
   );
 }

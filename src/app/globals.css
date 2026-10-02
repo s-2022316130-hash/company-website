@@ -3,20 +3,29 @@
 /*
  * Design tokens. Every colour in the UI comes from here, so the site can be
  * reskinned by editing this block. Tailwind exposes them as bg-brand, text-muted, border-line, etc.
+ * Contrast notes: white on brand = 5.2:1; brand-bright on graphite = 6.1:1; on-dark-muted on graphite = 8:1.
  */
 @theme {
-  --color-brand: #c2410c;          /* primary: CTAs, links, active states */
+  --color-brand: #c2410c;          /* primary: CTAs, links, active states on light */
   --color-brand-strong: #9a3412;   /* hover / pressed */
+  --color-brand-bright: #f26b21;   /* accents and text on dark sections */
   --color-brand-soft: #fff4ed;     /* tinted backgrounds */
-  --color-steel: #2b3440;          /* secondary: header, dark panels */
-  --color-steel-soft: #e9edf2;
+  --color-steel: #2b3440;          /* secondary */
+  --color-steel-soft: #e9ebee;
   --color-accent: #f59e0b;         /* highlights only, never text on white */
   --color-ink: #14171c;            /* body text */
   --color-muted: #59626e;          /* secondary text, 5.9:1 on white */
-  --color-canvas: #f4f5f7;         /* page background */
+  --color-canvas: #f2f1ee;         /* page background: warm workshop grey */
   --color-surface: #ffffff;        /* cards */
-  --color-line: #dce0e5;           /* borders */
-  --color-line-strong: #b9c0c9;
+  --color-line: #dcdcd7;           /* borders */
+  --color-line-strong: #b5b8bd;
+
+  --color-graphite: #0e1115;       /* dark sections, header, footer */
+  --color-graphite-2: #161a20;     /* cards on dark */
+  --color-graphite-3: #262c35;     /* borders on dark */
+  --color-on-dark: #eceef1;
+  --color-on-dark-muted: #a3abb5;
+
   --color-success: #15803d;
   --color-success-soft: #ecfdf3;
   --color-warning: #a35200;
@@ -28,7 +37,32 @@
   --color-focus: #2563eb;
 
   --font-sans: var(--font-inter), var(--font-bengali), "Nirmala UI", system-ui, sans-serif;
-  --font-display: var(--font-barlow), var(--font-bengali), "Nirmala UI", system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), var(--font-bengali), "Nirmala UI", system-ui, sans-serif;
+
+  --animate-hero-in: hero-in 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-fade-up: fade-up 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 :root {
@@ -68,6 +102,15 @@ fieldset {
     }
   }
 
+  /* Display type: condensed, upright, mechanical. */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    line-height: 0.95;
+  }
+
   .btn {
     display: inline-flex;
     align-items: center;
@@ -75,7 +118,7 @@ fieldset {
     gap: 0.5rem;
     min-height: 44px;
     padding: 0 1.1rem;
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     border: 1px solid transparent;
     font-weight: 600;
     font-size: 0.9375rem;
@@ -107,11 +150,11 @@ fieldset {
     background: var(--color-brand-strong);
   }
   .btn-dark {
-    background: var(--color-steel);
+    background: var(--color-graphite);
     color: #fff;
   }
   .btn-dark:hover {
-    background: var(--color-ink);
+    background: var(--color-steel);
   }
   .btn-outline {
     background: var(--color-surface);
@@ -120,6 +163,16 @@ fieldset {
   }
   .btn-outline:hover {
     border-color: var(--color-ink);
+  }
+  /* Outline button for dark backgrounds. */
+  .btn-outline-dark {
+    background: rgb(255 255 255 / 0.04);
+    border-color: rgb(255 255 255 / 0.32);
+    color: #fff;
+  }
+  .btn-outline-dark:hover {
+    background: rgb(255 255 255 / 0.1);
+    border-color: #fff;
   }
   .btn-whatsapp {
     background: var(--color-whatsapp);
@@ -139,7 +192,13 @@ fieldset {
   .card {
     background: var(--color-surface);
     border: 1px solid var(--color-line);
-    border-radius: 0.75rem;
+    border-radius: 0.625rem;
+  }
+  .card-dark {
+    background: var(--color-graphite-2);
+    border: 1px solid var(--color-graphite-3);
+    border-radius: 0.625rem;
+    color: var(--color-on-dark);
   }
 
   .chip {
@@ -158,13 +217,22 @@ fieldset {
   .chip:hover {
     border-color: var(--color-ink);
   }
+  .chip-dark {
+    border-color: rgb(255 255 255 / 0.22);
+    background: rgb(255 255 255 / 0.05);
+    color: var(--color-on-dark);
+  }
+  .chip-dark:hover {
+    border-color: #fff;
+    background: rgb(255 255 255 / 0.1);
+  }
 
   .input {
     width: 100%;
     min-height: 44px;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--color-line-strong);
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     background: var(--color-surface);
     color: var(--color-ink);
     font-size: 1rem; /* 16px stops iOS zooming into inputs */
@@ -178,20 +246,64 @@ fieldset {
 
   .eyebrow {
     font-family: var(--font-display);
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--color-brand);
   }
+  .eyebrow-dark {
+    color: var(--color-brand-bright);
+  }
 
-  /* Faint engineering-paper grid used behind placeholders and the hero. */
+  /* Faint engineering-paper grid for light placeholders. */
   .tech-grid {
     background-color: var(--color-steel-soft);
     background-image:
       linear-gradient(to right, rgb(43 52 64 / 0.06) 1px, transparent 1px),
       linear-gradient(to bottom, rgb(43 52 64 / 0.06) 1px, transparent 1px);
     background-size: 16px 16px;
+  }
+
+  /* Blueprint grid on graphite: minor 24px, major 120px. */
+  .blueprint {
+    background-color: var(--color-graphite);
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.07) 1px, transparent 1px),
+      linear-gradient(to right, rgb(255 255 255 / 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.03) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  }
+
+  /* Engine-fin texture: fine horizontal ribs. */
+  .fins {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.045) 0 1px,
+      transparent 1px 7px
+    );
+  }
+  .fins-light {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(20 23 28 / 0.05) 0 1px,
+      transparent 1px 7px
+    );
+  }
+
+  /* Roller-chain divider strip. */
+  .chain-rule {
+    height: 10px;
+    background-repeat: repeat-x;
+    background-position: center;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='10'%3E%3Cg fill='none' stroke='%23f26b21' stroke-opacity='.6' stroke-width='1.2'%3E%3Crect x='1' y='1.5' width='14' height='7' rx='3.5'/%3E%3Crect x='9' y='2.5' width='14' height='5' rx='2.5'/%3E%3C/g%3E%3Cg fill='%23f26b21' fill-opacity='.6'%3E%3Ccircle cx='4.5' cy='5' r='1.2'/%3E%3Ccircle cx='11.5' cy='5' r='1.2'/%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* Thin rule with a centre tick, used under section eyebrows. */
+  .tick-rule {
+    height: 1px;
+    background: linear-gradient(to right, currentColor 0 28px, transparent 28px 34px, rgb(127 127 127 / 0.35) 34px);
   }
 
   .scrollbar-none {
@@ -202,6 +314,15 @@ fieldset {
   }
 }
 
+/* Sections fade up as they scroll into view, where the browser supports scroll-driven animation. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: fade-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+  }
+}
+
 /* The search box has its own clear button. */
 input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;
@@ -209,7 +330,7 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 dialog::backdrop {
-  background: rgb(20 23 28 / 0.55);
+  background: rgb(14 17 21 / 0.6);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -218,5 +339,6 @@ dialog::backdrop {
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-timeline: auto !important;
   }
 }

@@ -1,6 +1,7 @@
+import { getPhoto, type PhotoKey } from "@/config/photos";
 import { searchAliases, searchStopWords } from "@/data/search-aliases";
 import { categoryPath } from "./paths";
-import type { Brand, CategoryGroup, MotorcycleModel, ProductView } from "@/lib/types";
+import type { BikeClass, Brand, CategoryGroup, CategoryIcon, MotorcycleModel, ProductView } from "@/lib/types";
 
 /**
  * Product search tuned for how riders type: model shorthand ("fzs v3"),
@@ -51,6 +52,9 @@ interface IndexedField {
 export interface SearchIndexEntry {
   product: ProductView;
   fields: IndexedField[];
+  /** Normalised name and part type padded with spaces, for whole-phrase matching. */
+  namePhrase: string;
+  typePhrase: string;
 }
 
 export interface SearchContext {
@@ -83,6 +87,9 @@ export function buildSearchIndex(products: ProductView[], ctx: SearchContext): S
         { tokens: tokensOf(...(product.tags ?? []), ...(product.searchableAliases ?? [])), weight: 1.5 },
         { tokens: tokensOf(product.shortDescription), weight: 0.5 },
       ],
+      namePhrase: ` ${tokensOf(product.name).join(" ")} `,
+      // Name plus aliases, so "engine oil" matches the "Engine Oils" part type.
+      typePhrase: ` ${[sub?.name, ...(sub?.aliases ?? [])].map((t) => applyAliases(normalize(t ?? ""))).join(" | ")} `,
     };
   });
 }
@@ -107,7 +114,9 @@ function tokenScore(token: string, fields: IndexedField[]): { score: number; str
       if (s > best) best = s;
     }
   }
-  return { score: best, strong };
+  // A bare number ("150") says less than a word ("apache"), so "apache 150" ranks Apache parts
+  // above every other 150 cc bike's parts.
+  return { score: numeric ? best * 0.5 : best, strong };
 }
 
 export type SearchMode = "all" | "partial" | "none";
@@ -143,6 +152,14 @@ export function searchProducts(index: SearchIndexEntry[], query: string): Search
     }
     if (matched === 0) continue;
     if (entry.product.isPopular) score += 0.25;
+    // The whole query as a phrase beats the same words scattered across fields, and a phrase
+    // naming the part type beats one inside a longer name: "engine oil" lists Engine Oil
+    // before an "Engine Oil Seal Kit".
+    if (tokens.length > 1) {
+      const phrase = ` ${tokens.join(" ")} `;
+      if (entry.namePhrase.includes(phrase)) score += 1;
+      if (entry.typePhrase.includes(phrase)) score += 1;
+    }
     if (matched === tokens.length) full.push({ product: entry.product, score, strong });
     else partial.push({ product: entry.product, score, matched });
   }
@@ -161,11 +178,25 @@ export function searchProducts(index: SearchIndexEntry[], query: string): Search
   return { hits: [], mode: "none", tokens };
 }
 
+/** Small image shown next to a suggestion. */
+export type SuggestionThumb =
+  | { kind: "photo"; src: string }
+  | { kind: "bike"; bikeClass: BikeClass }
+  | { kind: "icon"; icon: CategoryIcon };
+
 export interface Suggestion {
-  kind: "product" | "model" | "category";
+  kind: "product" | "model" | "category" | "search";
   label: string;
   sublabel?: string;
   href: string;
+  thumb?: SuggestionThumb;
+}
+
+const statusRank: Record<MotorcycleModel["status"], number> = { "bd-current": 0, "bd-earlier": 1, "official-other": 2 };
+
+function photoThumb(key: PhotoKey | undefined, icon: CategoryIcon): SuggestionThumb {
+  const photo = getPhoto(key);
+  return photo ? { kind: "photo", src: photo.src } : { kind: "icon", icon };
 }
 
 /** Models and categories whose names or aliases match every query word. */
@@ -181,31 +212,42 @@ export function suggestDirectory(
   const matchesAll = (fieldTokens: string[]) =>
     tokens.every((t) => fieldTokens.some((d) => d === t || (!/^\d+$/.test(t) && d.startsWith(t))));
 
-  const modelHits: Suggestion[] = [];
+  const modelHits: { suggestion: Suggestion; rank: number }[] = [];
   for (const m of models) {
     const brand = brands.get(m.brand);
     if (matchesAll(tokensOf(brand?.name, brand?.nameBn, m.name, ...(m.aliases ?? [])))) {
       modelHits.push({
-        kind: "model",
-        label: `${brand?.name ?? ""} ${m.name} parts`.trim(),
-        sublabel: "Motorcycle",
-        href: `/models/${m.slug}`,
+        suggestion: {
+          kind: "model",
+          label: `${brand?.name ?? ""} ${m.name}`.trim(),
+          sublabel: "Motorcycle · see parts",
+          href: `/models/${m.slug}`,
+          thumb: { kind: "bike", bikeClass: m.class },
+        },
+        rank: statusRank[m.status],
       });
     }
   }
+  modelHits.sort((a, b) => a.rank - b.rank);
 
   const categoryHits: Suggestion[] = [];
   for (const g of groups) {
     if (matchesAll(tokensOf(g.name, g.nameBn))) {
-      categoryHits.push({ kind: "category", label: g.name, sublabel: "Category", href: categoryPath(g.slug) });
+      categoryHits.push({ kind: "category", label: g.name, sublabel: "Category", href: categoryPath(g.slug), thumb: photoThumb(g.image, g.icon) });
     }
     for (const s of g.subcategories) {
       const aliasTokens = (s.aliases ?? []).map((a) => applyAliases(normalize(a)));
       if (matchesAll(tokensOf(s.name, s.nameBn, ...aliasTokens))) {
-        categoryHits.push({ kind: "category", label: s.name, sublabel: g.name, href: `/categories/${s.slug}` });
+        categoryHits.push({
+          kind: "category",
+          label: s.name,
+          sublabel: g.name,
+          href: `/categories/${s.slug}`,
+          thumb: photoThumb(s.image ?? g.image, g.icon),
+        });
       }
     }
   }
 
-  return [...modelHits.slice(0, limit), ...categoryHits.slice(0, limit)];
+  return [...modelHits.slice(0, limit).map((h) => h.suggestion), ...categoryHits.slice(0, limit)];
 }

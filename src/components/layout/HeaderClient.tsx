@@ -27,8 +27,8 @@ export function DesktopNav() {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cx(
-                "inline-flex min-h-11 items-center border-b-2 px-3 text-sm font-semibold transition-colors",
-                active ? "border-brand text-brand" : "border-transparent text-ink hover:text-brand",
+                "inline-flex min-h-11 items-center border-b-2 px-3 font-display text-[0.9375rem] font-semibold uppercase tracking-[0.08em] transition-colors",
+                active ? "border-brand-bright text-white" : "border-transparent text-on-dark-muted hover:text-white",
               )}
             >
               {item.label}
@@ -51,12 +51,12 @@ export function CartLink() {
   return (
     <Link
       href="/cart"
-      className="relative grid size-11 place-items-center rounded-lg text-ink hover:bg-steel-soft"
+      className="relative grid size-11 place-items-center rounded-md text-white hover:bg-white/10"
       aria-label={count > 0 ? `Cart, ${count} item${count === 1 ? "" : "s"}` : "Cart, empty"}
     >
       <ShoppingCart className="size-6" aria-hidden="true" />
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-brand px-1 text-xs font-bold text-white">
+        <span className="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-brand px-1 text-xs font-bold text-white ring-2 ring-graphite">
           {count > 99 ? "99+" : count}
         </span>
       )}
@@ -74,7 +74,7 @@ export function MobileMenu() {
     <>
       <button
         type="button"
-        className="grid size-11 place-items-center rounded-lg text-ink hover:bg-steel-soft lg:hidden"
+        className="grid size-11 place-items-center rounded-md text-white hover:bg-white/10 lg:hidden"
         aria-label="Open menu"
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -92,11 +92,16 @@ export function MobileMenu() {
         onClick={(e) => {
           if (e.target === dialogRef.current) close();
         }}
-        className="m-0 h-dvh max-h-none w-[min(20rem,85vw)] max-w-none bg-surface p-0 text-ink"
+        className="m-0 h-dvh max-h-none w-[min(20rem,85vw)] max-w-none bg-graphite p-0 text-on-dark"
       >
-        <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <span className="font-display text-lg font-bold uppercase">Menu</span>
-          <button type="button" className="btn btn-ghost btn-sm -mr-2" onClick={close} aria-label="Close menu">
+        <div className="flex items-center justify-between border-b border-graphite-3 px-4 py-3">
+          <span className="display text-xl text-white">Menu</span>
+          <button
+            type="button"
+            className="grid size-10 place-items-center rounded-md text-white hover:bg-white/10"
+            onClick={close}
+            aria-label="Close menu"
+          >
             <X className="size-5" aria-hidden="true" />
           </button>
         </div>
@@ -111,8 +116,8 @@ export function MobileMenu() {
                     onClick={close}
                     aria-current={active ? "page" : undefined}
                     className={cx(
-                      "flex min-h-12 items-center border-l-4 px-4 text-base font-semibold",
-                      active ? "border-brand bg-brand-soft text-brand" : "border-transparent hover:bg-steel-soft",
+                      "flex min-h-12 items-center border-l-4 px-4 font-display text-lg font-semibold uppercase tracking-[0.06em]",
+                      active ? "border-brand-bright bg-white/5 text-white" : "border-transparent text-on-dark hover:bg-white/5",
                     )}
                   >
                     {item.label}
@@ -122,9 +127,16 @@ export function MobileMenu() {
             })}
           </ul>
         </nav>
-        <div className="space-y-1 border-t border-line px-4 py-4 text-sm text-muted">
+        <div className="chain-rule mx-4 opacity-60" aria-hidden="true" />
+        <div className="space-y-1 px-4 py-4 text-sm text-on-dark-muted">
           <p>{business.address.full}</p>
           <p>{business.hours.label}</p>
+          <p>
+            Orders:{" "}
+            <a href={`tel:${business.phones.orders.e164}`} className="font-semibold text-white">
+              {business.phones.orders.display}
+            </a>
+          </p>
         </div>
       </dialog>
     </>
@@ -138,13 +150,13 @@ export function MobileActionBar() {
   return (
     <nav
       aria-label="Quick actions"
-      className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgb(0_0_0/0.06)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 flex border-t border-graphite-3 bg-graphite pb-[env(safe-area-inset-bottom)] text-on-dark md:hidden"
     >
       <TrackedAnchor
         href={`tel:${business.phones.orders.e164}`}
         event="phone_click"
         eventProps={{ number: business.phones.orders.e164, source: "mobile_bar" }}
-        className={cx(item, "text-ink")}
+        className={item}
       >
         <Phone className="size-5" aria-hidden="true" />
         Call
@@ -155,16 +167,16 @@ export function MobileActionBar() {
         rel="noopener noreferrer"
         event="whatsapp_click"
         eventProps={{ number: primaryWhatsApp.e164, source: "mobile_bar" }}
-        className={cx(item, "text-whatsapp")}
+        className={cx(item, "text-[#4ade80]")}
       >
         <MessageCircle className="size-5" aria-hidden="true" />
         WhatsApp
       </TrackedAnchor>
-      <Link href="/part-finder" className={cx(item, "text-ink")}>
+      <Link href="/part-finder" className={cx(item, "text-brand-bright")}>
         <Bike className="size-5" aria-hidden="true" />
         Find part
       </Link>
-      <Link href="/cart" className={cx(item, "relative text-ink")} aria-label={`Cart, ${count} items`}>
+      <Link href="/cart" className={cx(item, "relative")} aria-label={`Cart, ${count} items`}>
         <span className="relative">
           <ShoppingCart className="size-5" aria-hidden="true" />
           {count > 0 && (

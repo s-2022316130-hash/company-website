@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductListing } from "@/components/catalog/ProductListing";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PhotoBanner } from "@/components/layout/Banners";
 import { loadCatalog } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
@@ -17,7 +17,9 @@ export default async function EngineOilPage(props: PageProps<"/engine-oil">) {
   const group = catalog.groups.find((g) => g.slug === "oils-fluids");
   return (
     <>
-      <PageHeader
+      <PhotoBanner
+        photo="catOils"
+        eyebrow="Maintenance"
         title="Engine oil & maintenance fluids"
         description="Oils, fluids and care products for routine maintenance. Tell us your bike model and we'll confirm the right grade."
         crumbs={[{ label: "Engine oil & fluids", href: "/engine-oil" }]}
@@ -26,15 +28,15 @@ export default async function EngineOilPage(props: PageProps<"/engine-oil">) {
           <ul className="mt-5 flex flex-wrap gap-2">
             {group.subcategories.map((s) => (
               <li key={s.slug}>
-                <Link href={`/categories/${s.slug}`} className="chip">
+                <Link href={`/categories/${s.slug}`} className="chip chip-dark">
                   {s.name}
                 </Link>
               </li>
             ))}
           </ul>
         )}
-      </PageHeader>
-      <div className="container-page py-6">
+      </PhotoBanner>
+      <div className="container-page py-8">
         <ProductListing
           basePath="/engine-oil"
           searchParams={searchParams}

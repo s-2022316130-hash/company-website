@@ -33,9 +33,9 @@ export default async function SearchPage(props: PageProps<"/search">) {
         <SearchBar key={q} defaultValue={q} size="lg" className="mt-4 max-w-2xl" autoFocus={!q} />
         {shortcuts.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted">Go straight to:</span>
+            <span className="text-sm text-on-dark-muted">Go straight to:</span>
             {shortcuts.map((s) => (
-              <Link key={s.href} href={s.href} className="chip">
+              <Link key={s.href} href={s.href} className="chip chip-dark">
                 {s.label}
               </Link>
             ))}

@@ -3,9 +3,16 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { TrackView } from "@/components/analytics/Track";
 import { ProductListing } from "@/components/catalog/ProductListing";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PhotoBanner } from "@/components/layout/Banners";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
-import { categoryCounts, categoryPath, dedicatedCategoryPaths, loadCatalog, resolveCategory } from "@/lib/catalog/catalog";
+import {
+  categoryCounts,
+  categoryPath,
+  categoryPhotoKey,
+  dedicatedCategoryPaths,
+  loadCatalog,
+  resolveCategory,
+} from "@/lib/catalog/catalog";
 import { pageMetadata, type Crumb } from "@/lib/seo";
 
 export async function generateMetadata(props: PageProps<"/categories/[slug]">): Promise<Metadata> {
@@ -37,8 +44,10 @@ export default async function CategoryPage(props: PageProps<"/categories/[slug]"
   return (
     <>
       <TrackView event="category_view" props={{ category: slug }} />
-      <PageHeader
-        title={`Motorcycle ${cat.name}`}
+      <PhotoBanner
+        photo={categoryPhotoKey(catalog.groups, slug)}
+        eyebrow={cat.sub ? cat.group.name : cat.group.shortLabel}
+        title={cat.sub ? `Motorcycle ${cat.name}` : cat.name}
         crumbs={crumbs}
         description={
           cat.sub
@@ -52,9 +61,9 @@ export default async function CategoryPage(props: PageProps<"/categories/[slug]"
               const n = counts.get(s.slug) ?? 0;
               return (
                 <li key={s.slug}>
-                  <Link href={`/categories/${s.slug}`} className="chip">
+                  <Link href={`/categories/${s.slug}`} className="chip chip-dark">
                     {s.name}
-                    {n > 0 && <span className="text-xs text-muted">{n}</span>}
+                    {n > 0 && <span className="text-xs text-on-dark-muted">{n}</span>}
                   </Link>
                 </li>
               );
@@ -62,15 +71,15 @@ export default async function CategoryPage(props: PageProps<"/categories/[slug]"
           </ul>
         )}
         {cat.sub && (
-          <p className="mt-3 inline-flex items-center gap-2 text-sm text-muted">
-            <CategoryIcon name={cat.group.icon} className="size-4" />
+          <p className="mt-4 inline-flex items-center gap-2 text-sm text-on-dark-muted">
+            <CategoryIcon name={cat.group.icon} className="size-4 text-brand-bright" />
             Part of{" "}
-            <Link href={categoryPath(cat.group.slug)} className="font-semibold text-brand underline">
+            <Link href={categoryPath(cat.group.slug)} className="font-semibold text-white underline">
               {cat.group.name}
             </Link>
           </p>
         )}
-      </PageHeader>
+      </PhotoBanner>
       <div className="container-page py-6">
         <ProductListing
           basePath={`/categories/${slug}`}

@@ -1,56 +1,44 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ModelLink } from "@/components/catalog/DirectoryCards";
+import { categoryShortName } from "@/components/catalog/DirectoryCards";
+import { ModelDirectory, type DirectoryEntry } from "@/components/catalog/ModelDirectory";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { countBy, loadCatalog, modelsForBrand } from "@/lib/catalog/catalog";
+import { countBy, loadCatalog, modelCategoryGroups, modelsForBrand } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Motorcycle Models",
+  title: "Find Parts for Your Motorcycle",
   description:
-    "Find spare parts by motorcycle model: Pulsar, FZS, R15, Gixxer, Apache, CB Shine, Splendor and more. Nirob Autos, Madhupur.",
+    "Motorcycle directory: choose your Bajaj, Honda, Yamaha, Suzuki, TVS, Hero or Runner model to explore compatible parts at Nirob Autos, Madhupur.",
   path: "/models",
 });
 
-export default async function ModelsPage() {
-  const catalog = await loadCatalog();
+export default async function ModelsPage(props: PageProps<"/models">) {
+  const [sp, catalog] = await Promise.all([props.searchParams, loadCatalog()]);
   const modelCounts = countBy(catalog.products, (p) => p.compatibleModels);
+  const entries: DirectoryEntry[] = catalog.brands.flatMap((b) =>
+    modelsForBrand(catalog, b.slug).map((m) => ({
+      model: m,
+      brandName: b.name,
+      productCount: modelCounts.get(m.id) ?? 0,
+      categories: modelCategoryGroups(catalog, m.id).map(({ group }) => categoryShortName(group)),
+    })),
+  );
+  const brandParam = Array.isArray(sp.brand) ? sp.brand[0] : sp.brand;
+
   return (
     <>
       <PageHeader
-        title="Find parts by motorcycle"
-        description="Choose your bike to see parts listed for it. If your model is not here, call or WhatsApp the store."
+        eyebrow="Motorcycle directory"
+        title="Find parts for your motorcycle"
+        description="Choose your motorcycle to explore compatible parts. Model names follow each manufacturer's official Bangladesh website."
         crumbs={[{ label: "Motorcycles", href: "/models" }]}
-      >
-        <nav aria-label="Jump to brand" className="mt-5">
-          <ul className="flex flex-wrap gap-2">
-            {catalog.brands.map((b) => (
-              <li key={b.slug}>
-                <Link href={`#${b.slug}`} className="chip">
-                  {b.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </PageHeader>
-      <div className="container-page space-y-10 py-6">
-        {catalog.brands.map((b) => (
-          <section key={b.slug} id={b.slug} aria-labelledby={`h-${b.slug}`} className="scroll-mt-40">
-            <h2 id={`h-${b.slug}`} className="mb-3 font-display text-xl font-bold text-ink">
-              <Link href={`/brands/${b.slug}`} className="hover:text-brand">
-                {b.name}
-              </Link>
-            </h2>
-            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {modelsForBrand(catalog, b.slug).map((m) => (
-                <li key={m.id}>
-                  <ModelLink model={m} productCount={modelCounts.get(m.id) ?? 0} showBrand={false} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+      />
+      <div className="container-page py-8">
+        <ModelDirectory
+          entries={entries}
+          brands={catalog.brands.map((b) => ({ slug: b.slug, name: b.name }))}
+          initialBrand={brandParam}
+        />
       </div>
     </>
   );
