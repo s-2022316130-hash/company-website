@@ -44,7 +44,8 @@ Any Node host that runs `next start` works the same way.
 | Name, address, phone numbers, WhatsApp numbers, hours, pickup/courier text, map embed, social links | `src/config/business.ts` |
 | Main and footer navigation | `src/config/navigation.ts` |
 | Colours, fonts, button styles, textures (blueprint grid, fins, chain rule) | `src/app/globals.css` (`@theme` block) |
-| Photos and their credits | `src/config/photos.ts`, files in `public/images/` |
+| Images: stock photos, brand logos, model photos, their sources and rights | `src/config/images.ts`, files in `public/images/` |
+| Official logos and model photos still to request from distributors | `docs/image-requests.md` |
 | Bike line drawings | `src/components/bikes/BikeArt.tsx` |
 | Products | `src/data/products.ts` |
 | Motorcycle models | `src/data/models.ts` |
@@ -201,19 +202,49 @@ and Twin Disc) and Discover 110/125. Both were read on 2 October 2026.
 ### Dealerships
 
 The shop's business card lists it as a dealer for Uttara Motors (Bajaj), TVS Motors, Runner Automobiles
-and Hero, with genuine parts at company price. The card prints "Hero Honda", the brand's name before
-2011, and the site shows "Hero" at the owner's request. The shop also sells original Yamaha, Suzuki and
-Honda parts. These details live in `business.dealerships` and `business.originalPartsBrands` in
-`src/config/business.ts`. Brand cards, brand and model pages, the About page, the footer and the terms
-read from there.
+and Hero, with genuine parts at company price, and the owner has confirmed it is an authorized dealer for
+them. The card prints "Hero Honda", the brand's name before 2011, and the site shows "Hero" at the owner's
+request. The shop also sells original Yamaha, Suzuki and Honda parts; it is not their dealer, so those
+brands get an "Original parts" badge rather than "Authorized dealer". These details live in
+`business.dealerships` and `business.originalPartsBrands` in `src/config/business.ts`. The badges, brand
+cards (dealerships listed first), brand and model pages, product pages for one brand's parts, the About
+page, the header, the footer and the terms read from there.
 
 ### Images
 
-- **Photos**: 31 photos from [Unsplash](https://unsplash.com) under the
-  [Unsplash License](https://unsplash.com/license). They are stored as WebP in `public/images/` and
-  registered in `src/config/photos.ts` with alt text, photographer and source page. `/credits` lists
-  them all. The hero photo's number plate is blurred. These photos are **temporary**: replace them with
-  the shop's own photos when available.
+Every image the site can show is registered in one manifest, `src/config/images.ts`, with alt text,
+`imageSource` (`official-brand`, `store-photo`, `licensed-stock`), `sourceUrl` and `rightsStatus`.
+Components never hard-code a path. `rightsStatus` decides whether a file is displayed:
+
+| rightsStatus | Meaning | Shown? |
+| --- | --- | --- |
+| `approved` | The rights holder confirmed in writing that the shop may use it | Yes |
+| `dealer-supplied` | Supplied to Nirob Autos by the distributor for dealer use | Yes |
+| `temporary` | Licensed stock photo, until the shop has its own | Yes |
+| `permission-required` | Reuse not confirmed. No local file is kept | No |
+
+- **Official logos and model photos**: being an authorized dealer is not, on its own, permission to
+  republish a manufacturer's images. The Bajaj, TVS, Hero and Runner sites say their images and logos
+  need written consent; the Yamaha, Honda and Suzuki Bangladesh sites state no terms, so their images are
+  covered by copyright too (findings and links per brand in `brandImages[...].terms`, checked
+  3 October 2026). So every official image is `permission-required` for now:
+  - each brand has a logo slot (`brandImages`); without a file the brand name is set in the site's type
+    (`BrandMark`), never a redrawn logo;
+  - every current Bangladesh model has a photo slot pointing at its official page (`motorcycleImage()` in
+    `src/lib/images.ts`); without a file the page shows the line drawing of its body style
+    (`BikeVisual`), captioned as not the exact model. Earlier and other-market models never get a current
+    model's photo.
+
+  `docs/image-requests.md` lists all 98 files to ask the distributors for (7 logos, 91 model photos) and
+  how to add them. Once a file is saved under `public/images/brands/` or `public/images/motorcycles/` and
+  its entry is set to `dealer-supplied` or `approved`, it appears on brand cards, brand and model banners,
+  model cards, the part finder, product "Fits" lists, search suggestions and `/credits`, in a fixed frame
+  with `object-contain` so wheels and lights are never cropped. The site never loads images from
+  manufacturer websites.
+- **Stock photos**: 31 photos from [Unsplash](https://unsplash.com) under the
+  [Unsplash License](https://unsplash.com/license), stored as WebP and listed on `/credits` with their
+  photographers. The hero photo's number plate is blurred. They are **temporary**: replace them with the
+  shop's own photos when available.
 - **Product images** fall back in this order:
   1. the product's own photo
   2. its representative `photo`
@@ -221,19 +252,23 @@ read from there.
   4. an original line illustration of the part type (`src/components/parts/PartArt.tsx`, 44 drawings)
   5. a category icon
 
-  The broad category photo is never used for a product, so a brake pad never shows a brake disc.
-  Anything other than the product's own photo is captioned as not the exact item for sale.
-- **Folders**:
-  - `public/images/products/<brand>/` (bajaj, honda, yamaha, suzuki, tvs, hero, runner): photos of the
-    shop's actual items
-  - `public/images/products/<part-type>/`: the temporary representative stock photos
-  - `public/images/motorcycles/` and `public/images/brands/`: licensed model and brand images, if
-    permission is ever given
+  The broad category photo is never used for a product, so a brake pad never shows a brake disc, and a
+  motorcycle is never shown as a part's picture (search suggestions included). Anything other than the
+  product's own photo is captioned as not the exact item for sale. Product pages show the bikes a part
+  fits beneath its picture.
+- **Folders** under `public/images/`:
+  - `brands/`: logos supplied by distributors
+  - `motorcycles/`: model photos supplied by distributors, named `<model-id>.webp`
+  - `products/<brand>/` (bajaj, honda, yamaha, suzuki, tvs, hero, runner): photos of the shop's actual items
+  - `products/<part-type>/`: representative stock photos of part types
+  - `categories/`, `hero/`, `workshop/`, `oils/`, `accessories/`: stock photos for cards and banners
 
   Only use photos the shop owns or has permission to use. A credit line does not make a copyrighted
   manufacturer photo usable.
-- **Bikes** are shown as original line drawings of six body styles (commuter, street, sport, cruiser,
-  scooter, offroad), never as photos of a specific model, so no page shows the wrong bike.
+- **Bikes** without a permitted photo are shown as original line drawings of six body styles (commuter,
+  street, sport, cruiser, scooter, offroad), so no page shows the wrong bike.
+- **Performance**: images go through `next/image` (AVIF/WebP at the sizes each layout needs). Only
+  images near the top of a page (banners, the first product cards) load eagerly; the rest load lazily.
 
 ### Adding real products
 
@@ -316,6 +351,8 @@ events.
 - Every catalogue record is `catalogue-only`: real stock, prices, photos and part numbers are still
   needed from the shop. 535 of 583 records need fitment confirmation.
 - The photos are temporary Unsplash stock (see `/credits`). There are no photos of the shop or its stock.
+- No official brand logos or model photos are shown yet: each needs the distributor's files or written
+  permission (`docs/image-requests.md`). Until then brands appear by name and bikes as line drawings.
 - There is no order backend: requests are not stored, and the store must reply on WhatsApp or phone.
 - Stock is not live.
 - The site is English only, though the data and layout are Bangla-ready. A language switch has not been built.
