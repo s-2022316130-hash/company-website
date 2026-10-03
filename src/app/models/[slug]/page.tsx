@@ -51,7 +51,7 @@ export async function generateMetadata(props: PageProps<"/models/[slug]">): Prom
   const name = modelDisplayName(model, brandBySlug);
   return pageMetadata({
     title: `${name} Parts`,
-    description: `Spare parts listed for the ${name}: brake parts, filters, chain and sprocket, cables and more. Check price and availability with Nirob Autos, Madhupur.`,
+    description: `Spare parts listed for the ${name}: brake parts, filters, chain and sprocket, cables and more. Check price and availability with Nirob Auto's, Madhupur.`,
     path: `/models/${model.slug}`,
   });
 }

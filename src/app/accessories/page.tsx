@@ -11,7 +11,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Motorcycle Accessories",
-  description: "Motorcycle accessories at Nirob Autos, Madhupur: helmets from Studds, Vega, Steelbird, LS2 and more, mobile holders, chargers, grips, covers and more.",
+  description: "Motorcycle accessories at Nirob Auto's, Madhupur: helmets from Studds, Vega, Steelbird, LS2 and more, mobile holders, chargers, grips, covers and more.",
   path: "/accessories",
 });
 

@@ -34,7 +34,7 @@ import type { MotorcycleModel } from "@/lib/types";
 export const metadata: Metadata = pageMetadata({
   title: "Part Finder: Find Parts for Your Motorcycle",
   description:
-    "Choose your motorcycle brand and model, then the part you need, to see compatible spare parts at Nirob Autos, Madhupur.",
+    "Choose your motorcycle brand and model, then the part you need, to see compatible spare parts at Nirob Auto's, Madhupur.",
   path: "/part-finder",
 });
 

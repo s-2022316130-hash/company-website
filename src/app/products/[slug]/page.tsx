@@ -78,7 +78,7 @@ export async function generateMetadata(props: PageProps<"/products/[slug]">): Pr
   const fit = fitmentSummary(product);
   const meta = pageMetadata({
     title: product.name,
-    description: product.shortDescription ?? `${product.name}. ${fit}. Check price and availability with Nirob Autos, Madhupur.`,
+    description: product.shortDescription ?? `${product.name}. ${fit}. Check price and availability with Nirob Auto's, Madhupur.`,
     path: `/products/${product.slug}`,
     // Catalogue-only entries are not confirmed stock: keep them out of search engines.
     noindex: !isIndexable(product),

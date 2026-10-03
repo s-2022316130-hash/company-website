@@ -13,7 +13,7 @@ import { modelVariants } from "./variants";
  * Names follow the official sites, normalised to title case (e.g. "GIXXER SF" → "Gixxer SF").
  * spec values come from the official model pages and are left out when the page doesn't state them.
  * Where per-variant specs exist (src/data/variants.ts), the model spec is derived from them instead.
- * Listing a model here does NOT mean Nirob Autos stocks parts for it; products say that.
+ * Listing a model here does NOT mean Nirob Auto's stocks parts for it; products say that.
  */
 
 interface Spec {

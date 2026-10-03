@@ -26,3 +26,10 @@ The manufacturer logos on the signboard and card are not used on the website: be
 - Helmet brands on the card: Steelbird and Vega.
 
 The card's QR code points to `https://qr.link/Ra4cts`. On 2026-10-03 that link opened a "Deactivated QR Code" page, so it no longer leads anywhere. A replacement QR should point to a link the shop controls, such as its Google Maps listing or this website.
+
+## QR codes (replacing the card's deactivated one)
+
+- `qr-website.png` opens https://nirob-autos.vercel.app.
+- `qr-google-maps.png` opens Google Maps searching for the shop at Natun Bazar, Madhupur. Regenerate it with the shop's own Maps listing link once that exists.
+
+Copies are served at `/images/nirob/qr-website.png` and `/images/nirob/qr-google-maps.png` for printing.

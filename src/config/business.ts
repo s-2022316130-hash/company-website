@@ -1,5 +1,5 @@
 /**
- * Single source of truth for Nirob Autos business details.
+ * Single source of truth for Nirob Auto's business details.
  * Change a phone number, address or opening time here and every page follows.
  */
 
@@ -18,7 +18,7 @@ export interface WhatsAppNumber extends PhoneNumber {
 export type FulfilmentMethod = "pickup" | "courier";
 
 export const business = {
-  name: "Nirob Autos",
+  name: "Nirob Auto's",
   banglaName: "নিরব অটো'স",
   /** As printed on the shop's 2026 business card. */
   tagline: "Motorcycle Spare Parts, Accessories & Helmets",
@@ -115,7 +115,7 @@ export const business = {
    */
   directionsUrl:
     "https://www.google.com/maps/search/?api=1&query=" +
-    encodeURIComponent("Nirob Autos, Natun Bazar, Madhupur, Tangail, Bangladesh"),
+    encodeURIComponent("Nirob Auto's, Natun Bazar, Madhupur, Tangail, Bangladesh"),
 
   /** Paste a Google Maps "Embed a map" src URL here to show a map on the contact page. */
   mapEmbedUrl: null as string | null,

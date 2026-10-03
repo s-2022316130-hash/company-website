@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Image Credits",
-  description: "Credits, sources and licences for the images used on the Nirob Autos website.",
+  description: "Credits, sources and licences for the images used on the Nirob Auto's website.",
   path: "/credits",
 });
 
@@ -35,13 +35,13 @@ export default function CreditsPage() {
       <PageHeader
         eyebrow="Image sources"
         title="Image credits"
-        description="Stock photography is used for atmosphere and as representative images of part types. It does not show Nirob Autos stock or premises. Motorcycle line drawings, part illustrations and graphics are original to this site."
+        description="Stock photography is used for atmosphere and as representative images of part types. It does not show Nirob Auto's stock or premises. Motorcycle line drawings, part illustrations and graphics are original to this site."
         crumbs={[{ label: "Image credits", href: "/credits" }]}
       />
       <div className="container-page space-y-10 py-10">
         <section aria-labelledby="shop-logo-title" className="card max-w-3xl p-5">
           <h2 id="shop-logo-title" className="display text-2xl text-ink">
-            Nirob Autos logo
+            Nirob Auto&apos;s logo
           </h2>
           <div className="mt-3 flex flex-wrap items-center gap-5">
             <LogoEmblem tone="light" className="h-20" sizes="140px" />

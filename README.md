@@ -1,6 +1,6 @@
-# Nirob Autos | নিরব অটো'স
+# Nirob Auto's | নিরব অটো'স
 
-Website for Nirob Autos, a motorcycle spare-parts shop at N401, Madhupur, Bangladesh. Customers find a
+Website for Nirob Auto's, a motorcycle spare-parts shop at N401, Madhupur, Bangladesh. Customers find a
 part (by search, bike model or category), check what it fits, add it to a cart, and send an order
 request to the shop by WhatsApp or phone. Customers can pick up from the store or have parts sent by
 courier anywhere in Bangladesh. The site does not take payments online.
@@ -295,7 +295,7 @@ Components never hard-code a path. `rightsStatus` decides whether a file is disp
 | rightsStatus | Meaning | Shown? |
 | --- | --- | --- |
 | `approved` | The rights holder confirmed in writing that the shop may use it | Yes |
-| `dealer-supplied` | Supplied to Nirob Autos by the distributor for dealer use | Yes |
+| `dealer-supplied` | Supplied to Nirob Auto's by the distributor for dealer use | Yes |
 | `temporary` | Licensed stock photo, until the shop has its own | Yes |
 | `permission-required` | Reuse not confirmed. No local file is kept | No |
 
@@ -366,7 +366,7 @@ Components never hard-code a path. `rightsStatus` decides whether a file is disp
   fitment: "model-specific",
   compatibleModels: ["yamaha-fzs-v4"],
   compatibilityConfidence: "store-confirmed",
-  source: { type: "store-supplied", name: "Nirob Autos stock list" },
+  source: { type: "store-supplied", name: "Nirob Auto's stock list" },
   isFeatured: true,
 }
 ```

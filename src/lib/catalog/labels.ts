@@ -45,7 +45,7 @@ export const sourceTypeLabels: Record<SourceType, string> = {
   "official-manufacturer": "Manufacturer documentation",
   "historical-catalogue": "Historical parts catalogue",
   "retailer-reference": "Parts catalogue reference",
-  "store-supplied": "Supplied by Nirob Autos",
+  "store-supplied": "Supplied by Nirob Auto's",
   demo: "Demo data",
 };
 
@@ -63,4 +63,4 @@ export function canRequest(status: InventoryStatus): boolean {
 
 /** Shown on catalogue-only items and in the site-wide notice. */
 export const CATALOGUE_DISCLAIMER =
-  "Catalogue availability does not guarantee current stock. Contact Nirob Autos to confirm availability and fitment.";
+  "Catalogue availability does not guarantee current stock. Contact Nirob Auto's to confirm availability and fitment.";

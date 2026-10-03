@@ -9,7 +9,7 @@ import { brandsByRelation, loadCatalog } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
-  title: "About Nirob Autos",
+  title: "About Nirob Auto's",
   description: `${business.name} (${business.banglaName}) has sold motorcycle spare parts, accessories and helmets in ${business.address.locality}, Bangladesh, since ${business.foundedYear}.`,
   path: "/about",
 });

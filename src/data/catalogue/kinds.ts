@@ -4,7 +4,7 @@ import type { MotorcycleModel, ProductSpec, VariantSpec } from "@/lib/types";
 /**
  * Part-kind taxonomy for model-specific catalogue records.
  *
- * Source: Nirob Autos parts taxonomy, built from the part families named by the manufacturers'
+ * Source: Nirob Auto's parts taxonomy, built from the part families named by the manufacturers'
  * Bangladesh after-sales material (Yamaha BD, TVS, Hero genuine parts) and common workshop usage.
  * A kind is a type of part, not a specific item: records made from it carry
  * compatibilityConfidence "needs-confirmation" unless an official source lists the exact fitment.

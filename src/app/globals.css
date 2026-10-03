@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Nirob Autos design system. Every colour, radius, shadow, duration and easing in the UI comes from
+ * Nirob Auto's design system. Every colour, radius, shadow, duration and easing in the UI comes from
  * this file, so the site can be reskinned or re-timed here. Tailwind exposes the @theme tokens as
  * utilities: bg-brand, rounded-lg, shadow-raised, duration-standard, ease-card, text-section, etc.
  * src/lib/motion.ts mirrors the motion tokens for the few animations driven from JavaScript.

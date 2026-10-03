@@ -43,7 +43,7 @@ export async function generateMetadata(props: PageProps<"/brands/[slug]">): Prom
       : "";
   return pageMetadata({
     title: `${brand.name} Motorcycle Parts`,
-    description: `${relation} Spare parts, filters, brake parts and maintenance products for ${brand.name} motorcycles at Nirob Autos, Madhupur. Browse by model.`.trim(),
+    description: `${relation} Spare parts, filters, brake parts and maintenance products for ${brand.name} motorcycles at Nirob Auto's, Madhupur. Browse by model.`.trim(),
     path: `/brands/${brand.slug}`,
   });
 }

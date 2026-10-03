@@ -26,7 +26,7 @@ import { models } from "./models";
  */
 
 const CONFIRM = "Call or WhatsApp to confirm fit, price and availability before ordering.";
-const TAXONOMY = { type: "retailer-reference" as const, name: "Nirob Autos parts taxonomy" };
+const TAXONOMY = { type: "retailer-reference" as const, name: "Nirob Auto's parts taxonomy" };
 
 const modelById = new Map(models.map((m) => [m.id, m]));
 const brandName = new Map(brands.map((b) => [b.slug, b.name]));

@@ -17,7 +17,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Motorcycle Brands",
   description:
-    "Authorized dealer for Uttara Motors (Bajaj), TVS Motors, Runner Automobiles and Hero, with original Yamaha, Suzuki and Honda parts. Spare parts organised by brand and model at Nirob Autos, Madhupur.",
+    "Authorized dealer for Uttara Motors (Bajaj), TVS Motors, Runner Automobiles and Hero, with original Yamaha, Suzuki and Honda parts. Spare parts organised by brand and model at Nirob Auto's, Madhupur.",
   path: "/brands",
 });
 

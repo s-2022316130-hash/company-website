@@ -6,7 +6,7 @@
  *
  * rightsStatus decides whether a file is displayed:
  *   approved             the rights holder has confirmed in writing that the shop may use it: shown
- *   dealer-supplied      supplied to Nirob Autos by the distributor for dealer use: shown
+ *   dealer-supplied      supplied to Nirob Auto's by the distributor for dealer use: shown
  *   temporary            licensed stock photo, a placeholder until the shop's own photo exists: shown
  *   permission-required  reuse not confirmed: never shown, and no local file is kept. The site uses
  *                        the brand name in type or an original line drawing instead.
@@ -17,7 +17,7 @@
  * the site never loads images from manufacturer websites.
  */
 
-/** Where the image comes from. "shop-brand" is Nirob Autos's own logo, supplied by the owner. */
+/** Where the image comes from. "shop-brand" is Nirob Auto's own logo, supplied by the owner. */
 export type ImageSource = "official-brand" | "store-photo" | "licensed-stock" | "shop-brand";
 
 export type RightsStatus = "approved" | "dealer-supplied" | "temporary" | "permission-required";
@@ -52,7 +52,7 @@ export interface ImageAsset {
 }
 
 /**
- * Nirob Autos's own logo, cut from the signboard artwork the owner supplied on 2026-10-03 (white paper
+ * Nirob Auto's own logo, cut from the signboard artwork the owner supplied on 2026-10-03 (white paper
  * made transparent; the "-dark" files turn the black ink white for dark backgrounds). The "mark" is the
  * motorcycle-in-garage emblem without the Bangla name band, for small spaces and the browser icon.
  * The signboard's row of manufacturer logos was left out.
@@ -64,10 +64,10 @@ const SHOP_LOGO = {
 } as const;
 
 export const shopLogo = {
-  full: { src: "/images/nirob/logo.png", alt: "Nirob Autos logo, since 2000", width: 1018, height: 603, ...SHOP_LOGO },
-  fullDark: { src: "/images/nirob/logo-dark.png", alt: "Nirob Autos logo, since 2000", width: 1018, height: 603, ...SHOP_LOGO },
-  mark: { src: "/images/nirob/mark.png", alt: "Nirob Autos", width: 649, height: 409, ...SHOP_LOGO },
-  markDark: { src: "/images/nirob/mark-dark.png", alt: "Nirob Autos", width: 649, height: 409, ...SHOP_LOGO },
+  full: { src: "/images/nirob/logo.png", alt: "Nirob Auto's logo, since 2000", width: 1018, height: 603, ...SHOP_LOGO },
+  fullDark: { src: "/images/nirob/logo-dark.png", alt: "Nirob Auto's logo, since 2000", width: 1018, height: 603, ...SHOP_LOGO },
+  mark: { src: "/images/nirob/mark.png", alt: "Nirob Auto's", width: 649, height: 409, ...SHOP_LOGO },
+  markDark: { src: "/images/nirob/mark-dark.png", alt: "Nirob Auto's", width: 649, height: 409, ...SHOP_LOGO },
 } satisfies Record<string, ImageAsset & { src: string; width: number; height: number }>;
 
 /** A stock photo: always a local file, with its photographer and licence. */
@@ -103,7 +103,7 @@ const SQUARE = { width: 900, height: 900 };
 
 /**
  * Stock photos from Unsplash: atmosphere, category cards and photos of part types. None of them shows
- * Nirob Autos stock or premises, so each stays "temporary" until the shop supplies its own.
+ * Nirob Auto's stock or premises, so each stays "temporary" until the shop supplies its own.
  */
 export const photos = {
   // Hero and banners

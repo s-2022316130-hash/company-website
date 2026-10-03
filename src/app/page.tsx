@@ -190,7 +190,7 @@ export default async function HomePage() {
         />
         <OrderingSteps />
         <Reveal as="section" aria-labelledby="visit-title">
-          <SectionHeader id="visit-title" eyebrow="Visit or call" title="Find Nirob Autos" />
+          <SectionHeader id="visit-title" eyebrow="Visit or call" title="Find Nirob Auto's" />
           <div className="reveal-item" style={{ "--reveal-i": 2 } as CSSProperties}>
             <StoreContactCard />
           </div>

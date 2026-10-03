@@ -9,7 +9,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Motorcycle Engine Oil & Fluids",
   description:
-    "Motorcycle engine oil, gear oil, brake fluid, coolant, chain lubricant and care products at Nirob Autos, Madhupur.",
+    "Motorcycle engine oil, gear oil, brake fluid, coolant, chain lubricant and care products at Nirob Auto's, Madhupur.",
   path: "/engine-oil",
 });
 

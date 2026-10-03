@@ -30,7 +30,7 @@ function item(input: Input): Product {
     compatibilityConfidence: recommended ? "manufacturer-listed" : "needs-confirmation",
     source: recommended
       ? { type: "official-manufacturer", name: "Owner's manuals" }
-      : { type: "retailer-reference", name: "Nirob Autos catalogue" },
+      : { type: "retailer-reference", name: "Nirob Auto's catalogue" },
     description: `${input.shortDescription} ${CONFIRM}`,
     ...input,
   };
