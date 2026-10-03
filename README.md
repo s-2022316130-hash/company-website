@@ -97,8 +97,9 @@ How the motion works:
   totals tick when they change. The filters sheet, phone menu and search suggestions animate open and closed.
 - **Reduced motion**: with `prefers-reduced-motion: reduce`, transitions and animations are cut to near zero,
   scroll-linked effects and shimmer loops stop, reveals never hide anything, and every feature still works.
-- **Touch**: Tailwind's `hover:` only applies on devices that can hover, so nothing important depends on hover.
-  Blur and parallax are tablet-and-up only.
+- **Touch**: every hover style, Tailwind's and the component classes', only applies on devices that can hover, so a
+  tap never leaves a button "lifted"; cards sink slightly on a touch press instead. Blur and parallax are
+  tablet-and-up only. The header ignores iOS's end-of-page bounce and small finger jitter.
 
 ## Data architecture
 
