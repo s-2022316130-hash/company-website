@@ -17,8 +17,8 @@
  * the site never loads images from manufacturer websites.
  */
 
-/** Where the image comes from. */
-export type ImageSource = "official-brand" | "store-photo" | "licensed-stock";
+/** Where the image comes from. "shop-brand" is Nirob Autos's own logo, supplied by the owner. */
+export type ImageSource = "official-brand" | "store-photo" | "licensed-stock" | "shop-brand";
 
 export type RightsStatus = "approved" | "dealer-supplied" | "temporary" | "permission-required";
 
@@ -50,6 +50,25 @@ export interface ImageAsset {
   requestFrom?: string;
   note?: string;
 }
+
+/**
+ * Nirob Autos's own logo, cut from the signboard artwork the owner supplied on 2026-10-03 (white paper
+ * made transparent; the "-dark" files turn the black ink white for dark backgrounds). The "mark" is the
+ * motorcycle-in-garage emblem without the Bangla name band, for small spaces and the browser icon.
+ * The signboard's row of manufacturer logos was left out.
+ */
+const SHOP_LOGO = {
+  imageSource: "shop-brand",
+  rightsStatus: "approved",
+  note: "Supplied by the owner, 2026-10-03.",
+} as const;
+
+export const shopLogo = {
+  full: { src: "/images/nirob/logo.png", alt: "Nirob Autos logo, since 2000", width: 1018, height: 603, ...SHOP_LOGO },
+  fullDark: { src: "/images/nirob/logo-dark.png", alt: "Nirob Autos logo, since 2000", width: 1018, height: 603, ...SHOP_LOGO },
+  mark: { src: "/images/nirob/mark.png", alt: "Nirob Autos", width: 649, height: 409, ...SHOP_LOGO },
+  markDark: { src: "/images/nirob/mark-dark.png", alt: "Nirob Autos", width: 649, height: 409, ...SHOP_LOGO },
+} satisfies Record<string, ImageAsset & { src: string; width: number; height: number }>;
 
 /** A stock photo: always a local file, with its photographer and licence. */
 export interface Photo extends ImageAsset {

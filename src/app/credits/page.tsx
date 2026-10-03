@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { LogoEmblem } from "@/components/layout/Logo";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { brandImages, motorcycleImages, photos, type ImageAsset } from "@/config/images";
 import { shown } from "@/lib/images";
@@ -38,6 +39,20 @@ export default function CreditsPage() {
         crumbs={[{ label: "Image credits", href: "/credits" }]}
       />
       <div className="container-page space-y-10 py-10">
+        <section aria-labelledby="shop-logo-title" className="card max-w-3xl p-5">
+          <h2 id="shop-logo-title" className="display text-2xl text-ink">
+            Nirob Autos logo
+          </h2>
+          <div className="mt-3 flex flex-wrap items-center gap-5">
+            <LogoEmblem tone="light" className="h-20" sizes="140px" />
+            <p className="max-w-md text-sm text-ink">
+              The shop&apos;s own logo, supplied by the owner. It is used across this site, including the browser icon and
+              the image shown when a page is shared. The manufacturer logos printed on the shop&apos;s signboard are not
+              reproduced here.
+            </p>
+          </div>
+        </section>
+
         <section aria-labelledby="official-title" className="card max-w-3xl p-5">
           <h2 id="official-title" className="display text-2xl text-ink">
             Brand logos and motorcycle photos

@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { business } from "@/config/business";
-import { brandImages, imageContacts, motorcycleImages, photos, type BrandImages, type ImageAsset } from "@/config/images";
+import { brandImages, imageContacts, motorcycleImages, photos, shopLogo, type BrandImages, type ImageAsset } from "@/config/images";
 import { brands } from "@/data/brands";
 import { models } from "@/data/models";
 import { brandsByRelation, loadCatalog } from "@/lib/catalog/catalog";
@@ -18,6 +18,7 @@ function allAssets(): [string, ImageAsset][] {
     ...Object.entries(photos),
     ...Object.entries(brandImages).map(([slug, b]): [string, ImageAsset] => [`${slug} logo`, b.logo]),
     ...Object.entries(motorcycleImages).flatMap(([id, a]): [string, ImageAsset][] => (a ? [[id, a]] : [])),
+    ...Object.entries(shopLogo).map(([key, a]): [string, ImageAsset] => [`shop ${key}`, a]),
   ];
 }
 
@@ -29,6 +30,16 @@ describe("image manifest", () => {
       expect(existsSync(publicFile(a.src)), `${key}: ${a.src}`).toBe(true);
       expect(a.alt.length, key).toBeGreaterThan(3);
     }
+  });
+
+  it("uses the shop's own logo files, owner-supplied, with the browser icons beside them", () => {
+    for (const [key, a] of Object.entries(shopLogo)) {
+      expect(a.imageSource, key).toBe("shop-brand");
+      expect(a.rightsStatus, key).toBe("approved");
+      expect(existsSync(publicFile(a.src)), key).toBe(true);
+    }
+    for (const icon of ["icon.png", "apple-icon.png"]) expect(existsSync(join(process.cwd(), "src/app", icon)), icon).toBe(true);
+    expect(existsSync(join(process.cwd(), "src/app/icon.svg")), "old placeholder icon removed").toBe(false);
   });
 
   it("never keeps or shows a file whose use is not confirmed", () => {

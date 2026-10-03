@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ProductListing } from "@/components/catalog/ProductListing";
 import { PhotoBanner } from "@/components/layout/Banners";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { loadCatalog, modelDisplayName } from "@/lib/catalog/catalog";
+import { categoryPath, loadCatalog, modelDisplayName } from "@/lib/catalog/catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -30,7 +30,7 @@ export default async function EngineOilPage(props: PageProps<"/engine-oil">) {
           <ul className="mt-5 flex flex-wrap gap-2">
             {group.subcategories.map((s) => (
               <li key={s.slug}>
-                <Link href={`/categories/${s.slug}`} className="chip chip-dark">
+                <Link href={categoryPath(s.slug)} className="chip chip-dark">
                   {s.name}
                 </Link>
               </li>

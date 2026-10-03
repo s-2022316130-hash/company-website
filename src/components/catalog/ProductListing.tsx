@@ -129,6 +129,7 @@ function hiddenFields(params: ListingParams): [string, string][] {
   params.brands.forEach((v) => fields.push(["brand", v]));
   params.models.forEach((v) => fields.push(["model", v]));
   params.categories.forEach((v) => fields.push(["category", v]));
+  params.makers.forEach((v) => fields.push(["maker", v]));
   params.types.forEach((v) => fields.push(["type", v]));
   params.availability.forEach((v) => fields.push(["availability", v]));
   params.fitment.forEach((v) => fields.push(["fit", v]));
@@ -140,7 +141,7 @@ function hiddenFields(params: ListingParams): [string, string][] {
 function ActiveFilters({ basePath, params, result }: { basePath: string; params: ListingParams; result: ListingResult }) {
   const { facets } = result;
   const chips: { label: string; href: string }[] = [];
-  const add = (key: "brand" | "model" | "category" | "type" | "availability" | "fit", current: string[], options: typeof facets.brands) => {
+  const add = (key: "brand" | "model" | "category" | "maker" | "type" | "availability" | "fit", current: string[], options: typeof facets.brands) => {
     for (const o of options) {
       if (!o.selected) continue;
       chips.push({
@@ -152,6 +153,7 @@ function ActiveFilters({ basePath, params, result }: { basePath: string; params:
   add("brand", params.brands, facets.brands);
   add("model", params.models, facets.models);
   add("category", params.categories, facets.categories);
+  add("maker", params.makers, facets.makers);
   add("type", params.types, facets.types);
   add("availability", params.availability, facets.availability);
   add("fit", params.fitment, facets.fitment);
@@ -167,6 +169,7 @@ function ActiveFilters({ basePath, params, result }: { basePath: string; params:
     brand: undefined,
     model: undefined,
     category: undefined,
+    maker: undefined,
     type: undefined,
     availability: undefined,
     fit: undefined,
@@ -217,7 +220,18 @@ function ListingEmpty({
         actions={[
           {
             label: "Clear filters",
-            href: listingHref(basePath, { ...params, brands: [], models: [], categories: [], types: [], availability: [], minPrice: undefined, maxPrice: undefined, page: 1 }),
+            href: listingHref(basePath, {
+              ...params,
+              brands: [],
+              models: [],
+              categories: [],
+              makers: [],
+              types: [],
+              availability: [],
+              minPrice: undefined,
+              maxPrice: undefined,
+              page: 1,
+            }),
           },
         ]}
       />

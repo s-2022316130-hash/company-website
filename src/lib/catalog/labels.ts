@@ -1,4 +1,4 @@
-import type { Authenticity, CompatibilityConfidence, Fitment, InventoryStatus, SourceType } from "@/lib/types";
+import type { Authenticity, CompatibilityConfidence, Fitment, InventoryStatus, ProductSpec, SourceType } from "@/lib/types";
 
 export const inventoryStatusLabels: Record<InventoryStatus, string> = {
   "in-stock": "In stock",
@@ -47,6 +47,13 @@ export const sourceTypeLabels: Record<SourceType, string> = {
   "retailer-reference": "Parts catalogue reference",
   "store-supplied": "Supplied by Nirob Autos",
   demo: "Demo data",
+};
+
+/** Link text for the page a specification comes from. */
+export const specSourceLabels: Record<NonNullable<ProductSpec["sourceKind"]>, string> = {
+  official: "Official source",
+  distributor: "Distributor's page",
+  retailer: "Retailer's page",
 };
 
 /** Whether a customer can add this item to an order request. */

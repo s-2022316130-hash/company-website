@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandRelationBadge } from "@/components/catalog/Badges";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
+import { LogoEmblem } from "@/components/layout/Logo";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { business, dealerList } from "@/config/business";
 import { brandsByRelation, loadCatalog } from "@/lib/catalog/catalog";
@@ -9,7 +10,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "About Nirob Autos",
-  description: `${business.name} (${business.banglaName}) is a motorcycle spare parts and accessories shop in ${business.address.locality}, Bangladesh.`,
+  description: `${business.name} (${business.banglaName}) has sold motorcycle spare parts, accessories and helmets in ${business.address.locality}, Bangladesh, since ${business.foundedYear}.`,
   path: "/about",
 });
 
@@ -27,13 +28,14 @@ export default async function AboutPage() {
           </span>
         }
       />
-      {/* Factual store information only. Add the shop's own story, founding year and team here when supplied. */}
+      {/* Factual store information only (business card and logo, 2026). Add the shop's own story and team when supplied. */}
       <div className="container-page grid grid-cols-1 gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="card space-y-4 p-5 text-[0.9375rem] leading-relaxed text-ink sm:p-6">
+          <LogoEmblem tone="light" className="h-28 sm:h-32" sizes="(min-width: 640px) 220px, 190px" />
           <p>
-            {business.name} is a motorcycle spare parts shop at {business.address.full}. We sell spare parts, maintenance
-            products and accessories for motorcycles, and we are open {business.hours.label.toLowerCase()}. The proprietor
-            is {business.proprietor}.
+            {business.name} has been a motorcycle spare parts shop since {business.foundedYear}, at {business.address.full}{" "}
+            (<span lang="bn">{business.address.bn}</span>). We are a {business.trade.toLowerCase()} of spare parts,
+            accessories and helmets, open {business.hours.label.toLowerCase()}. The proprietor is {business.proprietor}.
           </p>
           <p>
             We are an authorized dealer for {dealerList()}, and sell their genuine parts at company price. We also sell all kinds of

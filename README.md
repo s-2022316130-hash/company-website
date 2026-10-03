@@ -54,7 +54,8 @@ Any Node host that runs `next start` works the same way.
 | Categories, subcategories, popular parts | `src/data/categories.ts` |
 | Search synonyms (English, local terms, Bangla) | `src/data/search-aliases.ts` |
 | FAQ answers | `src/app/faq/page.tsx` |
-| Logo | `src/components/layout/Logo.tsx`, favicon `src/app/icon.svg` |
+| Logo | Files in `public/images/nirob/` (registered as `shopLogo` in `src/config/images.ts`), shown by `src/components/layout/Logo.tsx`; browser icons `src/app/icon.png` and `apple-icon.png`; share image `src/app/opengraph-image.png`. Sources and how they were made: `docs/brand/README.md` |
+| Helmets the shop carries | `src/data/catalogue/helmets.ts` |
 
 ## Design system and motion
 
@@ -142,7 +143,7 @@ Seed data           src/data/*.ts
 
 ### Parts catalogue
 
-`src/data/products.ts` assembles **583 catalogue records** from four files in `src/data/catalogue/`:
+`src/data/products.ts` assembles **581 parts and accessory records plus 64 helmets** from five files in `src/data/catalogue/`:
 
 | File | What it holds |
 | --- | --- |
@@ -150,6 +151,7 @@ Seed data           src/data/*.ts
 | `assignments.ts` | Which kinds are catalogued for which model, and the pairings an official source lists (`officialFitment`). |
 | `official.ts` | Records from official sources. Yamaha Bangladesh's genuine-parts page lists 10 parts with their models. The rest are built from Bajaj spec pages and owner's manuals: tyres by size, tubes, batteries, spark plugs and bulbs. Each is one record listing every bike that uses it, never a copy per model. |
 | `universal.ts` | Engine oils by grade, fluids, cleaners, accessories and small hardware. |
+| `helmets.ts` | The 64 helmets the shop carries, by brand (see Helmets below). |
 
 Rules:
 
@@ -166,8 +168,8 @@ Rules:
   - TVS 32
   - Hero 47
   - Runner 41
-  - Universal: 21 oils and fluids, 23 accessories, 12 hardware items
-- **Fitment confidence:** 48 records have manufacturer-listed fitment; the other 535 need confirmation.
+  - Universal: 21 oils and fluids, 21 accessories, 12 hardware items
+- **Fitment confidence:** 48 records have manufacturer-listed fitment; the other 533 need confirmation.
 - **Duplicates:** product names are unique, and a shared part is one record with several models.
 
 Unit tests enforce these rules:
@@ -244,6 +246,34 @@ and Twin Disc) and Discover 110/125. Both were read on 2 October 2026.
 - Manuals can be older editions than the current line-up, so brake and tyre details still come from
   `variants.ts`.
 - Model pages show the facts as cards. `/engine-oil` shows a "Recommended engine oil by model" table.
+
+### Helmets
+
+`src/data/catalogue/helmets.ts` lists the 64 helmets on the owner's list (2026-10-03), from 13 brands, under the
+names the shop uses. Each becomes a product such as "Studds Thunder D1 Helmet" in Accessories → Helmets, shown on
+`/helmets` (`/categories/helmets` redirects there), in the accessories page's helmet band and on the homepage.
+
+- **Stock:** helmets are "call-to-confirm": the shop carries them, but sizes, colours and prices are confirmed
+  by phone or WhatsApp. They have no price, no photo and authenticity "unknown", like the parts.
+- **Style and certification:** recorded only where a page we opened states them, with the URL on the product
+  page (spec "Style", "Certification on the maker's page"). A style may come from a retailer's page when the
+  maker's site has none; the link then reads "Retailer's page". Certifications come only from the maker's or an
+  official distributor's page (`certificationSource` when it is not the style's page), never a retailer's. A
+  helmet without a sourced style shows "Helmet" and the generic drawing; `helmets.test.ts` enforces this.
+- **Research (3 October 2026):** 60 of the 64 have a sourced style, 48 from the maker's own pages and 12 from
+  retailers' pages, and 41 have a certification from the maker's page. Pages that have since gone, and
+  shop.studds.com (which refused our visits), are cited through the Internet Archive. No page
+  states a style for the Vega Jeet or Torq EVO, and Bilmola's site has no Storm or Phantom model: ask the owner
+  what these are.
+- **Search:** style words ("full face", "flip up", "motocross") are search aliases of the helmets whose style is
+  sourced, so the style chips on `/helmets` list only those helmets.
+- **Drawings:** each style has its own original line drawing (`helmet-full`, `helmet-open`, `helmet-modular`,
+  `helmet-half`, `helmet-offroad` in `PartArt.tsx`). Brand logos are not shown; brands appear by name.
+- **Filter:** listings have a "Maker" filter (`?maker=vega`) built from `partBrand`, which also covers part
+  makers such as Champion.
+
+To add a helmet, add it to its brand in `helmetBrands`; add `style`, `certifications` and `source` only from a
+page that states them.
 
 ### Dealerships
 
@@ -362,7 +392,7 @@ Cart (stored in the browser) → `/order` → name, phone (validated as a Bangla
 motorcycle and notes, store pickup or courier (address required for courier) → send method:
 
 - **WhatsApp**: opens `wa.me` with the order written out, to the first number in `business.whatsapp`.
-  The second number is offered as an alternative. If the browser blocks the new window, the page says
+  The other numbers (including 01922-687809, which the 2026 card shows with WhatsApp) are offered as alternatives. If the browser blocks the new window, the page says
   so and offers a direct button.
 - **Phone call**: shows the order text to read out and a call button for `business.phones.orders`.
 

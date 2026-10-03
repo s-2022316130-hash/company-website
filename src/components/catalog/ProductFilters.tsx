@@ -43,6 +43,7 @@ function FilterForm({ facets, basePath, carry, price, mode, onApplied }: FilterF
       <FacetGroup legend="Motorcycle brand" name="brand" options={facets.brands} idPrefix={`${id}-brand`} />
       <FacetGroup legend="Motorcycle model" name="model" options={facets.models} idPrefix={`${id}-model`} scroll />
       <FacetGroup legend="Category" name="category" options={facets.categories} idPrefix={`${id}-cat`} scroll />
+      <FacetGroup legend="Maker" name="maker" options={facets.makers} idPrefix={`${id}-maker`} scroll />
       <FacetGroup legend="Product type" name="type" options={facets.types} idPrefix={`${id}-type`} />
       <FacetGroup legend="Availability" name="availability" options={facets.availability} idPrefix={`${id}-avail`} />
       <FacetGroup legend="Fitment" name="fit" options={facets.fitment} idPrefix={`${id}-fit`} />

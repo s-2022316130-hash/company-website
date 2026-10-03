@@ -1,10 +1,11 @@
+import { Fragment } from "react";
 import Link from "next/link";
-import { Clock, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, MessageCircle, Phone, Wallet } from "lucide-react";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { business, dealerList } from "@/config/business";
 import { footerInfoLinks, footerShopLinks } from "@/config/navigation";
 import { categoryPath, loadCatalog } from "@/lib/catalog/catalog";
-import { Logo } from "./Logo";
+import { LogoEmblem } from "./Logo";
 
 function LinkColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
@@ -47,9 +48,11 @@ export async function Footer() {
 
           <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
             <div className="space-y-4">
-              <Logo inverted />
+              <Link href="/" aria-label={`${business.name} home`} className="inline-block">
+                <LogoEmblem tone="dark" className="h-20 sm:h-24" sizes="(min-width: 640px) 170px, 140px" />
+              </Link>
               <p className="max-w-xs text-sm text-on-dark-muted">
-                {business.tagline}. Authorized dealer for {dealerList()}.
+                {business.tagline}. {business.trade} since {business.foundedYear}; authorized dealer for {dealerList()}.
               </p>
               <address className="space-y-2.5 text-sm not-italic text-on-dark">
                 <p className="flex gap-2.5">
@@ -67,19 +70,44 @@ export async function Footer() {
                   <Phone className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
                   <span>
                     Orders:{" "}
-                    <a href={`tel:${business.phones.orders.e164}`} className="link-draw font-semibold text-white">
+                    <a href={`tel:${business.phones.orders.e164}`} className="link-draw whitespace-nowrap font-semibold text-white">
                       {business.phones.orders.display}
                     </a>
                     <br />
                     Store:{" "}
-                    <a href={`tel:${business.phones.store.e164}`} className="link-draw">
+                    <a href={`tel:${business.phones.store.e164}`} className="link-draw whitespace-nowrap">
                       {business.phones.store.display}
+                    </a>
+                    ,{" "}
+                    <a href={`tel:${business.phones.store2.e164}`} className="link-draw whitespace-nowrap">
+                      {business.phones.store2.display}
                     </a>
                   </span>
                 </p>
                 <p className="flex gap-2.5">
                   <MessageCircle className="mt-0.5 size-4 shrink-0 text-[#4ade80]" aria-hidden="true" />
-                  <span>WhatsApp: {business.whatsapp.map((w) => w.display).join(", ")}</span>
+                  <span>
+                    WhatsApp:{" "}
+                    {business.whatsapp.map((w, i) => (
+                      <Fragment key={w.waId}>
+                        {i > 0 ? ", " : ""}
+                        <span className="whitespace-nowrap">{w.display}</span>
+                      </Fragment>
+                    ))}
+                  </span>
+                </p>
+                <p className="flex gap-2.5">
+                  <Wallet className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
+                  <span>
+                    {business.mobileBanking.services.join(" & ")}:{" "}
+                    <span className="whitespace-nowrap">{business.mobileBanking.number.display}</span>
+                  </span>
+                </p>
+                <p className="flex gap-2.5">
+                  <Mail className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
+                  <a href={`mailto:${business.email}`} className="link-draw break-all hover:text-white">
+                    {business.email}
+                  </a>
                 </p>
               </address>
             </div>

@@ -235,8 +235,10 @@ export interface ProductImage {
 export interface ProductSpec {
   label: string;
   value: string;
-  /** URL of the official page the value comes from. Required for anything not supplied by the shop. */
+  /** URL of the page the value comes from. Required for anything not supplied by the shop. */
   source?: string;
+  /** Who publishes `source`: the maker or another official source unless stated. */
+  sourceKind?: "official" | "distributor" | "retailer";
 }
 
 export interface Product {
@@ -262,6 +264,8 @@ export interface Product {
   images: ProductImage[];
   /** Representative photo of the part type, used when there is no photo of the exact item. */
   photo?: PhotoKey;
+  /** Line drawing for this item when it differs from its part type's (e.g. a full-face vs open-face helmet). */
+  art?: PartArtKind;
 
   /** Whole taka. Leave undefined when the store has not set a price. */
   price?: number;
@@ -360,7 +364,12 @@ export type PartArtKind =
   | "charger"
   | "grip"
   | "inline-filter"
-  | "reservoir";
+  | "reservoir"
+  | "helmet-full"
+  | "helmet-modular"
+  | "helmet-open"
+  | "helmet-half"
+  | "helmet-offroad";
 
 /** A product joined with the records it references, ready for display. */
 export interface ProductView extends Product {
@@ -370,6 +379,4 @@ export interface ProductView extends Product {
   models: MotorcycleModel[];
   brands: Brand[];
   displayImage?: DisplayImage;
-  /** Illustration for the part type, shown when there is no accurate photo. */
-  art?: PartArtKind;
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { business } from "@/config/business";
+import { shopLogo } from "@/config/images";
 import { absoluteUrl, siteUrl } from "@/config/site";
 import type { InventoryStatus, ProductView } from "@/lib/types";
 
@@ -54,7 +55,15 @@ export function localBusinessJsonLd() {
     alternateName: business.banglaName,
     description: business.description,
     url: siteUrl,
+    logo: absoluteUrl(shopLogo.full.src),
+    image: absoluteUrl(shopLogo.full.src),
+    foundingDate: String(business.foundedYear),
+    email: business.email,
     telephone: business.phones.store.e164,
+    contactPoint: [
+      { "@type": "ContactPoint", telephone: business.phones.orders.e164, contactType: "sales", areaServed: "BD" },
+      { "@type": "ContactPoint", telephone: business.phones.store2.e164, contactType: "customer service", areaServed: "BD" },
+    ],
     address: {
       "@type": "PostalAddress",
       streetAddress: business.address.street,

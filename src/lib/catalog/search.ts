@@ -268,7 +268,7 @@ export function suggestDirectory(
           kind: "category",
           label: s.name,
           sublabel: g.name,
-          href: `/categories/${s.slug}`,
+          href: categoryPath(s.slug),
           thumb: photoThumb(s.image ?? g.image, g.icon),
         });
       }

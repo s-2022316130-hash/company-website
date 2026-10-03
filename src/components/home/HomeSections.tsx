@@ -56,12 +56,14 @@ export function Hero({
         <div className="max-w-2xl">
           <h1 id="hero-title">
             <span className="hero-rise label-tech flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.8125rem] text-brand-bright" style={delay(100)}>
-              <LogoMark className="size-7 shrink-0" />
+              <LogoMark className="h-8" />
               <span>{business.name}</span>
               <span aria-hidden="true" className="h-3.5 w-px bg-white/30" />
               <span lang="bn" className="font-sans text-sm font-semibold normal-case tracking-normal text-on-dark">
                 {business.banglaName}
               </span>
+              <span aria-hidden="true" className="h-3.5 w-px bg-white/30" />
+              <span className="text-on-dark-muted">Since {business.foundedYear}</span>
             </span>
             <span className="mt-3 block font-display text-hero font-bold uppercase sm:mt-4">
               <span className="hero-line">
@@ -538,7 +540,7 @@ export function OilsFeature({ group, products }: { group?: CategoryGroup; produc
             <ul className="mt-4 flex flex-wrap gap-2">
               {group.subcategories.map((s) => (
                 <li key={s.slug}>
-                  <Link href={`/categories/${s.slug}`} className="chip chip-dark min-h-9">
+                  <Link href={categoryPath(s.slug)} className="chip chip-dark min-h-9">
                     {s.name}
                   </Link>
                 </li>
@@ -580,6 +582,55 @@ export function OrderingSteps() {
           </li>
         ))}
       </ol>
+    </Reveal>
+  );
+}
+
+export interface HelmetBrandTile {
+  name: string;
+  /** URL value for the maker filter on /helmets. */
+  maker: string;
+  count: number;
+}
+
+/**
+ * Helmets: a wall of the brands the shop carries (names in type; their logos are trademarks we have
+ * no permission to show) and a rail with one helmet from each brand.
+ */
+export function HelmetsShowcase({ brands, picks, total }: { brands: HelmetBrandTile[]; picks: ProductView[]; total: number }) {
+  return (
+    <Reveal as="section" aria-labelledby="helmets-title">
+      <SectionHeader
+        id="helmets-title"
+        eyebrow="Helmets"
+        title="Helmets for every ride"
+        description={`${total} helmet models from ${brands.length} brands in the shop. Sizes and colours vary, so ask the shop or try one on.`}
+        action={{ label: "All helmets", href: "/helmets" }}
+      />
+      <ScrollRail label="Helmet brands" itemClassName="w-[38%] sm:w-auto" gridFrom="sm" gridCols="sm:grid-cols-5 lg:grid-cols-7">
+        {brands.map((b) => (
+          <Link
+            key={b.maker}
+            href={`/helmets?maker=${b.maker}`}
+            className="group card-dark card-lift flex w-full flex-col justify-between gap-2 p-3 hover:-translate-y-0.5 sm:p-4"
+          >
+            <span className="display text-xl leading-none text-white sm:text-2xl">{b.name}</span>
+            <span className="flex items-center justify-between text-xs text-on-dark-muted">
+              {pluralize(b.count, "model")}
+              <ArrowRight className="size-3.5 text-brand-bright transition-transform duration-small ease-ui group-hover:translate-x-1" aria-hidden="true" />
+            </span>
+          </Link>
+        ))}
+      </ScrollRail>
+      {picks.length > 0 && (
+        <div className="mt-6 sm:mt-8">
+          <ScrollRail label="Helmets" itemClassName="w-[70%] sm:w-[44%] md:w-[31%] lg:w-[22.6%]">
+            {picks.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </ScrollRail>
+        </div>
+      )}
     </Reveal>
   );
 }
