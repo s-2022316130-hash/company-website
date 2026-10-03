@@ -72,7 +72,7 @@ reskinned in one place. The few animations driven from JavaScript read the same 
 | Duration | `fast` 150 · `small` 220 · `standard` 360 · `emphasis` 600 · `cinematic` 1200 ms | Press · icons/underlines/page enter · cards/drawers/header · reveals/image zoom · hero imagery |
 | Easing | `ui`, `card`, `cinematic`, `exit` | Controls · cards and reveals · imagery · things leaving |
 | Layers | `--z-raised`, `--z-sticky`, `--z-header`, `--z-dropdown` | Dialogs use the browser's top layer |
-| Header | `--header-offset`, `--header-visible` | `<main>` padding; `sticky-below-header` follows the header as it compacts |
+| Header | `--header-offset`, `--header-main`, `--header-sub` | `<main>` padding; the `sticky-below-header` utility follows the header as it compacts |
 
 How the motion works:
 
@@ -86,7 +86,8 @@ How the motion works:
 - **Scroll reveal** (`components/motion/Reveal.tsx`): one shared IntersectionObserver, and each element animates
   once. JavaScript hides only elements whose first report puts them below the fold, so content already on screen,
   or any content when JavaScript is off, is never hidden. `variant="group"` staggers `.reveal-item` and
-  `.reveal-list` children 70ms apart; `variant="self"` moves the whole block.
+  `.reveal-list` children 60ms apart (16px of travel on phones, 24px on larger screens); `variant="self"` moves
+  the whole block.
 - **Rails** (`components/motion/ScrollRail.tsx`): swipe on phones, arrow buttons from tablets up, or a grid from a
   chosen breakpoint. Edge fades appear only on the side with hidden cards; two sentinel items detect the ends.
 - **Page and step changes** (`components/motion/AnimateOnChange.tsx`): the incoming page fades up 8px in 220ms.
