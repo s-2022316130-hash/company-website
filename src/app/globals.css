@@ -799,18 +799,6 @@ html[data-typing] .mobile-bar {
     translate: 0 -4px;
   }
 }
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    translate: 0 8px;
-  }
-}
-
-/* Route change: the incoming page fades up 8px. The first page load is not animated (see PageEnter). */
-.page-enter {
-  animation: page-enter var(--transition-duration-small) var(--ease-ui) backwards;
-}
-
 /* ------------------------------------------------------------------------------------------------
  * Scroll reveal (see components/motion/Reveal.tsx). One observer, animate once. JavaScript marks only
  * elements that start below the fold as pending, so nothing above the fold or without JS is hidden.
