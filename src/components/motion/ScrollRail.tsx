@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Children, isValidElement, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cx } from "@/lib/cx";
 import { prefersReducedMotion } from "@/lib/motion";
@@ -95,7 +95,7 @@ export function ScrollRail({
       >
         <li ref={startRef} aria-hidden="true" className={cx(sentinel, "-mr-3 sm:-mr-4")} style={{ scrollSnapAlign: "none" }} />
         {Children.toArray(children).map((child, i) => (
-          <li key={i} className={cx("flex", itemClassName)}>
+          <li key={isValidElement(child) && child.key != null ? child.key : i} className={cx("flex", itemClassName)}>
             {child}
           </li>
         ))}
