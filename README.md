@@ -43,7 +43,8 @@ Any Node host that runs `next start` works the same way.
 | --- | --- |
 | Name, address, phone numbers, WhatsApp numbers, hours, pickup/courier text, map embed, social links | `src/config/business.ts` |
 | Main and footer navigation | `src/config/navigation.ts` |
-| Colours, fonts, button styles, textures (blueprint grid, fins, chain rule) | `src/app/globals.css` (`@theme` block) |
+| Colours, type scale, radius, shadows, motion timing, textures (blueprint grid, fins, chain rule) | `src/app/globals.css` (`@theme` block), see [Design system and motion](#design-system-and-motion) |
+| Homepage sections and their order | `src/app/page.tsx`, `src/components/home/HomeSections.tsx` |
 | Images: stock photos, brand logos, model photos, their sources and rights | `src/config/images.ts`, files in `public/images/` |
 | Official logos and model photos still to request from distributors | `docs/image-requests.md` |
 | Bike line drawings | `src/components/bikes/BikeArt.tsx` |
@@ -54,6 +55,51 @@ Any Node host that runs `next start` works the same way.
 | Search synonyms (English, local terms, Bangla) | `src/data/search-aliases.ts` |
 | FAQ answers | `src/app/faq/page.tsx` |
 | Logo | `src/components/layout/Logo.tsx`, favicon `src/app/icon.svg` |
+
+## Design system and motion
+
+Every visual value lives in `src/app/globals.css`. Components use the tokens through Tailwind utilities
+(`rounded-lg`, `shadow-raised`, `duration-standard`, `ease-card`, `text-section`), so the site can be re-timed or
+reskinned in one place. The few animations driven from JavaScript read the same values from `src/lib/motion.ts`;
+`src/lib/motion.test.ts` fails if the two drift apart.
+
+| Token group | Values | Used for |
+| --- | --- | --- |
+| Colour | graphite / canvas neutrals, one orange accent (`brand`, `brand-bright` on dark) | Light shopping sections, dark editorial bands |
+| Type | `text-hero`, `text-feature`, `text-section`, `.label-tech`; Barlow Condensed display, Inter body, Noto Sans Bengali | Headline → section → technical label hierarchy |
+| Radius | `sm` 4px tags · `md` 6px buttons · `lg` 10px cards · `xl` 16px sheets · `2xl` 24px feature | One scale across every component |
+| Depth | `shadow-card` → `shadow-raised` (hover) → `shadow-float` (menus, rails) → `shadow-feature` → `shadow-modal` | Products stay nearly flat; drawers are highest |
+| Duration | `fast` 150 · `small` 220 · `standard` 360 · `emphasis` 600 · `cinematic` 1200 ms | Press · icons/underlines/page enter · cards/drawers/header · reveals/image zoom · hero imagery |
+| Easing | `ui`, `card`, `cinematic`, `exit` | Controls · cards and reveals · imagery · things leaving |
+| Layers | `--z-raised`, `--z-sticky`, `--z-header`, `--z-dropdown` | Dialogs use the browser's top layer |
+| Header | `--header-offset`, `--header-main`, `--header-sub` | `<main>` padding; the `sticky-below-header` utility follows the header as it compacts |
+
+How the motion works:
+
+- **Header** (`HeaderShell`): fixed; one passive scroll listener writes `html[data-header]` at most once per frame.
+  `top` is the full header, transparent over the homepage hero. `compact` tucks the utility bar away. `compact-hidden`
+  (scrolling down) also tucks the phone search row or desktop nav row behind the main row, and hides the phone
+  action bar. Both come back on scroll up. Nothing in the page moves, because the header is fixed.
+- **Hero**: CSS only. The photo settles from 1.05 under a lifting veil. The label, the three headline lines, the copy,
+  the search and the buttons follow 80–100ms apart, and everything is clickable from the first frame. On tablets and
+  up, the photo trails the page by 18px through a scroll-driven animation, so no JavaScript runs while scrolling.
+- **Scroll reveal** (`components/motion/Reveal.tsx`): one shared IntersectionObserver, and each element animates
+  once. JavaScript hides only elements whose first report puts them below the fold, so content already on screen,
+  or any content when JavaScript is off, is never hidden. `variant="group"` staggers `.reveal-item` and
+  `.reveal-list` children 60ms apart (16px of travel on phones, 24px on larger screens); `variant="self"` moves
+  the whole block.
+- **Rails** (`components/motion/ScrollRail.tsx`): swipe on phones, arrow buttons from tablets up, or a grid from a
+  chosen breakpoint. Edge fades appear only on the side with hidden cards; two sentinel items detect the ends.
+- **Page and step changes** (`components/motion/AnimateOnChange.tsx`): the incoming page fades up 8px in 220ms.
+  Part-finder steps slide in from the right. The first page load is never animated.
+- **Microinteractions**: "Add to cart" turns into a green "Added" with a check; the header and phone-bar cart icons
+  pulse (Web Animations API). The cart drawer slides in from the right and its items stagger in. Quantities and
+  totals tick when they change. The filters sheet, phone menu and search suggestions animate open and closed.
+- **Reduced motion**: with `prefers-reduced-motion: reduce`, transitions and animations are cut to near zero,
+  scroll-linked effects and shimmer loops stop, reveals never hide anything, and every feature still works.
+- **Touch**: every hover style, Tailwind's and the component classes', only applies on devices that can hover, so a
+  tap never leaves a button "lifted"; cards sink slightly on a touch press instead. Blur and parallax are
+  tablet-and-up only. The header ignores iOS's end-of-page bounce and small finger jitter.
 
 ## Data architecture
 

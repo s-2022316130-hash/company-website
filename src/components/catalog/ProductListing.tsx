@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Info, X } from "lucide-react";
 import { CallButton } from "@/components/contact/ContactActions";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { EmptyState, type EmptyArt } from "@/components/ui/EmptyState";
 import { loadCatalog } from "@/lib/catalog/catalog";
 import {
   hasFacets,
@@ -30,12 +30,15 @@ export async function ProductListing({
   scope = {},
   emptyTitle = "No products listed here yet",
   emptyDescription = "The online catalogue is still being filled in. Call or WhatsApp the store and ask; the part may be in stock.",
+  emptyArt,
 }: {
   basePath: string;
   searchParams: RawParams;
   scope?: ListingScope;
   emptyTitle?: string;
   emptyDescription?: string;
+  /** Drawing for the empty state, e.g. the bike on a model page with no listed parts. */
+  emptyArt?: EmptyArt;
 }) {
   const catalog = await loadCatalog();
   const params = parseListingParams(searchParams);
@@ -54,7 +57,7 @@ export async function ProductListing({
     <div className={showFacets ? "grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]" : ""}>
       {showFacets && (
         <aside className="hidden lg:block" aria-labelledby="filters-heading">
-          <div className="card sticky top-36 p-4">
+          <div className="card sticky-below-header p-4">
             <h2 id="filters-heading" className="mb-4 font-display text-lg font-bold">
               Filters
             </h2>
@@ -107,6 +110,7 @@ export async function ProductListing({
             filtered={result.activeFilterCount > 0}
             title={emptyTitle}
             description={emptyDescription}
+            art={emptyArt}
           />
         ) : (
           <>
@@ -196,12 +200,14 @@ function ListingEmpty({
   filtered,
   title,
   description,
+  art,
 }: {
   basePath: string;
   params: ListingParams;
   filtered: boolean;
   title: string;
   description: string;
+  art?: EmptyArt;
 }) {
   if (filtered) {
     return (
@@ -237,7 +243,8 @@ function ListingEmpty({
     <EmptyState
       title={title}
       description={description}
-      actions={[{ label: "Browse all products", href: "/shop", variant: "outline" }]}
+      art={art}
+      actions={[{ label: "Browse all parts", href: "/shop", variant: "outline" }]}
     >
       <div className="mt-4">
         <CallButton />

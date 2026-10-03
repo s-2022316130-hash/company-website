@@ -31,9 +31,9 @@ export function CallButton({
       href={`tel:${number.e164}`}
       event="phone_click"
       eventProps={{ number: number.e164 }}
-      className={cx("btn", variantClass[variant], size && `btn-${size}`, className)}
+      className={cx("group/call btn", variantClass[variant], size && `btn-${size}`, className)}
     >
-      <Phone className="size-4" aria-hidden="true" />
+      <Phone className="size-4 transition-transform duration-small ease-ui group-hover/call:-rotate-12" aria-hidden="true" />
       {label ?? `Call ${number.display}`}
     </TrackedAnchor>
   );

@@ -184,7 +184,7 @@ export function FilterDrawer(props: Omit<FilterFormProps, "mode" | "onApplied"> 
         onClick={(e) => {
           if (e.target === dialogRef.current) close();
         }}
-        className="m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-surface p-0 text-ink sm:m-auto sm:max-w-md sm:rounded-2xl"
+        className="dialog-motion sheet m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-xl bg-surface p-0 text-ink shadow-modal sm:m-auto sm:max-w-md sm:rounded-xl"
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface px-4 py-3">
           <h2 id={titleId} className="font-display text-lg font-bold">

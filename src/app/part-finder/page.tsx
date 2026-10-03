@@ -9,6 +9,7 @@ import { ProductGrid } from "@/components/catalog/ProductCard";
 import { ProductImage } from "@/components/catalog/ProductImage";
 import { getPhoto } from "@/config/images";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
+import { AnimateOnChange } from "@/components/motion/AnimateOnChange";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { business } from "@/config/business";
@@ -102,7 +103,7 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
                     done ? "bg-white text-graphite" : current ? "bg-brand text-white" : "bg-white/10 text-on-dark-muted",
                   )}
                 >
-                  {done ? <Check className="size-4" aria-hidden="true" /> : `0${s.n}`}
+                  {done ? <Check className="size-4 animate-check-in" aria-hidden="true" /> : `0${s.n}`}
                 </span>
                 <span className="min-w-0 max-w-full">
                   <span
@@ -122,7 +123,7 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
               <li
                 key={s.n}
                 aria-current={current ? "step" : undefined}
-                className={cx("min-w-0 border-t-[3px] pt-2.5", done || current ? "border-brand-bright" : "border-white/15")}
+                className={cx("min-w-0 border-t-[3px] pt-2.5 transition-colors duration-standard", done || current ? "border-brand-bright" : "border-white/15")}
               >
                 {done && s.href ? (
                   <Link href={s.href} className={cx(layout, "hover:opacity-80")} aria-label={`Change ${s.label.toLowerCase()}: ${s.value}`}>
@@ -137,7 +138,13 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
         </ol>
       </PageHeader>
 
-      <div className="container-page py-8 sm:py-10">
+      {/* Each step slides in from the right as you move through the finder. */}
+      <AnimateOnChange
+        watch={[step, brand?.slug, model?.id, group?.slug, sub?.slug, showAll].join(":")}
+        axis="x"
+        distance={16}
+        className="container-page py-8 sm:py-10"
+      >
         {step === 1 && (
           <StepSection title="Choose your motorcycle brand">
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -147,7 +154,7 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
                   <li key={b.slug}>
                     <Link
                       href={`/part-finder?brand=${b.slug}`}
-                      className="group card-dark flex h-full flex-col overflow-hidden transition-colors hover:border-brand-bright/60"
+                      className="group card-dark card-lift flex h-full flex-col overflow-hidden hover:-translate-y-1"
                     >
                       <span className="relative block">
                         <BikeVisual
@@ -155,6 +162,7 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
                           image={feature ? motorcycleImage(feature, b.name) : undefined}
                           name={feature ? `${b.name} ${feature.name}` : b.name}
                           annotate={false}
+                          hover="ride"
                           sizes="(min-width: 1024px) 22vw, (min-width: 640px) 30vw, 48vw"
                           className="aspect-[16/10]"
                         />
@@ -249,7 +257,7 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
                 const photo = getPhoto(s.image);
                 return (
                   <li key={s.slug}>
-                    <Link href={`${groupHref}&part=${s.slug}`} className="card group flex h-full flex-col overflow-hidden hover:border-brand">
+                    <Link href={`${groupHref}&part=${s.slug}`} className="card card-lift group flex h-full flex-col overflow-hidden">
                       <ProductImage
                         image={photo ? { src: photo.src, alt: "", representative: true, position: photo.position } : undefined}
                         art={s.art}
@@ -258,8 +266,8 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
                         sizes="(min-width: 1024px) 22vw, (min-width: 640px) 30vw, 48vw"
                         zoom
                       />
-                      <span className="flex flex-1 items-center justify-between gap-2 border-t-2 border-brand/80 p-3">
-                        <span className="font-semibold text-ink group-hover:text-brand">{s.name}</span>
+                      <span className="flex flex-1 items-center justify-between gap-2 border-t border-line p-3">
+                        <span className="font-semibold text-ink transition-colors group-hover:text-brand">{s.name}</span>
                         <span className="shrink-0 text-xs text-muted">{pluralize(count, "part")}</span>
                       </span>
                     </Link>
@@ -296,7 +304,7 @@ export default async function PartFinderPage(props: PageProps<"/part-finder">) {
             )}
           </StepSection>
         )}
-      </div>
+      </AnimateOnChange>
     </>
   );
 }

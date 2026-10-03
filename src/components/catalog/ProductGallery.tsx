@@ -8,8 +8,9 @@ import type { CategoryIcon, DisplayImage, PartArtKind, ProductImage as ProductIm
 import { ProductImage } from "./ProductImage";
 
 /**
- * Product gallery. Shows the item's own photos when the shop has supplied them; otherwise a photo
- * of the part type or an illustration, captioned as not the exact item.
+ * Product gallery. Shows the item's own photos when the shop has supplied them, crossfading between
+ * them (220ms) when a thumbnail is chosen; otherwise a photo of the part type or an illustration,
+ * captioned as not the exact item. Hovering the frame on desktop zooms the photo slightly.
  */
 export function ProductGallery({
   images,
@@ -30,19 +31,41 @@ export function ProductGallery({
   const [active, setActive] = useState(0);
   const own: DisplayImage[] = images.map((img) => ({ ...img, representative: false }));
   const current = own[active] ?? fallback;
+  const frame = "aspect-[4/3] lg:aspect-square";
 
   return (
     <div className="space-y-3">
-      <div className="card overflow-hidden">
-        <ProductImage
-          image={current}
-          art={art}
-          icon={icon}
-          label={label}
-          priority
-          aspect="aspect-[4/3] lg:aspect-square"
-          sizes="(min-width: 1024px) 45vw, 100vw"
-        />
+      <div className="group card overflow-hidden">
+        {own.length > 1 ? (
+          <div className={cx("relative w-full overflow-hidden bg-surface", frame)}>
+            {own.map((img, i) => (
+              <Image
+                key={img.src}
+                src={img.src}
+                alt={i === active ? img.alt : ""}
+                aria-hidden={i === active ? undefined : true}
+                fill
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                priority={i === 0}
+                className={cx(
+                  "object-contain p-2 transition-[opacity,scale] duration-small ease-ui group-hover:scale-[1.03]",
+                  i === active ? "opacity-100" : "opacity-0",
+                )}
+              />
+            ))}
+          </div>
+        ) : (
+          <ProductImage
+            image={current}
+            art={art}
+            icon={icon}
+            label={label}
+            priority
+            zoom
+            aspect={frame}
+            sizes="(min-width: 1024px) 45vw, 100vw"
+          />
+        )}
       </div>
       {(current?.representative || (!current && art)) && (
         <p className="flex items-start gap-2 text-sm text-muted">
@@ -61,8 +84,8 @@ export function ProductGallery({
                 aria-label={`Show photo ${i + 1} of ${own.length}`}
                 aria-pressed={i === active}
                 className={cx(
-                  "relative block size-16 overflow-hidden rounded-lg border-2 bg-surface sm:size-20",
-                  i === active ? "border-brand" : "border-line hover:border-line-strong",
+                  "relative block size-16 overflow-hidden rounded-lg border-2 bg-surface transition-[border-color,opacity] duration-fast sm:size-20",
+                  i === active ? "border-brand" : "border-line opacity-80 hover:border-line-strong hover:opacity-100",
                 )}
               >
                 <Image src={img.src} alt="" fill sizes="80px" className="object-contain p-1" />

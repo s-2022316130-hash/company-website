@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Clock, MapPin, MessageCircle, Phone } from "lucide-react";
+import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { business, dealerList } from "@/config/business";
 import { footerInfoLinks, footerShopLinks } from "@/config/navigation";
 import { categoryPath, loadCatalog } from "@/lib/catalog/catalog";
@@ -7,11 +9,11 @@ import { Logo } from "./Logo";
 function LinkColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
-      <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-brand-bright">{title}</h2>
-      <ul className="space-y-1">
+      <h2 className="label-tech mb-3 text-brand-bright">{title}</h2>
+      <ul className="space-y-0.5">
         {links.map((l) => (
           <li key={l.href}>
-            <Link href={l.href} className="inline-flex min-h-8 items-center text-sm text-on-dark-muted hover:text-white hover:underline">
+            <Link href={l.href} className="link-draw inline-flex min-h-8 items-center text-sm text-on-dark-muted hover:text-white">
               {l.label}
             </Link>
           </li>
@@ -21,41 +23,74 @@ function LinkColumn({ title, links }: { title: string; links: { label: string; h
   );
 }
 
+/** Footer: a last call to action, then the shop's details and every route into the catalogue. */
 export async function Footer() {
   const { brands, groups } = await loadCatalog();
   return (
     <footer className="relative mt-16 bg-graphite text-on-dark">
       <div className="chain-rule" aria-hidden="true" />
       <div className="fins">
-        <div className="container-page grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
-          <div className="space-y-4">
-            <Logo inverted />
-            <p className="text-sm text-on-dark-muted">{business.tagline}</p>
-            <address className="space-y-1.5 text-sm not-italic text-on-dark">
-              <p>{business.address.full}</p>
-              <p>
-                Orders:{" "}
-                <a href={`tel:${business.phones.orders.e164}`} className="font-semibold text-white hover:underline">
-                  {business.phones.orders.display}
-                </a>
+        <div className="container-page">
+          <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6 border-b border-graphite-3 py-10 sm:py-12">
+            <div className="max-w-xl">
+              <p className="eyebrow eyebrow-dark flex items-center gap-2">
+                <span aria-hidden="true" className="h-px w-7 bg-current" /> Can&apos;t find your part?
               </p>
-              <p>
-                Store:{" "}
-                <a href={`tel:${business.phones.store.e164}`} className="hover:underline">
-                  {business.phones.store.display}
-                </a>
-              </p>
-              <p>WhatsApp: {business.whatsapp.map((w) => w.display).join(", ")}</p>
-              <p className="text-on-dark-muted">{business.hours.label}</p>
-            </address>
+              <p className="display mt-2 text-section text-white">Send us a photo of the old part.</p>
+              <p className="mt-2 text-sm text-on-dark-muted">The shop checks the fit and tells you the price and availability.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <WhatsAppButton size="lg" message={`Hello ${business.name}, I need this part for my motorcycle: `} label="WhatsApp the shop" />
+              <CallButton size="lg" variant="outline-dark" />
+            </div>
           </div>
-          <LinkColumn title="Shop" links={footerShopLinks} />
-          <LinkColumn title="Brands" links={brands.map((b) => ({ label: `${b.name} parts`, href: `/brands/${b.slug}` }))} />
-          <LinkColumn
-            title="Categories"
-            links={groups.slice(0, 7).map((g) => ({ label: g.name, href: categoryPath(g.slug) }))}
-          />
-          <LinkColumn title="Information" links={footerInfoLinks} />
+
+          <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
+            <div className="space-y-4">
+              <Logo inverted />
+              <p className="max-w-xs text-sm text-on-dark-muted">
+                {business.tagline}. Authorized dealer for {dealerList()}.
+              </p>
+              <address className="space-y-2.5 text-sm not-italic text-on-dark">
+                <p className="flex gap-2.5">
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
+                  <a href={business.directionsUrl} target="_blank" rel="noopener noreferrer" className="link-draw hover:text-white">
+                    {business.address.full}
+                    <span className="sr-only"> (opens Google Maps)</span>
+                  </a>
+                </p>
+                <p className="flex gap-2.5">
+                  <Clock className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
+                  <span>{business.hours.label}</span>
+                </p>
+                <p className="flex gap-2.5">
+                  <Phone className="mt-0.5 size-4 shrink-0 text-brand-bright" aria-hidden="true" />
+                  <span>
+                    Orders:{" "}
+                    <a href={`tel:${business.phones.orders.e164}`} className="link-draw font-semibold text-white">
+                      {business.phones.orders.display}
+                    </a>
+                    <br />
+                    Store:{" "}
+                    <a href={`tel:${business.phones.store.e164}`} className="link-draw">
+                      {business.phones.store.display}
+                    </a>
+                  </span>
+                </p>
+                <p className="flex gap-2.5">
+                  <MessageCircle className="mt-0.5 size-4 shrink-0 text-[#4ade80]" aria-hidden="true" />
+                  <span>WhatsApp: {business.whatsapp.map((w) => w.display).join(", ")}</span>
+                </p>
+              </address>
+            </div>
+            <LinkColumn title="Shop" links={footerShopLinks} />
+            <LinkColumn title="Brands" links={brands.map((b) => ({ label: `${b.name} parts`, href: `/brands/${b.slug}` }))} />
+            <LinkColumn
+              title="Categories"
+              links={groups.slice(0, 8).map((g) => ({ label: g.name, href: categoryPath(g.slug) }))}
+            />
+            <LinkColumn title="Information" links={footerInfoLinks} />
+          </div>
         </div>
       </div>
       <div className="border-t border-graphite-3">

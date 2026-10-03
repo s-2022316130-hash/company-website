@@ -11,6 +11,7 @@ import { LineupSpecTable } from "@/components/catalog/VariantSpecs";
 import { business, dealershipFor, sellsOriginalParts } from "@/config/business";
 import { ProductListing } from "@/components/catalog/ProductListing";
 import { BikeBanner } from "@/components/layout/Banners";
+import { Reveal } from "@/components/motion/Reveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import {
   brandFeatureModel,
@@ -176,7 +177,7 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
 
       <div className="container-page space-y-14 py-10">
         {current.length > 0 && (
-          <section aria-labelledby="models-title">
+          <Reveal as="section" variant="self" aria-labelledby="models-title">
             <SectionHeader
               id="models-title"
               eyebrow="Current line-up"
@@ -185,11 +186,11 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
               action={{ label: "Motorcycle directory", href: `/models?brand=${brand.slug}` }}
             />
             {modelGrid(current)}
-          </section>
+          </Reveal>
         )}
 
         {earlier.length > 0 && (
-          <section aria-labelledby="earlier-models-title">
+          <Reveal as="section" variant="self" aria-labelledby="earlier-models-title">
             <SectionHeader
               id="earlier-models-title"
               eyebrow={modelStatusLabels["bd-earlier"]}
@@ -197,11 +198,11 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
               description="No longer in the line-up, but still on the road. Parts may still be available."
             />
             {modelGrid(earlier)}
-          </section>
+          </Reveal>
         )}
 
         {popular.length > 0 && (
-          <section aria-labelledby="brand-popular-title">
+          <Reveal as="section" variant="self" aria-labelledby="brand-popular-title">
             <SectionHeader
               id="brand-popular-title"
               eyebrow="Popular parts"
@@ -209,11 +210,11 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
               description="Routine wear parts riders replace most often. Catalogue items: ask us to confirm stock and fit."
             />
             <ProductGrid products={popular} />
-          </section>
+          </Reveal>
         )}
 
         {withSpecs.length > 0 && (
-          <section aria-labelledby="lineup-specs-title">
+          <Reveal as="section" variant="self" aria-labelledby="lineup-specs-title">
             <SectionHeader
               id="lineup-specs-title"
               eyebrow="Official specifications"
@@ -221,11 +222,11 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
               description="Engine, brakes and tyres for each model, as published by the manufacturer. Choose a model for every variant's details."
             />
             <LineupSpecTable models={withSpecs} brandName={brand.name} />
-          </section>
+          </Reveal>
         )}
 
         {groupsWithParts.length > 0 && (
-          <section aria-labelledby="brand-cats-title">
+          <Reveal as="section" variant="self" aria-labelledby="brand-cats-title">
             <SectionHeader id="brand-cats-title" eyebrow="Categories" title={`${brand.name} parts by type`} />
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {groupsWithParts.map((g) => (
@@ -238,11 +239,11 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
                 </li>
               ))}
             </ul>
-          </section>
+          </Reveal>
         )}
 
         {other.length > 0 && (
-          <section aria-labelledby="other-models-title" className="card p-5">
+          <Reveal as="section" variant="self" aria-labelledby="other-models-title" className="card p-5">
             <h2 id="other-models-title" className="display text-2xl text-ink">
               Other {brand.name} models
             </h2>
@@ -259,10 +260,10 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
                 </li>
               ))}
             </ul>
-          </section>
+          </Reveal>
         )}
 
-        <section id="parts" aria-labelledby="brand-products-title" className="scroll-mt-40">
+        <Reveal as="section" variant="self" id="parts" aria-labelledby="brand-products-title">
           <SectionHeader id="brand-products-title" eyebrow="Catalogue" title={`Parts listed for ${brand.name}`} />
           <ProductListing
             basePath={`/brands/${brand.slug}`}
@@ -270,7 +271,7 @@ export default async function BrandPage(props: PageProps<"/brands/[slug]">) {
             scope={{ brand: brand.slug }}
             emptyTitle={`No ${brand.name} parts listed yet`}
           />
-        </section>
+        </Reveal>
       </div>
     </>
   );

@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { CircleAlert, CircleCheck, Copy, MessageCircle, Phone, ShoppingCart } from "lucide-react";
 import { TrackedAnchor } from "@/components/analytics/Track";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { OrderSteps } from "./OrderSteps";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { business, type FulfilmentMethod } from "@/config/business";
 import { track } from "@/lib/analytics";
@@ -118,83 +119,86 @@ export function OrderForm() {
 
   if (status !== "editing") {
     return (
-      <div ref={summaryRef} tabIndex={-1} className="card space-y-5 p-5 outline-none sm:p-6" aria-live="polite">
-        {status === "whatsapp-opened" && (
-          <Notice tone="success" title="WhatsApp is opening with your order">
-            Your request is sent only when you press <strong>Send</strong> in WhatsApp. {business.name} will reply to confirm
-            price, availability{fulfilment === "courier" ? " and the delivery charge" : ""}.
-          </Notice>
-        )}
-        {status === "whatsapp-blocked" && (
-          <Notice tone="warning" title="WhatsApp did not open">
-            Your browser blocked the new window. Tap the button below to open WhatsApp, or copy the message and send it to{" "}
-            {waNumber?.display}.
-          </Notice>
-        )}
-        {status === "call" && (
-          <Notice tone="success" title="Call the store with this order">
-            Call {business.phones.orders.display} and read out the list below. Nothing has been sent yet.
-          </Notice>
-        )}
-
-        <div>
-          <h2 className="mb-2 font-semibold text-ink">Your order message</h2>
-          <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-3 font-sans text-sm text-ink">
-            {message}
-          </pre>
-          <button type="button" onClick={copyMessage} className="btn btn-ghost btn-sm mt-2">
-            <Copy className="size-4" aria-hidden="true" />
-            {copied === "done" ? "Copied" : "Copy message"}
-          </button>
-          {copied === "failed" && (
-            <p className="text-sm text-danger">Copy didn’t work on this device. Select the text above and copy it manually.</p>
+      <div className="space-y-6">
+        <OrderSteps current={3} />
+        <div ref={summaryRef} tabIndex={-1} className="card animate-fade-up space-y-5 p-5 outline-none sm:p-6" aria-live="polite">
+          {status === "whatsapp-opened" && (
+            <Notice tone="success" title="WhatsApp is opening with your order">
+              Your request is sent only when you press <strong>Send</strong> in WhatsApp. {business.name} will reply to confirm
+              price, availability{fulfilment === "courier" ? " and the delivery charge" : ""}.
+            </Notice>
           )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {status === "call" ? (
-            <TrackedAnchor
-              href={`tel:${business.phones.orders.e164}`}
-              event="phone_click"
-              eventProps={{ source: "order" }}
-              className="btn btn-primary btn-lg"
-            >
-              <Phone className="size-5" aria-hidden="true" /> Call {business.phones.orders.display}
-            </TrackedAnchor>
-          ) : (
-            <TrackedAnchor
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              event="whatsapp_click"
-              eventProps={{ source: "order" }}
-              className="btn btn-whatsapp btn-lg"
-            >
-              <MessageCircle className="size-5" aria-hidden="true" />
-              {status === "whatsapp-blocked" ? "Open WhatsApp" : "Open WhatsApp again"}
-            </TrackedAnchor>
+          {status === "whatsapp-blocked" && (
+            <Notice tone="warning" title="WhatsApp did not open">
+              Your browser blocked the new window. Tap the button below to open WhatsApp, or copy the message and send it to{" "}
+              {waNumber?.display}.
+            </Notice>
           )}
-          <button type="button" className="btn btn-outline btn-lg" onClick={() => setStatus("editing")}>
-            Edit details
-          </button>
-        </div>
+          {status === "call" && (
+            <Notice tone="success" title="Call the store with this order">
+              Call {business.phones.orders.display} and read out the list below. Nothing has been sent yet.
+            </Notice>
+          )}
 
-        <div className="border-t border-line pt-4 text-sm text-muted">
-          <p>Once the store has confirmed your order you can clear your cart.</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="btn btn-outline btn-sm"
-              onClick={() => {
-                dispatchCart({ type: "clear" });
-                setStatus("editing");
-              }}
-            >
-              Clear cart
+          <div>
+            <h2 className="mb-2 font-semibold text-ink">Your order message</h2>
+            <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-3 font-sans text-sm text-ink">
+              {message}
+            </pre>
+            <button type="button" onClick={copyMessage} className="btn btn-ghost btn-sm mt-2">
+              <Copy className="size-4" aria-hidden="true" />
+              {copied === "done" ? "Copied" : "Copy message"}
             </button>
-            <Link href="/shop" className="btn btn-ghost btn-sm">
-              Back to shop
-            </Link>
+            {copied === "failed" && (
+              <p className="text-sm text-danger">Copy didn’t work on this device. Select the text above and copy it manually.</p>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {status === "call" ? (
+              <TrackedAnchor
+                href={`tel:${business.phones.orders.e164}`}
+                event="phone_click"
+                eventProps={{ source: "order" }}
+                className="btn btn-primary btn-lg"
+              >
+                <Phone className="size-5" aria-hidden="true" /> Call {business.phones.orders.display}
+              </TrackedAnchor>
+            ) : (
+              <TrackedAnchor
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                event="whatsapp_click"
+                eventProps={{ source: "order" }}
+                className="btn btn-whatsapp btn-lg"
+              >
+                <MessageCircle className="size-5" aria-hidden="true" />
+                {status === "whatsapp-blocked" ? "Open WhatsApp" : "Open WhatsApp again"}
+              </TrackedAnchor>
+            )}
+            <button type="button" className="btn btn-outline btn-lg" onClick={() => setStatus("editing")}>
+              Edit details
+            </button>
+          </div>
+
+          <div className="border-t border-line pt-4 text-sm text-muted">
+            <p>Once the store has confirmed your order you can clear your cart.</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => {
+                  dispatchCart({ type: "clear" });
+                  setStatus("editing");
+                }}
+              >
+                Clear cart
+              </button>
+              <Link href="/shop" className="btn btn-ghost btn-sm">
+                Back to shop
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -205,6 +209,7 @@ export function OrderForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <OrderSteps current={2} className="lg:col-span-2" />
       <div className="space-y-6">
         {errorList.length > 0 && (
           <div role="alert" className="rounded-lg border border-danger/30 bg-danger-soft p-4 text-sm">
@@ -334,7 +339,7 @@ export function OrderForm() {
         </fieldset>
       </div>
 
-      <aside className="card h-fit space-y-4 p-5 lg:sticky lg:top-36" aria-labelledby="order-summary-title">
+      <aside className="card h-fit space-y-4 p-5 lg:sticky-below-header" aria-labelledby="order-summary-title">
         <h2 id="order-summary-title" className="font-display text-xl font-bold text-ink">
           Order summary
         </h2>

@@ -20,6 +20,7 @@ export function BikeVisual({
   annotate = true,
   tone = "dark",
   priority = false,
+  hover = "zoom",
 }: {
   bikeClass: BikeClass;
   /** The model's image slot from the manifest (see lib/images.ts: motorcycleImage). */
@@ -31,8 +32,14 @@ export function BikeVisual({
   annotate?: boolean;
   tone?: "dark" | "light";
   priority?: boolean;
+  /** Reaction to hovering the surrounding .group: a slight zoom, or zoom and roll 6px forward. */
+  hover?: "zoom" | "ride" | "none";
 }) {
   const photo = shown(image);
+  const motion = cx(
+    hover !== "none" && "transition-[scale,translate] duration-emphasis ease-card group-hover:scale-[1.04]",
+    hover === "ride" && "group-hover:translate-x-1.5",
+  );
   if (photo) {
     return (
       <div className={cx("relative overflow-hidden", tone === "dark" ? "studio-dark" : "studio", className)}>
@@ -42,7 +49,7 @@ export function BikeVisual({
           fill
           sizes={sizes}
           priority={priority}
-          className="object-contain p-[5%] transition-transform duration-500 group-hover:scale-[1.03]"
+          className={cx("object-contain p-[5%]", motion)}
           style={photo.position ? { objectPosition: photo.position } : undefined}
         />
       </div>
@@ -60,7 +67,7 @@ export function BikeVisual({
         bikeClass={bikeClass}
         annotate={annotate}
         title={`Line drawing of a ${bikeClassLabel(bikeClass)}, representing the ${name}`}
-        className="h-full max-h-full w-[88%] transition-transform duration-500 group-hover:scale-[1.04]"
+        className={cx("h-full max-h-full w-[88%]", motion)}
       />
     </div>
   );

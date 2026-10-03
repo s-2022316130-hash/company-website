@@ -6,9 +6,11 @@ import { ProductPurchase } from "@/components/cart/AddToCartButton";
 import { AuthenticityBadge, AvailabilityBadge, ConfidenceBadge, DemoBadge, PriceDisplay } from "@/components/catalog/Badges";
 import { CompatibilityList } from "@/components/catalog/CompatibilityList";
 import { categoryShortName, FitsBikeList, ModelCard } from "@/components/catalog/DirectoryCards";
-import { ProductGrid } from "@/components/catalog/ProductCard";
+import { ProductCard } from "@/components/catalog/ProductCard";
 import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
+import { Reveal } from "@/components/motion/Reveal";
+import { ScrollRail } from "@/components/motion/ScrollRail";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -141,7 +143,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
             {/* The picture shows the part; the bikes it fits are shown beneath it, never in its place.
                 A short list is the whole compatibility section; a long one continues further down. */}
             {listedBikes.length > 0 && (
-              <div id={shortFitList ? "compatibility" : undefined} className="scroll-mt-40">
+              <div id={shortFitList ? "compatibility" : undefined}>
                 <FitsBikeList
                   title={recommended ? "Recommended by the manufacturer for" : "Fits"}
                   models={listedBikes.slice(0, FITS_SHOWN)}
@@ -155,8 +157,8 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
           </div>
 
           <div className="min-w-0">
-            <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted">{productEyebrow(product)}</p>
-            <h1 className="display mt-1 text-[2.25rem] text-ink sm:text-5xl">{product.name}</h1>
+            <p className="label-tech text-sm text-muted">{productEyebrow(product)}</p>
+            <h1 className="display mt-1.5 text-[2.25rem] text-ink sm:text-5xl">{product.name}</h1>
             {product.nameBn && (
               <p lang="bn" className="mt-1 text-lg text-muted">
                 {product.nameBn}
@@ -252,7 +254,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
         </div>
 
         {!shortFitList && (
-          <section id="compatibility" aria-labelledby="compat-title" className="mt-12 scroll-mt-40">
+          <Reveal as="section" id="compatibility" aria-labelledby="compat-title" className="mt-12">
             <SectionHeader
               id="compat-title"
               eyebrow="Compatibility"
@@ -260,7 +262,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
             />
             {product.models.length > 0 ? (
               <>
-                <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                <ul className="reveal-list grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
                   {product.models.map((m) => (
                     <li key={m.id}>
                       <ModelCard
@@ -279,10 +281,10 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
                 <CompatibilityList product={product} />
               </div>
             )}
-          </section>
+          </Reveal>
         )}
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
+        <Reveal variant="self" className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
           <section aria-labelledby="details-title" className="card p-5 lg:col-span-2">
             <h2 id="details-title" className="display mb-3 text-2xl text-ink">
               Product details
@@ -351,13 +353,17 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
               )}
             </p>
           </section>
-        </div>
+        </Reveal>
 
         {rails.map((rail) => (
-          <section key={rail.title} className="mt-12" aria-label={rail.title}>
+          <Reveal as="section" key={rail.title} className="mt-12" aria-label={rail.title}>
             <SectionHeader title={rail.title} />
-            <ProductGrid products={rail.products} />
-          </section>
+            <ScrollRail label={rail.title} itemClassName="w-[70%] sm:w-[44%] md:w-[31%] lg:w-[22.6%]">
+              {rail.products.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </ScrollRail>
+          </Reveal>
         ))}
       </div>
     </>

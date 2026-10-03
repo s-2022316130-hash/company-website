@@ -52,7 +52,7 @@ export function ProductImage({
           priority={priority}
           className={cx(
             photo.representative ? "object-cover" : "bg-surface object-contain p-2",
-            zoom && "transition-transform duration-700 ease-out group-hover:scale-[1.06]",
+            zoom && "transition-[scale] duration-emphasis ease-card group-hover:scale-[1.04]",
           )}
           style={photo.position ? { objectPosition: photo.position } : undefined}
           onError={() => setFailed(true)}
@@ -63,7 +63,7 @@ export function ProductImage({
             <PartArt
               kind={art}
               title={label ? `Illustration of ${label.toLowerCase()}` : undefined}
-              className={cx("w-3/4 max-w-56", zoom && "transition-transform duration-700 ease-out group-hover:scale-[1.05]")}
+              className={cx("w-3/4 max-w-56", zoom && "transition-[scale] duration-emphasis ease-card group-hover:scale-[1.05]")}
             />
           ) : (
             <span className="relative grid size-20 place-items-center">

@@ -12,6 +12,7 @@ import type {
   DisplayImage,
   ModelStatus,
   MotorcycleModel,
+  PartArtKind,
   Product,
   ProductView,
   Subcategory,
@@ -213,6 +214,8 @@ export interface PopularPart {
   slug: string;
   count: number;
   image?: PhotoKey;
+  /** Line drawing of the part type, when there is one. */
+  art?: PartArtKind;
   icon: CategoryIcon;
 }
 
@@ -222,7 +225,9 @@ export function popularParts(catalog: Catalog): PopularPart[] {
   return popularPartLinks.flatMap((p) => {
     const cat = resolveCategory(catalog.groups, p.slug);
     if (!cat) return [];
-    return [{ ...p, count: counts.get(p.slug) ?? 0, image: cat.sub?.image ?? cat.group.image, icon: cat.group.icon }];
+    return [
+      { ...p, count: counts.get(p.slug) ?? 0, image: cat.sub?.image ?? cat.group.image, art: cat.sub?.art, icon: cat.group.icon },
+    ];
   });
 }
 

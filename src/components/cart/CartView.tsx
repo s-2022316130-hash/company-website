@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Minus, Package, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { OrderSteps } from "@/components/order/OrderSteps";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { MAX_LINE_QUANTITY, type CartLine } from "@/lib/cart/cart";
@@ -40,6 +41,7 @@ export function CartView() {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <OrderSteps current={1} className="lg:col-span-2" />
       <section aria-labelledby="cart-items-title">
         <h2 id="cart-items-title" className="sr-only">
           Items in your cart
@@ -78,7 +80,7 @@ export function CartView() {
         </div>
       </section>
 
-      <aside className="card h-fit p-5 lg:sticky lg:top-36" aria-labelledby="summary-title">
+      <aside className="card h-fit p-5 lg:sticky-below-header" aria-labelledby="summary-title">
         <h2 id="summary-title" className="font-display text-xl font-bold text-ink">
           Order summary
         </h2>
