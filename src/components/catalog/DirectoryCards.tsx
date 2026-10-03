@@ -79,11 +79,11 @@ export function CategoryImageCard({
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-graphite via-graphite/50 to-graphite/0 transition-opacity duration-standard ease-ui group-hover:opacity-80" />
       <div className="absolute inset-0 bg-graphite/0 transition-colors duration-standard ease-ui group-hover:bg-graphite/10" />
-      <span className="absolute left-2.5 top-2.5 grid size-8 place-items-center rounded-md bg-graphite/70 text-brand-bright ring-1 ring-white/15 backdrop-blur-sm sm:left-3 sm:top-3 sm:size-9">
+      <span className="absolute left-2.5 top-2.5 grid size-8 place-items-center rounded-md bg-graphite/80 text-brand-bright ring-1 ring-white/15 sm:left-3 sm:top-3 sm:size-9 md:bg-graphite/70 md:backdrop-blur-sm">
         <CategoryIcon name={group.icon} className="size-4.5 sm:size-5" />
       </span>
       {!compact && (
-        <span className="absolute right-3 top-3 rounded-sm bg-graphite/70 px-1.5 py-0.5 text-xs font-medium text-on-dark ring-1 ring-white/15 backdrop-blur-sm">
+        <span className="absolute right-3 top-3 rounded-sm bg-graphite/80 px-1.5 py-0.5 text-xs font-medium text-on-dark ring-1 ring-white/15 md:bg-graphite/70 md:backdrop-blur-sm">
           {count > 0 ? pluralize(count, "part") : "Ask in store"}
         </span>
       )}

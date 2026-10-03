@@ -15,8 +15,8 @@ import { whatsAppUrl } from "@/lib/order";
 
 /** Scroll distance before the header compacts. */
 const COMPACT_AFTER = 96;
-/** Travel needed before a change of scroll direction counts, so small jitters don't flicker the header. */
-const DIRECTION_SLOP = 6;
+/** Travel needed before a change of scroll direction counts, so finger jitter doesn't flicker the header. */
+const DIRECTION_SLOP = 10;
 
 function isTextEntry(el: EventTarget | null): boolean {
   if (el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) return true;
@@ -36,6 +36,12 @@ export function HeaderShell({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     let lastY = window.scrollY;
     let frame = 0;
+    // Page height, kept current by a ResizeObserver so the scroll handler never forces a layout.
+    let pageHeight = root.scrollHeight;
+    const resize = new ResizeObserver(() => {
+      pageHeight = root.scrollHeight;
+    });
+    resize.observe(document.body);
 
     const set = (next: string) => {
       if (root.dataset.header !== next) root.dataset.header = next;
@@ -46,6 +52,11 @@ export function HeaderShell({ children }: { children: ReactNode }) {
       if (y <= COMPACT_AFTER) {
         lastY = y;
         set("top");
+        return;
+      }
+      // iOS bounces past the end of the page; that rebound is not the reader scrolling back up.
+      if (y + window.innerHeight >= pageHeight - 2) {
+        lastY = y;
         return;
       }
       const dy = y - lastY;
@@ -76,6 +87,7 @@ export function HeaderShell({ children }: { children: ReactNode }) {
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("focusout", onFocusOut);
+      resize.disconnect();
       cancelAnimationFrame(frame);
     };
   }, []);

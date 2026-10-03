@@ -90,7 +90,7 @@ export function Hero({
               ))}
             </div>
           </div>
-          <div className="hero-rise mt-5 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-3" style={delay(600)}>
+          <div className="hero-rise mt-5 grid gap-2.5 min-[360px]:grid-cols-2 sm:flex sm:flex-wrap sm:gap-3" style={delay(600)}>
             <Link href="/shop" className="group btn btn-primary btn-lg max-sm:px-3">
               Shop parts
               <ArrowRight className="size-4 transition-transform duration-small ease-ui group-hover:translate-x-1" aria-hidden="true" />
