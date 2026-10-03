@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { helmetBrands, helmetStyleLabels } from "@/data/catalogue/helmets";
 import { loadCatalog, type Catalog } from "./catalog";
 import { listingHref, parseListingParams, runListing, sortProducts } from "./listing";
 
@@ -34,12 +35,44 @@ describe("runListing", () => {
   });
 
   it("hides filters that cannot narrow results", () => {
-    // Every sample product shares one stock status and has no price or verified type.
-    const r = runListing(catalog, parseListingParams({}));
+    // Every brake part shares one stock status and has no price or verified type.
+    const r = runListing(catalog, parseListingParams({}), { category: "brakes" });
     expect(r.facets.availability).toEqual([]);
     expect(r.facets.types).toEqual([]);
     expect(r.facets.price).toBeUndefined();
     expect(r.sortOptions).not.toContain("price-asc");
+  });
+
+  it("offers availability once helmets (call to confirm) sit beside catalogue entries", () => {
+    const r = runListing(catalog, parseListingParams({}));
+    expect(r.facets.availability.map((o) => o.value).sort()).toEqual(["call-to-confirm", "catalogue-only"]);
+  });
+
+  it("filters helmets by maker", () => {
+    const helmets = runListing(catalog, parseListingParams({}), { category: "helmets" });
+    expect(helmets.total).toBe(64);
+    expect(helmets.facets.makers.map((m) => m.label)).toEqual(
+      expect.arrayContaining(["Studds", "Vega", "Steelbird", "Torq", "Axor", "LS2", "MT Helmets", "SMK", "KYT", "HJC", "Bilmola", "AGV", "Shark"]),
+    );
+    const vega = runListing(catalog, parseListingParams({ maker: "vega" }), { category: "helmets" });
+    expect(vega.total).toBe(11);
+    expect(vega.activeFilterCount).toBe(1);
+    expect(vega.items.every((p) => p.partBrand === "Vega")).toBe(true);
+    const mt = runListing(catalog, parseListingParams({ maker: "mt-helmets" }), { category: "helmets" });
+    expect(mt.total).toBe(4);
+  });
+
+  it("finds helmets by style only where a page gives that style", () => {
+    const models = helmetBrands.flatMap((b) => b.models);
+    let checked = 0;
+    for (const [style, label] of Object.entries(helmetStyleLabels)) {
+      const sourced = models.filter((m) => m.style === style && m.source).length;
+      if (sourced === 0) continue;
+      const r = runListing(catalog, parseListingParams({ q: label }), { category: "helmets" });
+      expect(r.total, label).toBe(sourced);
+      checked += 1;
+    }
+    expect(checked).toBeGreaterThanOrEqual(2);
   });
 
   it("ignores filter values that are not offered", () => {

@@ -25,8 +25,8 @@ import {
   relatedProducts,
   variantsFor,
 } from "@/lib/catalog/catalog";
-import { canRequest, CATALOGUE_DISCLAIMER, sourceTypeLabels } from "@/lib/catalog/labels";
-import { fitmentSummary, productEyebrow, toCartLine } from "@/lib/catalog/present";
+import { canRequest, CATALOGUE_DISCLAIMER, sourceTypeLabels, specSourceLabels } from "@/lib/catalog/labels";
+import { fitmentSummary, isHelmet, productEyebrow, toCartLine } from "@/lib/catalog/present";
 import { productEnquiryMessage } from "@/lib/order";
 import { isIndexable, pageMetadata, productJsonLd, type Crumb } from "@/lib/seo";
 import type { Brand, MotorcycleModel } from "@/lib/types";
@@ -78,9 +78,7 @@ export async function generateMetadata(props: PageProps<"/products/[slug]">): Pr
   const fit = fitmentSummary(product);
   const meta = pageMetadata({
     title: product.name,
-    description:
-      product.shortDescription ??
-      `${product.name}. ${fit}. Check price and availability with Nirob Autos, Madhupur.`,
+    description: product.shortDescription ?? `${product.name}. ${fit}. Check price and availability with Nirob Auto's, Madhupur.`,
     path: `/products/${product.slug}`,
     // Catalogue-only entries are not confirmed stock: keep them out of search engines.
     noindex: !isIndexable(product),
@@ -101,7 +99,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
     { label: "Shop", href: "/shop" },
     { label: product.categoryName, href: categoryPath(product.category) },
     ...(product.subcategory && product.subcategoryName
-      ? [{ label: product.subcategoryName, href: `/categories/${product.subcategory}` }]
+      ? [{ label: product.subcategoryName, href: categoryPath(product.subcategory) }]
       : []),
     { label: product.name, href: `/products/${product.slug}` },
   ];
@@ -113,6 +111,8 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
     .map((m) => ({ model: m, variants: variantsFor(product, m) }))
     .filter((x) => x.variants.length > 0);
   const recommended = product.fitment === "universal" && product.models.length > 0;
+  // Helmets fit any bike: they get sizing advice instead of a compatibility section.
+  const helmet = isHelmet(product);
   const listedBikes = product.fitment === "unconfirmed" ? [] : product.models;
   const shortFitList = listedBikes.length > 0 && listedBikes.length <= FITS_SHOWN;
   const enquiry = productEnquiryMessage(product.name, absoluteUrl(`/products/${product.slug}`));
@@ -168,7 +168,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {product.productStatus === "demo" && <DemoBadge />}
               <AuthenticityBadge authenticity={product.authenticity} />
-              <ConfidenceBadge confidence={product.compatibilityConfidence} className="text-sm" />
+              {!helmet && <ConfidenceBadge confidence={product.compatibilityConfidence} className="text-sm" />}
               {product.partBrand && <span className="text-sm text-muted">Made by {product.partBrand}</span>}
             </div>
 
@@ -201,29 +201,41 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
                   <span>
                     {dealer ? (
                       <>
-                        {business.name} is an authorized dealer of <strong className="font-semibold">{dealer.company}</strong>: genuine{" "}
-                        {onlyBrand?.name} parts at company price. Ask for the genuine part when you order.
+                        {business.name} is an authorized dealer of <strong className="font-semibold">{dealer.company}</strong>:
+                        genuine {onlyBrand?.name} parts at company price. Ask for the genuine part when you order.
                       </>
                     ) : (
-                      <>{business.name} sells original {originalBrand?.name} parts. Ask for the original part when you order.</>
+                      <>
+                        {business.name} sells original {originalBrand?.name} parts. Ask for the original part when you order.
+                      </>
                     )}
                   </span>
                 </p>
               )}
 
-              <p className="flex items-start gap-2 rounded-lg bg-steel-soft p-3 text-sm text-ink">
-                <CircleCheck className="mt-0.5 size-4 shrink-0 text-steel" aria-hidden="true" />
-                <span>
-                  <span className="font-semibold">{fitmentSummary(product)}.</span>{" "}
-                  {limited.length > 0 && <span>Only {limited.map((x) => x.variants.join(", ")).join("; ")}. </span>}
-                  {product.compatibilityConfidence === "needs-confirmation" && product.fitment !== "universal" && (
-                    <span>Tell us your bike&apos;s variant and year so we can confirm the exact part. </span>
-                  )}
-                  <a href="#compatibility" className="text-brand underline">
-                    See compatible motorcycles
-                  </a>
-                </span>
-              </p>
+              {helmet ? (
+                <p className="flex items-start gap-2 rounded-lg bg-steel-soft p-3 text-sm text-ink">
+                  <CircleCheck className="mt-0.5 size-4 shrink-0 text-steel" aria-hidden="true" />
+                  <span>
+                    <span className="font-semibold">Fits any motorcycle; choose it by head size.</span> Measure around your head
+                    just above the eyebrows, or try it on at the shop. Ask which sizes and colours are in stock.
+                  </span>
+                </p>
+              ) : (
+                <p className="flex items-start gap-2 rounded-lg bg-steel-soft p-3 text-sm text-ink">
+                  <CircleCheck className="mt-0.5 size-4 shrink-0 text-steel" aria-hidden="true" />
+                  <span>
+                    <span className="font-semibold">{fitmentSummary(product)}.</span>{" "}
+                    {limited.length > 0 && <span>Only {limited.map((x) => x.variants.join(", ")).join("; ")}. </span>}
+                    {product.compatibilityConfidence === "needs-confirmation" && product.fitment !== "universal" && (
+                      <span>Tell us your bike&apos;s variant and year so we can confirm the exact part. </span>
+                    )}
+                    <a href="#compatibility" className="text-brand underline">
+                      See compatible motorcycles
+                    </a>
+                  </span>
+                </p>
+              )}
               {product.notes && product.notes.length > 0 && (
                 <ul className="space-y-1.5 text-sm text-muted">
                   {product.notes.map((n) => (
@@ -238,7 +250,9 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
               <ProductPurchase line={toCartLine(product)} disabled={!requestable} />
 
               <div className="border-t border-line pt-4">
-                <p className="mb-2 text-sm font-semibold text-ink">Not sure it fits? Ask before you order.</p>
+                <p className="mb-2 text-sm font-semibold text-ink">
+                  {helmet ? "Ask about sizes and colours before you order." : "Not sure it fits? Ask before you order."}
+                </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <CallButton variant="outline" label="Call to confirm" />
                   <WhatsAppButton message={enquiry} label="Ask on WhatsApp" />
@@ -253,7 +267,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
           </div>
         </div>
 
-        {!shortFitList && (
+        {!shortFitList && !helmet && (
           <Reveal as="section" id="compatibility" aria-labelledby="compat-title" className="mt-12">
             <SectionHeader
               id="compat-title"
@@ -324,7 +338,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
                             rel="noopener noreferrer"
                             className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted underline hover:text-brand"
                           >
-                            Official source <ExternalLink className="size-3" aria-hidden="true" />
+                            {specSourceLabels[s.sourceKind ?? "official"]} <ExternalLink className="size-3" aria-hidden="true" />
                           </a>
                         )}
                       </td>

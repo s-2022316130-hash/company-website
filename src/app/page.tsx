@@ -9,6 +9,7 @@ import {
   BrandShowcase,
   CategoryShowcase,
   GenuineParts,
+  HelmetsShowcase,
   Hero,
   MechanicalSystems,
   OilsFeature,
@@ -22,6 +23,7 @@ import { JsonLd } from "@/components/ui/JsonLd";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { dealershipFor, sellsOriginalParts } from "@/config/business";
 import type { PhotoKey } from "@/config/images";
+import { helmetBrands } from "@/data/catalogue/helmets";
 import {
   brandBikeClass,
   brandFeatureModel,
@@ -35,6 +37,7 @@ import {
   popularParts,
   spreadByCategory,
 } from "@/lib/catalog/catalog";
+import { makerSlug } from "@/lib/catalog/listing";
 import { localBusinessJsonLd } from "@/lib/seo";
 
 // Title and description come from the root layout; only the canonical URL is page-specific.
@@ -83,10 +86,19 @@ export default async function HomePage() {
     catalog.products.filter((p) => p.isFeatured || p.isPopular),
     12,
   );
+  // Helmets have their own section, so the accessories rail shows everything else.
   const accessories = spreadByCategory(
-    catalog.products.filter((p) => p.category === "accessories"),
+    catalog.products.filter((p) => p.category === "accessories" && p.subcategory !== "helmets"),
     8,
   );
+  const helmets = catalog.products.filter((p) => p.subcategory === "helmets");
+  const helmetTiles = helmetBrands.map((b) => ({ name: b.name, maker: makerSlug(b.name), count: b.models.length }));
+  // One helmet per brand: the first with a sourced style, otherwise the first listed.
+  const helmetPicks = helmetBrands.flatMap((b) => {
+    const own = helmets.filter((p) => p.partBrand === b.name);
+    const pick = own.find((p) => p.specifications?.some((s) => s.label === "Style")) ?? own[0];
+    return pick ? [pick] : [];
+  });
   const oilsGroup = catalog.groups.find((g) => g.slug === "oils-fluids");
   const oils = spreadByCategory(
     catalog.products.filter((p) => p.category === "oils-fluids"),
@@ -161,6 +173,10 @@ export default async function HomePage() {
         <OilsFeature group={oilsGroup} products={oils} />
       </div>
 
+      <div className="container-page pb-(--space-section)">
+        <HelmetsShowcase brands={helmetTiles} picks={helmetPicks} total={helmets.length} />
+      </div>
+
       <VisualBreak />
 
       <div className="container-page space-y-(--space-section) pt-(--space-section)">
@@ -168,13 +184,13 @@ export default async function HomePage() {
           id="accessories-title"
           eyebrow="Accessories"
           title="Accessories for everyday riding"
-          description="Kept separate from mechanical parts: holders, chargers, helmets, covers and more."
+          description="Kept separate from mechanical parts: holders, chargers, gloves, covers and more."
           action={{ label: "All accessories", href: "/accessories" }}
           products={accessories}
         />
         <OrderingSteps />
         <Reveal as="section" aria-labelledby="visit-title">
-          <SectionHeader id="visit-title" eyebrow="Visit or call" title="Find Nirob Autos" />
+          <SectionHeader id="visit-title" eyebrow="Visit or call" title="Find Nirob Auto's" />
           <div className="reveal-item" style={{ "--reveal-i": 2 } as CSSProperties}>
             <StoreContactCard />
           </div>

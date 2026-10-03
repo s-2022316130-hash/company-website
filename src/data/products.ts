@@ -1,6 +1,7 @@
 import type { MotorcycleModel, Product, ProductSpec } from "@/lib/types";
 import { brands } from "./brands";
 import { modelAssignments, officialFitment } from "./catalogue/assignments";
+import { helmetProducts } from "./catalogue/helmets";
 import { partKinds, type PartKind, type PartKindKey } from "./catalogue/kinds";
 import { officialProducts } from "./catalogue/official";
 import { universalProducts } from "./catalogue/universal";
@@ -9,21 +10,23 @@ import { models } from "./models";
 /**
  * Product catalogue.
  *
- * Every record is a CATALOGUE entry, not confirmed stock: inventoryStatus "catalogue-only", no price,
- * SKU or invented part number, authenticity "unknown". Fitment confidence says how sure the listing
+ * Every part record is a CATALOGUE entry, not confirmed stock: inventoryStatus "catalogue-only", no price,
+ * SKU or invented part number, authenticity "unknown". Helmets come from the owner's list of helmets the
+ * shop carries, so they are "call-to-confirm" (sizes, colours and price confirmed by the shop). Fitment confidence says how sure the listing
  * is: "manufacturer-listed" only where an official source names the part, size or spec for the model.
  *
  *   catalogue/kinds.ts        part-kind taxonomy and the rules for which bikes a kind applies to
  *   catalogue/assignments.ts  which kinds are catalogued for which model
  *   catalogue/official.ts     records from official sources (Yamaha BD parts list, spec pages, manuals)
  *   catalogue/universal.ts    oils, fluids, accessories and hardware
+ *   catalogue/helmets.ts      helmets the shop carries (owner's list), with sourced style and certification
  *
  * When the shop confirms stock, set inventoryStatus, price and authenticity on the record (or in the
  * repository that replaces this file).
  */
 
 const CONFIRM = "Call or WhatsApp to confirm fit, price and availability before ordering.";
-const TAXONOMY = { type: "retailer-reference" as const, name: "Nirob Autos parts taxonomy" };
+const TAXONOMY = { type: "retailer-reference" as const, name: "Nirob Auto's parts taxonomy" };
 
 const modelById = new Map(models.map((m) => [m.id, m]));
 const brandName = new Map(brands.map((b) => [b.slug, b.name]));
@@ -126,4 +129,4 @@ function modelProducts({ modelId, kindKey, featured, popular }: Assignment): Pro
 
 export { partKinds };
 
-export const products: Product[] = [...assignments.flatMap(modelProducts), ...officialProducts, ...universalProducts];
+export const products: Product[] = [...assignments.flatMap(modelProducts), ...officialProducts, ...universalProducts, ...helmetProducts];

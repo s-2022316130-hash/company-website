@@ -30,7 +30,7 @@ function item(input: Input): Product {
     compatibilityConfidence: recommended ? "manufacturer-listed" : "needs-confirmation",
     source: recommended
       ? { type: "official-manufacturer", name: "Owner's manuals" }
-      : { type: "retailer-reference", name: "Nirob Autos catalogue" },
+      : { type: "retailer-reference", name: "Nirob Auto's catalogue" },
     description: `${input.shortDescription} ${CONFIRM}`,
     ...input,
   };
@@ -123,8 +123,6 @@ const accessories: Product[] = [
   item({ slug: "handlebar-grips", name: "Handlebar Grips", category: "accessories", subcategory: "grips-covers", fitment: "unconfirmed", shortDescription: "Replacement handlebar grips." }),
   item({ slug: "seat-cover", name: "Seat Cover", category: "accessories", subcategory: "grips-covers", fitment: "unconfirmed", shortDescription: "Seat cover. Sizes differ between bikes; ask us for yours." }),
   item({ slug: "tank-pad", name: "Tank Pad", category: "accessories", subcategory: "grips-covers", shortDescription: "Stick-on pad that protects the fuel tank paint." }),
-  item({ slug: "full-face-helmet", name: "Full-Face Helmet", category: "accessories", subcategory: "safety", shortDescription: "Full-face riding helmet. Sizes vary; try one in store or ask us for the size chart." }),
-  item({ slug: "open-face-helmet", name: "Open-Face Helmet", category: "accessories", subcategory: "safety", shortDescription: "Open-face riding helmet. Sizes vary; try one in store." }),
   item({ slug: "helmet-visor", name: "Helmet Visor", category: "accessories", subcategory: "safety", fitment: "unconfirmed", shortDescription: "Replacement helmet visor. Visors are specific to the helmet model; bring your helmet." }),
   item({ slug: "riding-gloves", name: "Riding Gloves", category: "accessories", subcategory: "safety", photo: "ridingGloves", shortDescription: "Riding gloves. Sizes vary; ask us what is available." }),
   item({ slug: "reflective-safety-vest", name: "Reflective Safety Vest", category: "accessories", subcategory: "reflective", searchableAliases: ["reflective jacket"], shortDescription: "High-visibility reflective vest for riding at night." }),

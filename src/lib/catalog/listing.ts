@@ -26,6 +26,8 @@ export interface ListingParams {
   brands: string[];
   models: string[];
   categories: string[];
+  /** Maker of the item itself (e.g. a helmet brand or spark plug maker), by slug. */
+  makers: string[];
   types: Authenticity[];
   availability: InventoryStatus[];
   fitment: CompatibilityConfidence[];
@@ -49,6 +51,14 @@ function list(value: string | string[] | undefined): string[] {
   return (Array.isArray(value) ? value : [value]).flatMap((v) => v.split(",")).map((v) => v.trim()).filter(Boolean);
 }
 
+/** URL value for a maker name: "MT Helmets" → "mt-helmets". */
+export function makerSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function positiveInt(value: string | string[] | undefined): number | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
   if (!raw) return undefined;
@@ -64,6 +74,7 @@ export function parseListingParams(raw: RawParams): ListingParams {
     brands: list(raw.brand),
     models: list(raw.model),
     categories: list(raw.category),
+    makers: list(raw.maker),
     types: list(raw.type).filter((t): t is Authenticity => t in authenticityLabels),
     availability: list(raw.availability).filter((s): s is InventoryStatus => s in inventoryStatusLabels),
     fitment: list(raw.fit).filter((f): f is CompatibilityConfidence => f in confidenceLabels),
@@ -85,6 +96,7 @@ export interface Facets {
   brands: FacetOption[];
   models: FacetOption[];
   categories: FacetOption[];
+  makers: FacetOption[];
   types: FacetOption[];
   availability: FacetOption[];
   fitment: FacetOption[];
@@ -142,6 +154,7 @@ export function runListing(catalog: Catalog, params: ListingParams, scope: Listi
   const brandSel = valid(params.brands, facets.brands);
   const modelSel = valid(params.models, facets.models);
   const categorySel = valid(params.categories, facets.categories);
+  const makerSel = valid(params.makers, facets.makers);
   const typeSel = valid(params.types, facets.types);
   const availSel = valid(params.availability, facets.availability);
   const fitSel = valid(params.fitment, facets.fitment);
@@ -152,6 +165,7 @@ export function runListing(catalog: Catalog, params: ListingParams, scope: Listi
       (brandSel.length === 0 || brandSel.some((b) => productFitsBrand(p, b))) &&
       (modelSel.length === 0 || modelSel.some((m) => productFitsModel(p, m))) &&
       (categorySel.length === 0 || categorySel.some((c) => productInCategory(p, c))) &&
+      (makerSel.length === 0 || (p.partBrand !== undefined && makerSel.includes(makerSlug(p.partBrand)))) &&
       (typeSel.length === 0 || typeSel.includes(p.authenticity)) &&
       (availSel.length === 0 || availSel.includes(p.inventoryStatus)) &&
       (fitSel.length === 0 || fitSel.includes(p.compatibilityConfidence)) &&
@@ -181,7 +195,14 @@ export function runListing(catalog: Catalog, params: ListingParams, scope: Listi
     sort,
     searchMode,
     activeFilterCount:
-      brandSel.length + modelSel.length + categorySel.length + typeSel.length + availSel.length + fitSel.length + (priceActive ? 1 : 0),
+      brandSel.length +
+      modelSel.length +
+      categorySel.length +
+      makerSel.length +
+      typeSel.length +
+      availSel.length +
+      fitSel.length +
+      (priceActive ? 1 : 0),
   };
 }
 
@@ -219,6 +240,14 @@ function buildFacets(catalog: Catalog, base: ProductView[], params: ListingParam
       .map((g) => option(g.slug, g.name, counts.get(g.slug)!, params.categories));
   }
 
+  // Makers (helmet brands, plug makers…), most items first; only offered when there is a choice.
+  const makerNames = new Map<string, string>();
+  for (const p of base) if (p.partBrand) makerNames.set(makerSlug(p.partBrand), p.partBrand);
+  const makerCounts = tally(base, (p) => (p.partBrand ? [makerSlug(p.partBrand)] : []));
+  const makers = [...makerNames]
+    .map(([slug, name]) => option(slug, name, makerCounts.get(slug)!, params.makers))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
   // Only offer a filter when it can actually narrow the results.
   const typeCounts = tally(base, (p) => [p.authenticity]);
   const hasKnownType = [...typeCounts.keys()].some((t) => t !== "unknown");
@@ -252,6 +281,7 @@ function buildFacets(catalog: Catalog, base: ProductView[], params: ListingParam
     brands: brands.length > 1 || params.brands.length > 0 ? brands : [],
     models: models.length > 1 || params.models.length > 0 ? models : [],
     categories: categories.length > 1 || params.categories.length > 0 ? categories : [],
+    makers: makers.length > 1 || params.makers.length > 0 ? makers : [],
     types,
     availability,
     fitment,
@@ -264,6 +294,7 @@ export function hasFacets(facets: Facets): boolean {
     facets.brands.length > 0 ||
     facets.models.length > 0 ||
     facets.categories.length > 0 ||
+    facets.makers.length > 0 ||
     facets.types.length > 0 ||
     facets.availability.length > 0 ||
     facets.fitment.length > 0 ||
@@ -312,13 +343,16 @@ export function sortProducts(products: ProductView[], sort: SortKey, relevance =
 export function listingHref(
   basePath: string,
   params: ListingParams,
-  overrides: Partial<Record<"q" | "brand" | "model" | "category" | "type" | "availability" | "fit" | "sort" | "page" | "min" | "max", string | string[] | undefined>> = {},
+  overrides: Partial<
+    Record<"q" | "brand" | "model" | "category" | "maker" | "type" | "availability" | "fit" | "sort" | "page" | "min" | "max", string | string[] | undefined>
+  > = {},
 ): string {
   const current: Record<string, string | string[] | undefined> = {
     q: params.q || undefined,
     brand: params.brands,
     model: params.models,
     category: params.categories,
+    maker: params.makers,
     type: params.types,
     availability: params.availability,
     fit: params.fitment,

@@ -266,15 +266,24 @@ export const categoryGroups: CategoryGroup[] = [
     name: "Accessories",
     nameBn: "এক্সেসরিজ",
     icon: "accessories",
-    shortLabel: "Holders • Gear • Covers",
+    shortLabel: "Helmets • Holders • Gear",
     image: "catAccessories",
-    description: "Useful add-ons for everyday riding, kept separate from mechanical spare parts.",
+    description: "Helmets and useful add-ons for everyday riding, kept separate from mechanical spare parts.",
     subcategories: [
+      // No photo: one stock photo can't show every style, so each helmet shows the drawing of its own style.
+      {
+        slug: "helmets",
+        name: "Helmets",
+        nameBn: "হেলমেট",
+        // Style words ("full face"…) belong to each helmet whose style is sourced (catalogue/helmets.ts), not to all of them.
+        aliases: ["helmet", "হেলমেট"],
+        art: "helmet-full",
+      },
       { slug: "mobile-holder", name: "Mobile Holders", aliases: ["phone holder", "phone stand", "mobile stand"], image: "mobileHolder" },
       { slug: "usb-charger", name: "USB Chargers", aliases: ["mobile charger", "phone charger", "usb"], art: "charger" },
       { slug: "auxiliary-lights", name: "Extra Lights", aliases: ["fog light", "led light", "led headlight", "led indicator"], art: "lamp" },
       { slug: "grips-covers", name: "Grips & Covers", aliases: ["handle grip", "seat cover", "grip", "tank pad"], art: "grip" },
-      { slug: "safety", name: "Helmets & Gloves", aliases: ["helmet", "gloves", "visor"], image: "catAccessories" },
+      { slug: "safety", name: "Gloves & Visors", aliases: ["gloves", "visor", "helmet visor", "riding gloves"], image: "catAccessories" },
       { slug: "reflective", name: "Reflective Gear", aliases: ["reflective", "reflective jacket", "reflective sticker", "safety vest"] },
       { slug: "utility", name: "Utility Accessories", aliases: ["bike cover", "body cover", "lock", "number plate frame", "key ring"] },
       { slug: "cleaning-tools", name: "Cleaning Tools", aliases: ["cleaning cloth", "chain brush", "microfiber"] },

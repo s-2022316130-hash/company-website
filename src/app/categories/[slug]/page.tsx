@@ -21,8 +21,8 @@ export async function generateMetadata(props: PageProps<"/categories/[slug]">): 
   const cat = resolveCategory(groups, slug);
   if (!cat) return { title: "Category not found", robots: { index: false } };
   const description = cat.sub
-    ? `Motorcycle ${cat.sub.name.toLowerCase()} for Bajaj, Honda, Yamaha, Suzuki, TVS, Hero and Runner bikes at Nirob Autos, Madhupur.`
-    : `${cat.group.description} Motorcycle ${cat.group.name.toLowerCase()} at Nirob Autos, Madhupur.`;
+    ? `Motorcycle ${cat.sub.name.toLowerCase()} for Bajaj, Honda, Yamaha, Suzuki, TVS, Hero and Runner bikes at Nirob Auto's, Madhupur.`
+    : `${cat.group.description} Motorcycle ${cat.group.name.toLowerCase()} at Nirob Auto's, Madhupur.`;
   return pageMetadata({ title: `Motorcycle ${cat.name}`, description, path: `/categories/${slug}` });
 }
 

@@ -98,7 +98,7 @@ function toView(
     models: productModels,
     brands: brandSlugs.map((s) => brandBySlug.get(s)).filter((b): b is Brand => Boolean(b)),
     displayImage: resolveProductImage(product, group, sub),
-    art: sub?.art,
+    art: product.art ?? sub?.art,
   };
 }
 

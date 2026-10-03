@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Shop Motorcycle Spare Parts",
   description:
-    "Browse motorcycle spare parts, maintenance products and accessories at Nirob Autos, Madhupur. Filter by bike brand, model and category.",
+    "Browse motorcycle spare parts, maintenance products and accessories at Nirob Auto's, Madhupur. Filter by bike brand, model and category.",
   path: "/shop",
 });
 

@@ -56,7 +56,7 @@ export default async function CategoriesPage() {
                   {g.subcategories.map((s) => (
                     <li key={s.slug}>
                       <Link
-                        href={`/categories/${s.slug}`}
+                        href={categoryPath(s.slug)}
                         className="inline-flex min-h-9 items-center rounded px-2 text-sm text-ink hover:bg-steel-soft hover:text-brand"
                       >
                         {s.name}

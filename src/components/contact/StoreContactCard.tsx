@@ -1,4 +1,4 @@
-import { Clock, MapPin, MessageCircle, Phone, Store, Truck } from "lucide-react";
+import { Clock, Contact, Mail, MapPin, MessageCircle, Phone, Store, Truck, Wallet } from "lucide-react";
 import { GearRing } from "@/components/ui/Mechanical";
 import { business } from "@/config/business";
 import { CallButton, DirectionsButton, WhatsAppButton } from "./ContactActions";
@@ -14,13 +14,16 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
       <div className="space-y-5 p-5 sm:p-7">
         <div>
           <p className="display text-3xl text-white">{business.name}</p>
-          <p lang="bn" className="text-on-dark-muted">
-            {business.banglaName}
+          <p className="text-on-dark-muted">
+            <span lang="bn">{business.banglaName}</span> · {business.trade} since {business.foundedYear}
           </p>
         </div>
         <dl className="space-y-3 text-[0.9375rem]">
           <Row icon={MapPin} label="Address">
             {business.address.full}
+            <span lang="bn" className="block text-on-dark-muted">
+              {business.address.bn}
+            </span>
           </Row>
           <Row icon={Clock} label="Opening hours">
             {business.hours.label}
@@ -28,14 +31,18 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
           <Row icon={Phone} label="Phone">
             <span className="block">
               Orders:{" "}
-              <a href={`tel:${business.phones.orders.e164}`} className="font-semibold text-brand-bright hover:underline">
+              <a href={`tel:${business.phones.orders.e164}`} className="whitespace-nowrap font-semibold text-brand-bright hover:underline">
                 {business.phones.orders.display}
               </a>
             </span>
             <span className="block">
               Store:{" "}
-              <a href={`tel:${business.phones.store.e164}`} className="font-semibold text-brand-bright hover:underline">
+              <a href={`tel:${business.phones.store.e164}`} className="whitespace-nowrap font-semibold text-brand-bright hover:underline">
                 {business.phones.store.display}
+              </a>
+              ,{" "}
+              <a href={`tel:${business.phones.store2.e164}`} className="whitespace-nowrap font-semibold text-brand-bright hover:underline">
+                {business.phones.store2.display}
               </a>
             </span>
           </Row>
@@ -52,6 +59,15 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
               </a>
             ))}
           </Row>
+          <Row icon={Wallet} label={business.mobileBanking.services.join(" & ")}>
+            <span className="font-semibold">{business.mobileBanking.number.display}</span>
+            <span className="block text-sm text-on-dark-muted">Pay once the shop has confirmed your order and the amount.</span>
+          </Row>
+          <Row icon={Mail} label="Email">
+            <a href={`mailto:${business.email}`} className="font-semibold text-brand-bright hover:underline">
+              {business.email}
+            </a>
+          </Row>
           <Row icon={Store} label="Pickup">
             {business.fulfilment.pickup.description}
           </Row>
@@ -63,6 +79,10 @@ export function StoreContactCard({ showMap = false }: { showMap?: boolean }) {
           <CallButton label="Call now" />
           <WhatsAppButton />
           <DirectionsButton />
+          <a href="/nirob-autos.vcf" download className="btn btn-outline-dark">
+            <Contact className="size-4" aria-hidden="true" />
+            Save contact
+          </a>
         </div>
       </div>
       <div className="blueprint relative min-h-60 border-t border-graphite-3 md:border-l md:border-t-0">

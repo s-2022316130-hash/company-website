@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Find Parts for Your Motorcycle",
   description:
-    "Motorcycle directory: choose your Bajaj, Honda, Yamaha, Suzuki, TVS, Hero or Runner model to explore compatible parts at Nirob Autos, Madhupur.",
+    "Motorcycle directory: choose your Bajaj, Honda, Yamaha, Suzuki, TVS, Hero or Runner model to explore compatible parts at Nirob Auto's, Madhupur.",
   path: "/models",
 });
 

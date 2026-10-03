@@ -11,6 +11,7 @@ export const mainNav: NavItem[] = [
   { label: "Motorcycles", href: "/models" },
   { label: "Categories", href: "/categories" },
   { label: "Accessories", href: "/accessories" },
+  { label: "Helmets", href: "/helmets" },
   { label: "Engine oil", href: "/engine-oil" },
 ];
 
@@ -25,6 +26,7 @@ export const footerShopLinks: NavItem[] = [
   { label: "Part finder", href: "/part-finder" },
   { label: "Motorcycles", href: "/models" },
   { label: "Accessories", href: "/accessories" },
+  { label: "Helmets", href: "/helmets" },
   { label: "Engine oil & fluids", href: "/engine-oil" },
   { label: "Cart", href: "/cart" },
 ];

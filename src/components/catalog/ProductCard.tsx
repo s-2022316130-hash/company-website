@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { canRequest } from "@/lib/catalog/labels";
-import { toCartLine } from "@/lib/catalog/present";
+import { helmetSummary, isHelmet, toCartLine } from "@/lib/catalog/present";
 import { cx } from "@/lib/cx";
 import type { ProductView } from "@/lib/types";
 import { AuthenticityBadge, AvailabilityBadge, ConfidenceBadge, DemoBadge, PriceDisplay } from "./Badges";
@@ -9,6 +9,7 @@ import { ProductImage } from "./ProductImage";
 
 /** Fitment: one truncated line on phones; up to two model chips plus "+n" from small tablets up. */
 function FitLine({ product }: { product: ProductView }) {
+  if (isHelmet(product)) return <p className="truncate text-xs font-medium text-steel">{helmetSummary(product)}</p>;
   if (product.fitment === "universal") {
     const first = product.models[0];
     return (
@@ -49,7 +50,9 @@ function FitLine({ product }: { product: ProductView }) {
  * an accent line draws under the photo and the cart button fills. The card itself never moves.
  */
 export function ProductCard({ product, priority = false }: { product: ProductView; priority?: boolean }) {
-  const brand = product.brands.length === 1 ? product.brands[0].name : undefined;
+  const helmet = isHelmet(product);
+  // Bike brand for parts; the maker for helmets, which fit any bike.
+  const brand = helmet ? product.partBrand : product.brands.length === 1 ? product.brands[0].name : undefined;
   return (
     <article className="group card card-lift relative flex w-full flex-col overflow-hidden">
       <div className="relative">
@@ -88,7 +91,11 @@ export function ProductCard({ product, priority = false }: { product: ProductVie
           </Link>
         </h3>
         <FitLine product={product} />
-        <ConfidenceBadge confidence={product.compatibilityConfidence} className="text-[0.75rem]" />
+        {helmet ? (
+          <p className="text-[0.75rem] text-muted">Size and colour: ask the shop</p>
+        ) : (
+          <ConfidenceBadge confidence={product.compatibilityConfidence} className="text-[0.75rem]" />
+        )}
         <div className="mt-auto space-y-2 pt-2">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <PriceDisplay price={product.price} compareAtPrice={product.compareAtPrice} />

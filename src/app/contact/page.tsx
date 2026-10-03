@@ -16,7 +16,7 @@ export default function ContactPage() {
   return (
     <>
       <PageHeader
-        title="Contact Nirob Autos"
+        title="Contact Nirob Auto's"
         description="Call, WhatsApp or visit the shop. Tell us your bike model and the part you need, and we'll check for you."
         crumbs={[{ label: "Contact", href: "/contact" }]}
       />

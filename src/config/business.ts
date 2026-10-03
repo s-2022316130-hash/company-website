@@ -1,5 +1,5 @@
 /**
- * Single source of truth for Nirob Autos business details.
+ * Single source of truth for Nirob Auto's business details.
  * Change a phone number, address or opening time here and every page follows.
  */
 
@@ -18,11 +18,18 @@ export interface WhatsAppNumber extends PhoneNumber {
 export type FulfilmentMethod = "pickup" | "courier";
 
 export const business = {
-  name: "Nirob Autos",
+  name: "Nirob Auto's",
   banglaName: "নিরব অটো'স",
-  tagline: "Motorcycle Spare Parts & Products",
+  /** As printed on the shop's 2026 business card. */
+  tagline: "Motorcycle Spare Parts, Accessories & Helmets",
   description:
-    "Motorcycle spare parts, maintenance products and accessories for popular bike brands, from our store in Madhupur.",
+    "Motorcycle spare parts, accessories and helmets for popular bike brands, from our shop in Madhupur, Tangail. Retailer and wholesaler since 2000.",
+
+  /** "Since 2000" on the shop's logo and card. */
+  foundedYear: 2000,
+  /** Card: "All Genuine Spare Parts Retailer and Wholesaler". */
+  trade: "Retailer and wholesaler",
+  email: "nirobautos2000@gmail.com",
 
   /** Proprietor, as printed on the shop's business card. */
   proprietor: "Basir Uddin Ahmed",
@@ -38,6 +45,8 @@ export const business = {
     full: "Mymensingh Road (N401), Natun Bazar, Madhupur, Tangail",
     /** For tight spaces such as the top bar. */
     short: "Natun Bazar, Madhupur, Tangail",
+    /** As written on the shop's signboard logo. */
+    bn: "ময়মনসিংহ রোড, নতুন বাজার, মধুপুর, টাঙ্গাইল",
   },
 
   /**
@@ -59,15 +68,27 @@ export const business = {
   phones: {
     /** Number customers should call to place or confirm an order. */
     orders: { display: "01922-687809", e164: "+8801922687809" },
-    /** Store landline/mobile listed for the shop itself. */
+    /** Store numbers listed for the shop itself (both on the 2026 card). */
     store: { display: "01713-583784", e164: "+8801713583784" },
+    store2: { display: "01928-333588", e164: "+8801928333588" },
   } satisfies Record<string, PhoneNumber>,
 
-  /** Order requests built from the cart go to the first number; the rest are offered as alternatives. */
+  /**
+   * Order requests built from the cart go to the first number; the rest are offered as alternatives.
+   * The first two were confirmed by the owner (2026-10-02); the 2026 card also shows WhatsApp on the
+   * orders number.
+   */
   whatsapp: [
     { display: "01743-691619", e164: "+8801743691619", waId: "8801743691619" },
     { display: "01865-726312", e164: "+8801865726312", waId: "8801865726312" },
+    { display: "01922-687809", e164: "+8801922687809", waId: "8801922687809" },
   ] satisfies WhatsAppNumber[],
+
+  /** Mobile banking on the orders number, as shown on the 2026 card (bKash and Nagad logos). */
+  mobileBanking: {
+    number: { display: "01922-687809", e164: "+8801922687809" },
+    services: ["bKash", "Nagad"],
+  },
 
   hours: {
     label: "Every day, 9:00 AM – 10:00 PM",
@@ -94,7 +115,7 @@ export const business = {
    */
   directionsUrl:
     "https://www.google.com/maps/search/?api=1&query=" +
-    encodeURIComponent("Nirob Autos, Natun Bazar, Madhupur, Tangail, Bangladesh"),
+    encodeURIComponent("Nirob Auto's, Natun Bazar, Madhupur, Tangail, Bangladesh"),
 
   /** Paste a Google Maps "Embed a map" src URL here to show a map on the contact page. */
   mapEmbedUrl: null as string | null,

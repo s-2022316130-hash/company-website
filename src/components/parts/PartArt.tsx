@@ -447,6 +447,56 @@ const glyphs: Record<PartArtKind, ReactNode> = {
       <path d="M52 86 l-26 18" strokeWidth="6" />
     </>
   ),
+  // Helmets: side view, facing right. Shared shell, then what sets each style apart.
+  "helmet-full": (
+    <>
+      <path d="M46 96 C34 82 31 54 49 36 C66 20 101 16 121 30 C133 39 138 54 138 70 L138 84 C138 91 133 96 125 96 Z" />
+      <path d="M86 50 C100 44 121 44 135 51 L136 67 C121 63 101 63 89 68 C85 62 84 56 86 50 Z" stroke={A} />
+      <circle cx="78" cy="60" r="5" />
+      <path d="M50 89 C72 93 100 93 125 91" strokeWidth="1.5" />
+      <path d="M118 79 h13 M120 85 h11" strokeWidth="1.5" />
+      <path d="M62 28 C70 24 80 22 90 22" strokeWidth="1.5" />
+    </>
+  ),
+  "helmet-modular": (
+    <>
+      <path d="M46 96 C34 82 31 54 49 36 C66 20 101 16 121 30 C133 39 138 54 138 70 L138 84 C138 91 133 96 125 96 Z" />
+      <path d="M86 50 C100 44 121 44 135 51 L136 67 C121 63 101 63 89 68 C85 62 84 56 86 50 Z" stroke={A} />
+      <circle cx="78" cy="60" r="5" stroke={A} />
+      <path d="M80 66 C84 78 92 88 104 96" stroke={A} strokeWidth="2" strokeDasharray="4 3" />
+      <rect x="120" y="82" width="12" height="7" rx="2" />
+      <path d="M50 89 C66 92 82 93 96 93" strokeWidth="1.5" />
+    </>
+  ),
+  "helmet-open": (
+    <>
+      <path d="M46 94 C34 80 31 54 49 36 C66 20 101 16 121 30 C131 38 135 48 135 58 L127 60 C119 63 113 71 111 81 L108 94 Z" />
+      <path d="M128 50 C138 60 140 78 133 94" stroke={A} strokeDasharray="5 3" />
+      <circle cx="76" cy="58" r="5" />
+      <path d="M86 84 C96 80 104 82 110 86" strokeWidth="1.5" />
+      <path d="M50 88 C66 91 86 92 106 90" strokeWidth="1.5" />
+      <path d="M62 28 C70 24 80 22 90 22" strokeWidth="1.5" />
+    </>
+  ),
+  "helmet-half": (
+    <>
+      <path d="M38 80 C36 56 54 34 84 32 C112 30 130 46 133 64 L134 72 C120 70 106 72 96 76 L38 80 Z" />
+      <path d="M96 76 C110 72 124 72 136 76" stroke={A} strokeWidth="3" />
+      <path d="M66 79 C68 94 86 101 102 93" strokeWidth="1.5" />
+      <rect x="99" y="88" width="10" height="8" rx="2" stroke={A} />
+      <path d="M58 40 C66 36 76 34 86 34" strokeWidth="1.5" />
+    </>
+  ),
+  "helmet-offroad": (
+    <>
+      <path d="M46 96 C34 82 31 54 49 36 C64 22 96 17 114 26 L126 33 C133 41 136 52 136 62 L147 84 C147 91 141 96 133 96 Z" />
+      <path d="M94 26 L146 30 L139 41 L110 38 Z" stroke={A} />
+      <path d="M88 51 C101 46 119 46 132 52 L133 66 C119 62 103 62 91 66 C87 61 86 56 88 51 Z" />
+      <path d="M135 76 h8 M133 83 h11" strokeWidth="1.5" />
+      <circle cx="78" cy="61" r="4" />
+      <path d="M50 89 C72 93 100 93 128 91" strokeWidth="1.5" />
+    </>
+  ),
 };
 
 export function PartArt({ kind, className, title }: { kind: PartArtKind; className?: string; title?: string }) {

@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/credits",
   ];
   const groupPaths = catalog.groups.map((g) => categoryPath(g.slug));
-  const subPaths = catalog.groups.flatMap((g) => g.subcategories.map((s) => `/categories/${s.slug}`));
+  const subPaths = catalog.groups.flatMap((g) => g.subcategories.map((s) => categoryPath(s.slug)));
 
   const pages = [
     ...new Set([
