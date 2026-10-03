@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, Inter, Noto_Sans_Bengali } from "next/font/google";
+import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileActionBar } from "@/components/layout/HeaderClient";
+import { PageTransition } from "@/components/motion/AnimateOnChange";
 import { business } from "@/config/business";
 import { siteUrl } from "@/config/site";
 import "./globals.css";
@@ -47,20 +49,22 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${barlowCondensed.variable} ${bengali.variable} antialiased`}>
+    // data-header is the header's scroll state; HeaderShell updates it after the page loads.
+    <html lang="en" data-header="top" className={`${inter.variable} ${barlowCondensed.variable} ${bengali.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <a
           href="#main"
-          className="sr-only z-50 rounded-md bg-ink px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+          className="sr-only z-(--z-dropdown) rounded-md bg-ink px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
         >
           Skip to content
         </a>
         <Header />
         <main id="main" className="flex-1">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
         <Footer />
         <MobileActionBar />
+        <CartDrawer />
       </body>
     </html>
   );

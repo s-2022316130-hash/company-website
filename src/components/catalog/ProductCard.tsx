@@ -2,12 +2,13 @@ import Link from "next/link";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { canRequest } from "@/lib/catalog/labels";
 import { toCartLine } from "@/lib/catalog/present";
+import { cx } from "@/lib/cx";
 import type { ProductView } from "@/lib/types";
 import { AuthenticityBadge, AvailabilityBadge, ConfidenceBadge, DemoBadge, PriceDisplay } from "./Badges";
 import { ProductImage } from "./ProductImage";
 
-/** Up to two model chips plus a "+n" count, or a plain note for non-model-specific items. */
-function CompatibilityChips({ product }: { product: ProductView }) {
+/** Fitment: one truncated line on phones; up to two model chips plus "+n" from small tablets up. */
+function FitLine({ product }: { product: ProductView }) {
   if (product.fitment === "universal") {
     const first = product.models[0];
     return (
@@ -22,24 +23,35 @@ function CompatibilityChips({ product }: { product: ProductView }) {
   const shown = product.models.slice(0, 2);
   const more = product.models.length - shown.length;
   return (
-    <ul className="flex flex-wrap gap-1" aria-label="Fits">
-      {shown.map((m) => (
-        <li
-          key={m.id}
-          className="rounded border border-line bg-canvas px-1.5 py-0.5 text-[0.75rem] font-medium leading-tight text-steel"
-        >
-          {m.name}
-        </li>
-      ))}
-      {more > 0 && <li className="px-1 py-0.5 text-[0.75rem] text-muted">+{more}</li>}
-    </ul>
+    <>
+      <p className="truncate text-xs font-medium text-steel sm:hidden">
+        Fits {product.models[0].name}
+        {product.models.length > 1 && <span className="text-muted"> +{product.models.length - 1}</span>}
+      </p>
+      <ul className="hidden flex-wrap gap-1 sm:flex" aria-label="Fits">
+        {shown.map((m) => (
+          <li
+            key={m.id}
+            className="rounded-sm border border-line bg-canvas px-1.5 py-0.5 text-[0.75rem] font-medium leading-tight text-steel"
+          >
+            {m.name}
+          </li>
+        ))}
+        {more > 0 && <li className="px-1 py-0.5 text-[0.75rem] text-muted">+{more}</li>}
+      </ul>
+    </>
   );
 }
 
+/**
+ * Product card, in order of what a rider scans for: the part, its name, which bikes it fits, price and
+ * availability, then the cart button. Hover (desktop): the photo zooms 4%, the card's shadow deepens,
+ * an accent line draws under the photo and the cart button fills. The card itself never moves.
+ */
 export function ProductCard({ product, priority = false }: { product: ProductView; priority?: boolean }) {
   const brand = product.brands.length === 1 ? product.brands[0].name : undefined;
   return (
-    <article className="card group relative flex w-full flex-col overflow-hidden transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-ink/10">
+    <article className="group card card-lift relative flex w-full flex-col overflow-hidden">
       <div className="relative">
         <ProductImage
           image={product.displayImage}
@@ -54,36 +66,36 @@ export function ProductCard({ product, priority = false }: { product: ProductVie
         <div className="absolute inset-x-2 top-2 flex items-start justify-between gap-1">
           {product.productStatus === "demo" ? <DemoBadge className="shadow-sm" /> : <span />}
           {brand && (
-            <span className="rounded bg-graphite/85 px-1.5 py-0.5 font-display text-xs font-semibold uppercase tracking-wider text-white">
+            <span className="rounded-sm bg-graphite/85 px-1.5 py-0.5 font-display text-xs font-semibold uppercase tracking-wider text-white">
               {brand}
             </span>
           )}
         </div>
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-brand transition-[scale] duration-standard ease-card group-hover:scale-x-100"
+        />
       </div>
-      <div className="flex flex-1 flex-col gap-1.5 border-t-2 border-brand/80 p-3">
-        <p className="truncate font-display text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-          {product.subcategoryName ?? product.categoryName}
-        </p>
+      <div className="flex flex-1 flex-col gap-1.5 border-t border-line p-3">
+        <p className="label-tech truncate text-muted">{product.subcategoryName ?? product.categoryName}</p>
         <h3 className="text-sm font-semibold leading-snug text-ink sm:text-[0.9375rem]">
           {/* Stretched link: the whole card opens the product; the cart button sits above it. */}
           <Link
             href={`/products/${product.slug}`}
-            className="line-clamp-2 after:absolute after:inset-0 after:content-[''] group-hover:text-brand"
+            className="line-clamp-2 transition-colors duration-fast after:absolute after:inset-0 after:content-[''] group-hover:text-brand"
           >
             {product.name}
           </Link>
         </h3>
-        <div className="hidden sm:block">
-          <CompatibilityChips product={product} />
-        </div>
+        <FitLine product={product} />
         <ConfidenceBadge confidence={product.compatibilityConfidence} className="text-[0.75rem]" />
-        <div className="mt-auto space-y-2 pt-1.5">
+        <div className="mt-auto space-y-2 pt-2">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <PriceDisplay price={product.price} compareAtPrice={product.compareAtPrice} />
             <AuthenticityBadge authenticity={product.authenticity} hideUnknown />
           </div>
           <AvailabilityBadge status={product.inventoryStatus} />
-          <AddToCartButton line={toCartLine(product)} disabled={!canRequest(product.inventoryStatus)} className="relative z-10" />
+          <AddToCartButton line={toCartLine(product)} disabled={!canRequest(product.inventoryStatus)} className="relative z-(--z-raised)" />
         </div>
       </div>
     </article>
@@ -94,10 +106,12 @@ export function ProductGrid({
   products,
   priorityCount = 0,
   columns = "default",
+  className,
 }: {
   products: ProductView[];
   priorityCount?: number;
   columns?: "default" | "wide" | "three";
+  className?: string;
 }) {
   const grid = {
     default: "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4",
@@ -105,7 +119,7 @@ export function ProductGrid({
     three: "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3",
   }[columns];
   return (
-    <ul className={grid}>
+    <ul className={cx(grid, className)}>
       {products.map((p, i) => (
         <li key={p.id} className="flex">
           <ProductCard product={p} priority={i < priorityCount} />

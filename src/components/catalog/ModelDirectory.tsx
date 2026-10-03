@@ -58,7 +58,7 @@ export function ModelDirectory({
 
   return (
     <div>
-      <div className="card sticky top-[7.5rem] z-10 flex flex-col gap-3 p-3 shadow-sm md:top-[9.5rem] lg:top-[12.25rem]">
+      <div className="card sticky-below-header z-(--z-raised) flex flex-col gap-3 p-3 shadow-float">
         <div className="relative">
           <label htmlFor={`${id}-q`} className="sr-only">
             Search your motorcycle

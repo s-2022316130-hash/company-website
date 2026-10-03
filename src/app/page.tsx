@@ -1,14 +1,27 @@
 import type { Metadata } from "next";
-import { Layers, MapPin, MessageCircle, Search } from "lucide-react";
+import type { CSSProperties } from "react";
 import { BikeFinder } from "@/components/catalog/BikeFinder";
-import { CategoryImageCard, categoryShortName, PopularPartCard } from "@/components/catalog/DirectoryCards";
-import { ProductGrid } from "@/components/catalog/ProductCard";
+import { categoryShortName } from "@/components/catalog/DirectoryCards";
 import { CatalogueNotice } from "@/components/catalog/CatalogueNotice";
 import { StoreContactCard } from "@/components/contact/StoreContactCard";
-import { BikesShowcase, BrandShowcase, GenuineParts, Hero, OilsFeature, WorkshopBanner } from "@/components/home/HomeSections";
+import {
+  BikesShowcase,
+  BrandShowcase,
+  CategoryShowcase,
+  GenuineParts,
+  Hero,
+  MechanicalSystems,
+  OilsFeature,
+  OrderingSteps,
+  ProductRail,
+  VisualBreak,
+  type SystemPanelData,
+} from "@/components/home/HomeSections";
+import { Reveal } from "@/components/motion/Reveal";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { business, dealershipFor, sellsOriginalParts } from "@/config/business";
+import { dealershipFor, sellsOriginalParts } from "@/config/business";
+import type { PhotoKey } from "@/config/images";
 import {
   brandBikeClass,
   brandFeatureModel,
@@ -48,6 +61,19 @@ const showcaseModelIds = [
   "runner-bullet-100",
 ];
 
+/** "Inside the machine" panels: category and a close-up that differs from the category card photo. */
+const systemPanels: { slug: string; photo: PhotoKey }[] = [
+  { slug: "engine", photo: "piston" },
+  { slug: "chain-drive", photo: "chainKit" },
+  { slug: "brakes", photo: "brakeDisc" },
+  { slug: "electrical", photo: "tailLamp" },
+];
+
+/**
+ * Homepage, in the order a shopper needs it: search and shop (hero), brands, categories, products,
+ * the part finder, bikes, then the editorial sections, and finally how to order and where the shop is.
+ * Dark editorial bands alternate with light shopping sections so the page never reads as one long grid.
+ */
 export default async function HomePage() {
   const catalog = await loadCatalog();
   const catCounts = categoryCounts(catalog.products);
@@ -66,13 +92,16 @@ export default async function HomePage() {
     catalog.products.filter((p) => p.category === "oils-fluids"),
     6,
   );
-  const popular = popularParts(catalog);
   const showcase = showcaseModelIds.flatMap((id) => {
     const m = catalog.modelById.get(id);
     return m ? [m] : [];
   });
   const brandName = (slug: string) => catalog.brandBySlug.get(slug)?.name ?? slug;
   const categoriesFor = (modelId: string) => modelCategoryGroups(catalog, modelId).map(({ group }) => categoryShortName(group));
+  const systems: SystemPanelData[] = systemPanels.flatMap(({ slug, photo }) => {
+    const group = catalog.groups.find((g) => g.slug === slug);
+    return group ? [{ group, photo, count: catCounts.get(slug) ?? 0 }] : [];
+  });
 
   const ordered = brandsByRelation(catalog);
   const brandCards = ordered.map((b) => {
@@ -93,114 +122,63 @@ export default async function HomePage() {
 
   return (
     <>
-      {hasCatalogueOnly(catalog) && <CatalogueNotice />}
-
       <Hero
         searchExamples={searchExamples}
         dealers={dealerBrands.map(({ brand, company }) => (brand.slug === "bajaj" ? `${company} (Bajaj)` : company))}
         originals={originalBrands.map((b) => b.name)}
       />
+      {hasCatalogueOnly(catalog) && <CatalogueNotice />}
 
-      <div className="container-page space-y-16 py-12 sm:space-y-20 sm:py-16">
+      <div className="container-page space-y-(--space-section) py-(--space-section)">
         <BrandShowcase cards={brandCards} />
-
-        <section aria-labelledby="categories-title" className="reveal">
-          <SectionHeader
-            id="categories-title"
-            eyebrow="Shop by category"
-            title="Browse by part type"
-            action={{ label: "All categories", href: "/categories" }}
-          />
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {catalog.groups.map((g) => (
-              <li key={g.slug}>
-                <CategoryImageCard group={g} count={catCounts.get(g.slug) ?? 0} />
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {featured.length > 0 && (
-          <section aria-labelledby="featured-title" className="reveal">
-            <SectionHeader
-              id="featured-title"
-              eyebrow="Featured"
-              title="Featured parts"
-              description="A cross-section of the catalogue. Prices and availability are confirmed by the shop when you order."
-              action={{ label: "Shop all parts", href: "/shop" }}
-            />
-            <ProductGrid products={featured} />
-          </section>
-        )}
-
-        <section aria-labelledby="popular-title" className="reveal">
-          <SectionHeader
-            id="popular-title"
-            eyebrow="Popular parts"
-            title="Frequently replaced"
-            description="The wear-and-tear parts most riders come in for."
-          />
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {popular.map((p) => (
-              <li key={p.slug}>
-                <PopularPartCard part={p} />
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section aria-label="Find parts by motorcycle" className="reveal">
+        <CategoryShowcase groups={catalog.groups} counts={catCounts} popular={popularParts(catalog)} />
+        <ProductRail
+          id="featured-title"
+          eyebrow="Featured"
+          title="Featured parts"
+          description="A cross-section of the catalogue. Prices and availability are confirmed by the shop when you order."
+          action={{ label: "Shop all parts", href: "/shop" }}
+          products={featured}
+        />
+        <Reveal as="section" variant="self" aria-label="Find parts by motorcycle">
           <BikeFinder
             brands={ordered.map((b) => ({ slug: b.slug, name: b.name, bikeClass: brandBikeClass(catalog, b.slug) }))}
             models={catalog.models.map((m) => ({ id: m.id, brand: m.brand, name: m.name, class: m.class }))}
             categories={catalog.groups.map((g) => ({ slug: g.slug, name: g.name }))}
           />
-        </section>
+        </Reveal>
       </div>
 
-      <div className="pb-12 sm:pb-16">
-        <BikesShowcase models={showcase} brandName={brandName} counts={modelCounts} categoriesFor={categoriesFor} />
+      <BikesShowcase models={showcase} brandName={brandName} counts={modelCounts} categoriesFor={categoriesFor} />
+
+      <div className="container-page py-(--space-section)">
+        <MechanicalSystems systems={systems} />
       </div>
 
       <GenuineParts dealers={dealerBrands} originals={originalBrands} />
 
-      <WorkshopBanner />
+      <div className="container-page py-(--space-section)">
+        <OilsFeature group={oilsGroup} products={oils} />
+      </div>
 
-      <div className="container-page space-y-16 py-12 sm:space-y-20 sm:py-16">
-        <div className="reveal">
-          <OilsFeature group={oilsGroup} products={oils} />
-        </div>
+      <VisualBreak />
 
-        <section aria-labelledby="accessories-title" className="reveal">
-          <SectionHeader
-            id="accessories-title"
-            eyebrow="Accessories"
-            title="Accessories for everyday riding"
-            description="Kept separate from mechanical parts: holders, chargers, helmets, covers and more."
-            action={{ label: "All accessories", href: "/accessories" }}
-          />
-          <ProductGrid products={accessories} />
-        </section>
-
-        <section aria-labelledby="visit-title" className="reveal">
+      <div className="container-page space-y-(--space-section) pt-(--space-section)">
+        <ProductRail
+          id="accessories-title"
+          eyebrow="Accessories"
+          title="Accessories for everyday riding"
+          description="Kept separate from mechanical parts: holders, chargers, helmets, covers and more."
+          action={{ label: "All accessories", href: "/accessories" }}
+          products={accessories}
+        />
+        <OrderingSteps />
+        <Reveal as="section" aria-labelledby="visit-title">
           <SectionHeader id="visit-title" eyebrow="Visit or call" title="Find Nirob Autos" />
-          <ul className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: Layers, title: "Organised by motorcycle", text: "Parts are listed against popular brands and models, so you can start from your bike." },
-              { icon: Search, title: "Easy part identification", text: "Search by part name, bike model, brand or part number, in English or common Bangla words." },
-              { icon: MapPin, title: "Local store support", text: `Talk to the shop directly in ${business.address.locality} before you buy.` },
-              { icon: MessageCircle, title: "Convenient ordering", text: "Send your order by WhatsApp or phone. Pick up in store or have it sent by courier." },
-            ].map((item) => (
-              <li key={item.title} className="card relative overflow-hidden p-5">
-                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-brand" />
-                <item.icon className="size-7 text-brand" aria-hidden="true" />
-                <h3 className="display mt-3 text-2xl text-ink">{item.title}</h3>
-                <p className="mt-1.5 text-sm text-muted">{item.text}</p>
-              </li>
-            ))}
-          </ul>
-          <StoreContactCard />
-        </section>
+          <div className="reveal-item" style={{ "--reveal-i": 2 } as CSSProperties}>
+            <StoreContactCard />
+          </div>
+        </Reveal>
       </div>
       <JsonLd data={localBusinessJsonLd()} />
     </>

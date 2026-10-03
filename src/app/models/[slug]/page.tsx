@@ -12,6 +12,7 @@ import { ManualFacts } from "@/components/catalog/ManualFacts";
 import { VariantSpecTable } from "@/components/catalog/VariantSpecs";
 import { CallButton, WhatsAppButton } from "@/components/contact/ContactActions";
 import { BikeBanner } from "@/components/layout/Banners";
+import { Reveal } from "@/components/motion/Reveal";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { business } from "@/config/business";
@@ -138,7 +139,7 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
       </BikeBanner>
 
       <div className="container-page space-y-14 py-8 sm:py-10">
-        <section aria-labelledby="model-cats-title">
+        <Reveal as="section" variant="self" aria-labelledby="model-cats-title">
           <h2 id="model-cats-title" className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted">
             {groups.length > 0 ? `${model.name} parts by category` : "Parts available on request"}
           </h2>
@@ -179,10 +180,10 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               </ul>
             </>
           )}
-        </section>
+        </Reveal>
 
         {popular.length > 0 && (
-          <section aria-labelledby="model-popular-title">
+          <Reveal as="section" variant="self" aria-labelledby="model-popular-title">
             <SectionHeader
               id="model-popular-title"
               eyebrow="Compatible spare parts"
@@ -190,11 +191,11 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               action={fits.length > popular.length ? { label: `All ${fits.length} parts`, href: "#parts" } : undefined}
             />
             <ProductGrid products={popular} priorityCount={4} />
-          </section>
+          </Reveal>
         )}
 
         {model.variants && model.variants.length > 0 && (
-          <section aria-labelledby="model-specs-title">
+          <Reveal as="section" variant="self" aria-labelledby="model-specs-title">
             <SectionHeader
               id="model-specs-title"
               eyebrow="Official specifications"
@@ -202,11 +203,11 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               description="The brake, tyre and suspension details that decide which parts fit."
             />
             <VariantSpecTable variants={model.variants} makerName={brand?.name ?? "the manufacturer"} />
-          </section>
+          </Reveal>
         )}
 
         {model.manual && (
-          <section aria-labelledby="model-manual-title">
+          <Reveal as="section" variant="self" aria-labelledby="model-manual-title">
             <SectionHeader
               id="model-manual-title"
               eyebrow="Owner's manual"
@@ -214,11 +215,11 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               description="Oil grade, spark plugs, battery, tyre pressures and service intervals, from the manufacturer's manual."
             />
             <ManualFacts manual={model.manual} />
-          </section>
+          </Reveal>
         )}
 
         {fits.length > popular.length && (
-          <section id="parts" aria-labelledby="model-all-title" className="scroll-mt-40">
+          <Reveal as="section" variant="self" id="parts" aria-labelledby="model-all-title">
             <SectionHeader id="model-all-title" eyebrow="Catalogue" title={`All ${model.name} parts`} />
             <ProductListing
               basePath={`/models/${model.slug}`}
@@ -226,13 +227,14 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               scope={{ model: model.id }}
               emptyTitle={`No parts listed for the ${name} yet`}
               emptyDescription={`The online catalogue does not list ${name} parts yet, but the shop may have them. Ask by phone or WhatsApp.`}
+              emptyArt={{ kind: "bike", bikeClass: model.class }}
             />
-          </section>
+          </Reveal>
         )}
         {fits.length > 0 && fits.length <= popular.length && <div id="parts" />}
 
         {maintenance.length > 0 && (
-          <section aria-labelledby="maint-title">
+          <Reveal as="section" variant="self" aria-labelledby="maint-title">
             <SectionHeader
               id="maint-title"
               eyebrow="Maintenance & accessories"
@@ -241,7 +243,7 @@ export default async function ModelPage(props: PageProps<"/models/[slug]">) {
               action={{ label: "Engine oil & fluids", href: "/engine-oil" }}
             />
             <ProductGrid products={maintenance} />
-          </section>
+          </Reveal>
         )}
       </div>
     </>

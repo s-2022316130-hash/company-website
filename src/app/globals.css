@@ -1,11 +1,15 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Every colour in the UI comes from here, so the site can be
- * reskinned by editing this block. Tailwind exposes them as bg-brand, text-muted, border-line, etc.
+ * Nirob Autos design system. Every colour, radius, shadow, duration and easing in the UI comes from
+ * this file, so the site can be reskinned or re-timed here. Tailwind exposes the @theme tokens as
+ * utilities: bg-brand, rounded-lg, shadow-raised, duration-standard, ease-card, text-section, etc.
+ * src/lib/motion.ts mirrors the motion tokens for the few animations driven from JavaScript.
+ *
  * Contrast notes: white on brand = 5.2:1; brand-bright on graphite = 6.1:1; on-dark-muted on graphite = 8:1.
  */
 @theme {
+  /* Colour: warm workshop neutrals, graphite for editorial sections, one orange accent. */
   --color-brand: #c2410c;          /* primary: CTAs, links, active states on light */
   --color-brand-strong: #9a3412;   /* hover / pressed */
   --color-brand-bright: #f26b21;   /* accents and text on dark sections */
@@ -36,47 +40,127 @@
   --color-whatsapp-strong: #14603a;
   --color-focus: #2563eb;
 
+  /* Type: condensed display face, Inter for reading, Noto Sans Bengali for Bangla. */
   --font-sans: var(--font-inter), var(--font-bengali), "Nirmala UI", system-ui, sans-serif;
   --font-display: var(--font-barlow-condensed), var(--font-bengali), "Nirmala UI", system-ui, sans-serif;
 
-  --animate-hero-in: hero-in 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  --animate-fade-up: fade-up 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
+  --text-hero: clamp(2.5rem, 1.5rem + 4.6vw, 5.125rem);
+  --text-hero--line-height: 0.9;
+  --text-feature: clamp(2.25rem, 1.45rem + 3.4vw, 4rem);
+  --text-feature--line-height: 0.92;
+  --text-section: clamp(2rem, 1.6rem + 1.7vw, 2.875rem);
+  --text-section--line-height: 0.95;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.25;
 
-@keyframes hero-in {
-  from {
-    opacity: 0;
-    transform: scale(1.06);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
+  /* Radius: one scale for the whole site. */
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;            /* 4px: tags and badges */
+  --radius-md: 0.375rem;           /* 6px: buttons, inputs, small controls */
+  --radius-lg: 0.625rem;           /* 10px: cards and image tiles */
+  --radius-xl: 1rem;               /* 16px: panels, sheets and drawers */
+  --radius-2xl: 1.5rem;            /* 24px: hero and feature blocks */
 
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  /* Depth: background → surface → card → floating → modal. Products stay nearly flat. */
+  --shadow-card: 0 1px 2px rgb(14 17 21 / 0.05);
+  --shadow-raised: 0 16px 32px -18px rgb(14 17 21 / 0.4), 0 2px 6px -2px rgb(14 17 21 / 0.08);
+  --shadow-feature: 0 30px 60px -30px rgb(14 17 21 / 0.6);
+  --shadow-float: 0 14px 34px -12px rgb(14 17 21 / 0.32), 0 2px 8px -2px rgb(14 17 21 / 0.12);
+  --shadow-modal: 0 32px 80px -16px rgb(0 0 0 / 0.55);
+
+  /* Motion: five durations and four curves. Nothing in the UI uses other values. */
+  --transition-duration-fast: 150ms;       /* hover colour, press */
+  --transition-duration-small: 220ms;      /* icons, underlines, dropdowns, page enter */
+  --transition-duration-standard: 360ms;   /* cards, drawers, header */
+  --transition-duration-emphasis: 600ms;   /* section reveals, image zoom */
+  --transition-duration-cinematic: 1200ms; /* hero and editorial imagery */
+
+  --ease-ui: cubic-bezier(0.2, 0, 0, 1);          /* controls: quick ease-out */
+  --ease-card: cubic-bezier(0.25, 1, 0.5, 1);     /* cards and reveals: smooth ease-out */
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1); /* imagery: long, slow settle */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);        /* things leaving */
+
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+
+  --container-page: 80rem;
+
+  --animate-fade-up: fade-up var(--transition-duration-emphasis) var(--ease-card) both;
+  --animate-fade-in: fade-in var(--transition-duration-small) var(--ease-ui) both;
+  --animate-check-in: check-in var(--transition-duration-small) var(--ease-card) both;
+  --animate-tick: tick var(--transition-duration-small) var(--ease-ui) both;
+  --animate-settle: hero-settle var(--transition-duration-cinematic) var(--ease-cinematic) both;
+  --animate-ride-in: ride-in var(--transition-duration-emphasis) var(--ease-cinematic) both;
 }
 
 :root {
   color-scheme: light;
+
+  /* Layers. Dialogs use the browser's top layer and need none. */
+  --z-raised: 10;
+  --z-sticky: 30;
+  --z-header: 40;
+  --z-dropdown: 50;
+
+  /*
+   * Header geometry. Phones: main row + search row. Tablet: utility bar + main row (search inline).
+   * Desktop: utility bar + main row + nav row. The header is fixed; <main> is padded by --header-offset.
+   * --header-visible follows the header as it compacts (set by html[data-header], see HeaderShell).
+   */
+  --header-utility: 0rem;
+  --header-main: 3.5rem;
+  --header-sub: 3.5rem;
+  --header-offset: calc(var(--header-utility) + var(--header-main) + var(--header-sub));
+  --header-visible: var(--header-offset);
+
+  /* Scroll reveals. */
+  --reveal-distance: 18px;
+  --reveal-step: 70ms;
+
+  /* Vertical rhythm between homepage sections. */
+  --space-section: clamp(3.5rem, 2.6rem + 3.6vw, 6rem);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-utility: 2rem;
+    --header-main: 4rem;
+    --header-sub: 0rem;
+    --reveal-distance: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-sub: 2.75rem;
+  }
+}
+
+html[data-header="compact"] {
+  --header-visible: calc(var(--header-main) + var(--header-sub));
+}
+html[data-header="compact-hidden"] {
+  --header-visible: var(--header-main);
 }
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Anchor targets land below the fixed header. */
+  scroll-padding-top: calc(var(--header-main) + var(--header-sub) + 1rem);
 }
 
 body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+#main {
+  padding-top: var(--header-offset);
+}
+
+::selection {
+  background: rgb(242 107 33 / 0.28);
 }
 
 /* Browsers default fieldsets to min-width: min-content, which overflows narrow phones. */
@@ -92,7 +176,7 @@ fieldset {
 @layer components {
   .container-page {
     width: 100%;
-    max-width: 80rem;
+    max-width: var(--container-page);
     margin-inline: auto;
     padding-inline: 1rem;
   }
@@ -102,6 +186,10 @@ fieldset {
     }
   }
 
+  .section-y {
+    padding-block: var(--space-section);
+  }
+
   /* Display type: condensed, upright, mechanical. */
   .display {
     font-family: var(--font-display);
@@ -109,8 +197,33 @@ fieldset {
     text-transform: uppercase;
     letter-spacing: 0.005em;
     line-height: 0.95;
+    text-wrap: balance;
   }
 
+  /* Section label in brand colour, with a short rule before it. */
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+  .eyebrow-dark {
+    color: var(--color-brand-bright);
+  }
+
+  /* Small technical label: part types, specs, step numbers. */
+  .label-tech {
+    font-family: var(--font-display);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    line-height: var(--text-label--line-height);
+    text-transform: uppercase;
+  }
+
+  /* Buttons: solid primary lifts 1px on hover; secondary styles change fill only. */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -118,15 +231,22 @@ fieldset {
     gap: 0.5rem;
     min-height: 44px;
     padding: 0 1.1rem;
-    border-radius: 0.375rem;
+    border-radius: var(--radius-md);
     border: 1px solid transparent;
     font-weight: 600;
     font-size: 0.9375rem;
     line-height: 1.2;
     text-align: center;
     white-space: nowrap;
-    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
     cursor: pointer;
+    transition-property: background-color, border-color, color, box-shadow, translate, scale;
+    transition-duration: var(--transition-duration-fast);
+    transition-timing-function: var(--ease-ui);
+  }
+  .btn:active:not(:disabled, [aria-disabled="true"]) {
+    translate: 0 0;
+    scale: 0.98;
+    box-shadow: none;
   }
   .btn:disabled {
     opacity: 0.55;
@@ -146,23 +266,28 @@ fieldset {
     background: var(--color-brand);
     color: #fff;
   }
-  .btn-primary:hover {
+  .btn-primary:hover:not(:disabled) {
     background: var(--color-brand-strong);
+    translate: 0 -1px;
+    box-shadow: 0 8px 18px -8px rgb(194 65 12 / 0.6);
   }
   .btn-dark {
     background: var(--color-graphite);
     color: #fff;
   }
-  .btn-dark:hover {
+  .btn-dark:hover:not(:disabled) {
     background: var(--color-steel);
+    translate: 0 -1px;
+    box-shadow: 0 8px 18px -10px rgb(14 17 21 / 0.6);
   }
   .btn-outline {
     background: var(--color-surface);
     border-color: var(--color-line-strong);
     color: var(--color-ink);
   }
-  .btn-outline:hover {
+  .btn-outline:hover:not(:disabled) {
     border-color: var(--color-ink);
+    background: var(--color-canvas);
   }
   /* Outline button for dark backgrounds. */
   .btn-outline-dark {
@@ -170,7 +295,7 @@ fieldset {
     border-color: rgb(255 255 255 / 0.32);
     color: #fff;
   }
-  .btn-outline-dark:hover {
+  .btn-outline-dark:hover:not(:disabled) {
     background: rgb(255 255 255 / 0.1);
     border-color: #fff;
   }
@@ -178,27 +303,45 @@ fieldset {
     background: var(--color-whatsapp);
     color: #fff;
   }
-  .btn-whatsapp:hover {
+  .btn-whatsapp:hover:not(:disabled) {
     background: var(--color-whatsapp-strong);
+    translate: 0 -1px;
+    box-shadow: 0 8px 18px -8px rgb(27 122 74 / 0.6);
   }
   .btn-ghost {
     background: transparent;
     color: var(--color-ink);
   }
-  .btn-ghost:hover {
+  .btn-ghost:hover:not(:disabled) {
     background: var(--color-steel-soft);
   }
 
   .card {
     background: var(--color-surface);
     border: 1px solid var(--color-line);
-    border-radius: 0.625rem;
+    border-radius: var(--radius-lg);
   }
   .card-dark {
     background: var(--color-graphite-2);
     border: 1px solid var(--color-graphite-3);
-    border-radius: 0.625rem;
+    border-radius: var(--radius-lg);
     color: var(--color-on-dark);
+  }
+
+  /* Interactive card: hover raises the shadow and firms the border. Only on devices that hover. */
+  .card-lift {
+    transition-property: box-shadow, border-color, translate;
+    transition-duration: var(--transition-duration-standard);
+    transition-timing-function: var(--ease-card);
+  }
+  @media (hover: hover) {
+    .card-lift:hover {
+      box-shadow: var(--shadow-raised);
+      border-color: var(--color-line-strong);
+    }
+    .card-lift.card-dark:hover {
+      border-color: rgb(242 107 33 / 0.55);
+    }
   }
 
   .chip {
@@ -212,7 +355,9 @@ fieldset {
     background: var(--color-surface);
     font-size: 0.875rem;
     font-weight: 500;
-    transition: border-color 0.15s, background-color 0.15s;
+    transition-property: border-color, background-color, color;
+    transition-duration: var(--transition-duration-fast);
+    transition-timing-function: var(--ease-ui);
   }
   .chip:hover {
     border-color: var(--color-ink);
@@ -232,10 +377,11 @@ fieldset {
     min-height: 44px;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--color-line-strong);
-    border-radius: 0.375rem;
+    border-radius: var(--radius-md);
     background: var(--color-surface);
     color: var(--color-ink);
     font-size: 1rem; /* 16px stops iOS zooming into inputs */
+    transition: border-color var(--transition-duration-fast) var(--ease-ui);
   }
   .input:focus {
     border-color: var(--color-ink);
@@ -244,19 +390,18 @@ fieldset {
     border-color: var(--color-danger);
   }
 
-  .eyebrow {
-    font-family: var(--font-display);
-    font-size: 0.875rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--color-brand);
+  /* Underline that draws in from the left on hover: footer, breadcrumbs and inline links. */
+  .link-draw {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: background-size var(--transition-duration-small) var(--ease-ui), color var(--transition-duration-fast) var(--ease-ui);
   }
-  .eyebrow-dark {
-    color: var(--color-brand-bright);
+  .link-draw:hover {
+    background-size: 100% 1px;
   }
 
-  /* Faint engineering-paper grid for light placeholders. */
+  /* Textures. Kept faint: they should register as material, not pattern. */
+
+  /* Engineering-paper grid for light placeholders. */
   .tech-grid {
     background-color: var(--color-steel-soft);
     background-image:
@@ -314,20 +459,542 @@ fieldset {
     background: linear-gradient(to right, currentColor 0 28px, transparent 28px 34px, rgb(127 127 127 / 0.35) 34px);
   }
 
+  /* Measurement-style section divider: hairline, scale ticks, a ring at the start. See TechDivider. */
+  .tech-divider {
+    position: relative;
+    height: 11px;
+    color: var(--color-line-strong);
+    background:
+      linear-gradient(currentColor, currentColor) 0 50% / 100% 1px no-repeat,
+      repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px 32px) 18px 100% / 100% 4px no-repeat;
+  }
+  .tech-divider::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 11px;
+    height: 11px;
+    translate: 0 -50%;
+    border: 1.5px solid var(--color-brand);
+    border-radius: 999px;
+    background: var(--color-canvas);
+  }
+  .tech-divider-dark {
+    color: rgb(255 255 255 / 0.18);
+  }
+  .tech-divider-dark::before {
+    border-color: var(--color-brand-bright);
+    background: var(--color-graphite);
+  }
+
   .scrollbar-none {
     scrollbar-width: none;
   }
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+
+  /*
+   * Horizontal rails (see ScrollRail). Cards snap; a thin scrollbar stays visible; the edges fade only
+   * on the side where more cards are hidden.
+   */
+  .rail {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+    mask-image: linear-gradient(to right, transparent, #000 var(--rail-fade-start), #000 calc(100% - var(--rail-fade-end)), transparent);
+    transition: --rail-fade-start var(--transition-duration-small) var(--ease-ui), --rail-fade-end var(--transition-duration-small) var(--ease-ui);
+  }
+  .rail-dark {
+    scrollbar-color: var(--color-graphite-3) transparent;
+  }
+  .rail > * {
+    flex: none;
+    scroll-snap-align: start;
+  }
+  .rail[data-more-before] {
+    --rail-fade-start: 2rem;
+  }
+  .rail[data-more-after] {
+    --rail-fade-end: 2.5rem;
+  }
 }
 
-/* Sections fade up as they scroll into view, where the browser supports scroll-driven animation. */
-@supports (animation-timeline: view()) {
-  .reveal {
-    animation: fade-up linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 40%;
+@property --rail-fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --rail-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Header (see components/layout/Header.tsx and HeaderShell)
+ * Fixed, so compacting never moves the page. States on <html data-header>:
+ *   top            full header; transparent while it sits over the homepage hero
+ *   compact        scrolled; utility bar tucked away, solid with a shadow, second row shown
+ *   compact-hidden scrolling down; second row (phone search / desktop nav) tucked behind the main row
+ * --------------------------------------------------------------------------------------------- */
+.site-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: var(--z-header);
+  color: var(--color-on-dark);
+  transition: translate var(--transition-duration-standard) var(--ease-ui);
+}
+html[data-header^="compact"] .site-header {
+  translate: 0 calc(-1 * var(--header-utility));
+}
+.site-header__row {
+  background-color: var(--color-graphite);
+  transition:
+    background-color var(--transition-duration-standard) var(--ease-ui),
+    translate var(--transition-duration-standard) var(--ease-ui),
+    opacity var(--transition-duration-small) var(--ease-ui),
+    visibility var(--transition-duration-standard);
+}
+.site-header__utility {
+  height: var(--header-utility);
+  overflow: hidden;
+  background-color: #08090c;
+}
+.site-header__main {
+  position: relative;
+  z-index: 2;
+  height: var(--header-main);
+}
+.site-header__sub {
+  position: relative;
+  z-index: 1;
+  height: var(--header-sub);
+}
+html[data-header="compact-hidden"] .site-header__sub {
+  translate: 0 -100%;
+  opacity: 0;
+  visibility: hidden;
+}
+/* Edge shadow under whichever row is lowest on screen. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 14px;
+  background: linear-gradient(rgb(0 0 0 / 0.22), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--transition-duration-standard) var(--ease-ui),
+    translate var(--transition-duration-standard) var(--ease-ui);
+}
+html[data-header^="compact"] .site-header::after {
+  opacity: 1;
+}
+html[data-header="compact-hidden"] .site-header::after {
+  translate: 0 calc(-1 * var(--header-sub));
+}
+@media (min-width: 768px) {
+  html[data-header^="compact"] .site-header__main,
+  html[data-header^="compact"] .site-header__sub {
+    background-color: rgb(14 17 21 / 0.86);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+}
+/* Over the homepage hero: transparent, with the hero photo showing through. */
+html[data-header="top"]:has(.hero) .site-header__row {
+  background-color: transparent;
+}
+html[data-header="top"]:has(.hero) .site-header__utility {
+  background-color: rgb(0 0 0 / 0.28);
+}
+/* The hero has its own large search box on tablets and up, so the header's waits until you scroll. */
+@media (min-width: 768px) {
+  .header-search {
+    transition:
+      opacity var(--transition-duration-small) var(--ease-ui),
+      translate var(--transition-duration-small) var(--ease-ui),
+      visibility var(--transition-duration-small);
+  }
+  html[data-header="top"]:has(.hero) .header-search {
+    opacity: 0;
+    translate: 0 -4px;
+    visibility: hidden;
+  }
+}
+/* Phones: once the search row tucks away, a search button takes its place in the main row. */
+.header-search-toggle {
+  opacity: 0;
+  scale: 0.8;
+  visibility: hidden;
+  transition:
+    opacity var(--transition-duration-small) var(--ease-ui),
+    scale var(--transition-duration-small) var(--ease-ui),
+    visibility var(--transition-duration-small);
+}
+html[data-header="compact-hidden"] .header-search-toggle {
+  opacity: 1;
+  scale: 1;
+  visibility: visible;
+}
+
+/* Desktop nav: an accent bar draws in under the hovered and current link. */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.75rem;
+  bottom: 0.4rem;
+  height: 2px;
+  background: var(--color-brand-bright);
+  scale: 0 1;
+  transform-origin: left center;
+  transition: scale var(--transition-duration-small) var(--ease-ui);
+}
+.nav-link:hover::after,
+.nav-link[aria-current="page"]::after {
+  scale: 1 1;
+}
+
+/* Phone action bar: tucks away while you scroll down or type, returns when you scroll up. */
+.mobile-bar {
+  transition: translate var(--transition-duration-small) var(--ease-ui);
+}
+html[data-header="compact-hidden"] .mobile-bar,
+html[data-typing] .mobile-bar {
+  translate: 0 100%;
+}
+
+/* Elements that stick below the header follow it as it compacts. A utility, so lg:sticky-below-header works. */
+@utility sticky-below-header {
+  position: sticky;
+  top: calc(var(--header-visible) + 1rem);
+  transition: top var(--transition-duration-standard) var(--ease-ui);
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Hero: the image settles from 1.05 while a dark veil lifts; the label rises, the headline reveals
+ * line by line, then the copy, search and buttons follow. Everything is clickable from the first frame.
+ * --------------------------------------------------------------------------------------------- */
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-top: calc(-1 * var(--header-offset));
+  padding-top: var(--header-offset);
+  background-color: var(--color-graphite);
+}
+.hero-media {
+  position: absolute;
+  inset: -1.5rem 0;
+  z-index: -3;
+}
+.hero-media img {
+  animation: hero-settle var(--transition-duration-cinematic) var(--ease-cinematic) both;
+}
+.hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-graphite);
+  pointer-events: none;
+  animation: veil-lift 1100ms var(--ease-cinematic) both;
+  opacity: 0;
+}
+.hero-rise {
+  animation: rise var(--transition-duration-emphasis) var(--ease-cinematic) both;
+  animation-delay: var(--delay, 0ms);
+}
+.hero-line {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.hero-line > span {
+  display: block;
+  animation: line-up 760ms var(--ease-cinematic) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes hero-settle {
+  from {
+    scale: 1.05;
+  }
+  to {
+    scale: 1;
+  }
+}
+@keyframes veil-lift {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+@keyframes line-up {
+  from {
+    translate: 0 105%;
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes check-in {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  65% {
+    opacity: 1;
+    scale: 1.12;
+  }
+  100% {
+    scale: 1;
+  }
+}
+/* A motorcycle drawing rolls 24px into its frame (brand and model banners). */
+@keyframes ride-in {
+  from {
+    opacity: 0;
+    translate: -24px 0;
+  }
+}
+@keyframes tick {
+  from {
+    opacity: 0;
+    translate: 0 -4px;
+  }
+}
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+/* Route change: the incoming page fades up 8px. The first page load is not animated (see PageEnter). */
+.page-enter {
+  animation: page-enter var(--transition-duration-small) var(--ease-ui) backwards;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Scroll reveal (see components/motion/Reveal.tsx). One observer, animate once. JavaScript marks only
+ * elements that start below the fold as pending, so nothing above the fold or without JS is hidden.
+ * Inside a revealed container, .reveal-item and the children of .reveal-list follow in sequence.
+ * --------------------------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal="self"][data-reveal-state="pending"],
+  [data-reveal="group"][data-reveal-state="pending"] .reveal-item,
+  [data-reveal="group"][data-reveal-state="pending"] .reveal-list > * {
+    opacity: 0;
+    translate: 0 var(--reveal-distance);
+  }
+  [data-reveal="group"][data-reveal-state="pending"] .reveal-media {
+    opacity: 0;
+    scale: 1.04;
+  }
+  [data-reveal="self"][data-reveal-state="in"],
+  [data-reveal="group"][data-reveal-state="in"] .reveal-item,
+  [data-reveal="group"][data-reveal-state="in"] .reveal-list > * {
+    transition:
+      opacity var(--transition-duration-emphasis) var(--ease-card),
+      translate var(--transition-duration-emphasis) var(--ease-card);
+  }
+  [data-reveal="group"][data-reveal-state="in"] .reveal-item {
+    transition-delay: calc(var(--reveal-i, 0) * var(--reveal-step));
+  }
+  /* Lists start after a section's label, title and description (3 steps), unless Reveal sets a base. */
+  [data-reveal="group"][data-reveal-state="in"] .reveal-list > * {
+    transition-delay: calc((var(--reveal-base, 3) + var(--reveal-i, 0)) * var(--reveal-step));
+  }
+  [data-reveal="group"][data-reveal-state="in"] .reveal-media {
+    transition:
+      opacity var(--transition-duration-emphasis) var(--ease-cinematic),
+      scale var(--transition-duration-cinematic) var(--ease-cinematic);
+  }
+}
+.reveal-list > :nth-child(2) { --reveal-i: 1; }
+.reveal-list > :nth-child(3) { --reveal-i: 2; }
+.reveal-list > :nth-child(4) { --reveal-i: 3; }
+.reveal-list > :nth-child(5) { --reveal-i: 4; }
+.reveal-list > :nth-child(6) { --reveal-i: 5; }
+.reveal-list > :nth-child(7) { --reveal-i: 6; }
+.reveal-list > :nth-child(n + 8) { --reveal-i: 7; }
+
+/* ------------------------------------------------------------------------------------------------
+ * Dialogs: menu (left), cart (right), filters (bottom sheet on phones, centred on larger screens).
+ * Open and close both animate where the browser supports @starting-style; otherwise they just appear.
+ * --------------------------------------------------------------------------------------------- */
+.dialog-motion {
+  transition-property: translate, opacity, overlay, display;
+  transition-duration: var(--transition-duration-standard);
+  transition-timing-function: var(--ease-ui);
+  transition-behavior: allow-discrete;
+}
+.dialog-motion::backdrop {
+  background: rgb(14 17 21 / 0.6);
+  opacity: 0;
+  transition-property: opacity, overlay, display;
+  transition-duration: var(--transition-duration-standard);
+  transition-timing-function: var(--ease-ui);
+  transition-behavior: allow-discrete;
+}
+.dialog-motion[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  .dialog-motion[open]::backdrop {
+    opacity: 0;
+  }
+}
+.drawer-left:not([open]) {
+  translate: -100% 0;
+}
+@starting-style {
+  .drawer-left[open] {
+    translate: -100% 0;
+  }
+}
+.drawer-right:not([open]) {
+  translate: 100% 0;
+}
+@starting-style {
+  .drawer-right[open] {
+    translate: 100% 0;
+  }
+}
+.sheet:not([open]) {
+  translate: 0 100%;
+}
+@starting-style {
+  .sheet[open] {
+    translate: 0 100%;
+  }
+}
+@media (min-width: 640px) {
+  .sheet:not([open]) {
+    translate: 0 12px;
+    opacity: 0;
+  }
+  @starting-style {
+    .sheet[open] {
+      translate: 0 12px;
+      opacity: 0;
+    }
+  }
+}
+
+/* While a drawer or sheet is open the page behind it stays put. */
+html {
+  scrollbar-gutter: stable;
+}
+html:has(dialog.dialog-motion[open]) {
+  overflow: hidden;
+}
+
+/* Lists that stagger in when they mount (cart drawer items): set --i per item; 45ms apart. */
+.stagger-in > * {
+  animation: fade-up var(--transition-duration-standard) var(--ease-card) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* Search suggestions: fade and drop 6px into place. */
+.suggest-panel {
+  transition-property: opacity, translate, display;
+  transition-duration: var(--transition-duration-small);
+  transition-timing-function: var(--ease-ui);
+  transition-behavior: allow-discrete;
+}
+.suggest-panel:not([data-open]) {
+  display: none;
+  opacity: 0;
+  translate: 0 -6px;
+}
+@starting-style {
+  .suggest-panel[data-open] {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+}
+.suggest-thumb {
+  animation: fade-in var(--transition-duration-small) var(--ease-ui) both;
+}
+
+/* Skeletons: a soft highlight sweeps across every 1.8s. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-steel-soft);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  translate: -100% 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+  animation: shimmer 1.8s var(--ease-ui) infinite;
+}
+@keyframes shimmer {
+  to {
+    translate: 100% 0;
+  }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Scroll-linked depth, where the browser supports scroll-driven animation. Tablet and up only, and
+ * never with reduced motion: the hero photo trails the page by 18px; editorial backdrops drift 20px.
+ * --------------------------------------------------------------------------------------------- */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+    .parallax-hero {
+      animation: parallax-trail linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
+    .drift {
+      animation: drift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+@keyframes parallax-trail {
+  to {
+    translate: 0 18px;
+  }
+}
+@keyframes drift {
+  from {
+    translate: 0 -10px;
+  }
+  to {
+    translate: 0 10px;
   }
 }
 
@@ -341,12 +1008,17 @@ dialog::backdrop {
   background: rgb(14 17 21 / 0.6);
 }
 
+/* Reduced motion: no movement, no scroll-linked effects, no looping shimmer. Everything still works. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
     animation-timeline: auto !important;
+    scroll-behavior: auto !important;
   }
 }

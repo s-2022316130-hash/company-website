@@ -38,7 +38,7 @@ const kindIcon = { product: Package, model: Bike, category: LayoutGrid, search: 
 /** Thumbnail for a suggestion row: product/category photo, part illustration, bike drawing (models only) or icon. */
 function SuggestionThumbnail({ s, recent }: { s: Suggestion; recent: boolean }) {
   const Icon = recent ? History : kindIcon[s.kind];
-  const box = "grid size-10 shrink-0 place-items-center overflow-hidden rounded-md";
+  const box = "suggest-thumb grid size-10 shrink-0 place-items-center overflow-hidden rounded-md";
   if (!recent && s.thumb?.kind === "photo") {
     return (
       <span className={cx(box, "relative bg-graphite")}>
@@ -83,14 +83,18 @@ export function SearchBar({
   size = "md",
   autoFocus = false,
   className,
+  inputId,
 }: {
   defaultValue?: string;
   size?: "md" | "lg";
   autoFocus?: boolean;
   className?: string;
+  /** Fixed id for the input, so another control can focus it (the phone header's search button). */
+  inputId?: string;
 }) {
   const router = useRouter();
   const id = useId();
+  const fieldId = inputId ?? `${id}-input`;
   const listId = `${id}-list`;
   const [query, setQuery] = useState(defaultValue);
   const [open, setOpen] = useState(false);
@@ -174,7 +178,7 @@ export function SearchBar({
           setOpen(false);
         }}
       >
-        <label htmlFor={`${id}-input`} className="sr-only">
+        <label htmlFor={fieldId} className="sr-only">
           Search for parts, products, bike models or part numbers
         </label>
         <div className="relative">
@@ -183,7 +187,7 @@ export function SearchBar({
             aria-hidden="true"
           />
           <input
-            id={`${id}-input`}
+            id={fieldId}
             name="q"
             type="search"
             role="combobox"
@@ -208,7 +212,7 @@ export function SearchBar({
             onKeyDown={onKeyDown}
             placeholder="Search parts, bike models, brands or part numbers…"
             className={cx(
-              "w-full rounded-lg border border-line-strong bg-surface pl-10 pr-24 text-ink placeholder:text-muted focus:border-ink",
+              "w-full rounded-lg border border-line-strong bg-surface pl-10 pr-24 text-ink transition-[border-color,box-shadow] duration-fast ease-ui placeholder:text-muted focus:border-ink focus:shadow-[0_0_0_4px_rgb(242_107_33/0.2)]",
               tall ? "h-14 text-base" : "h-11 text-base",
             )}
           />
@@ -241,8 +245,8 @@ export function SearchBar({
         id={listId}
         role="listbox"
         aria-label={showingRecent ? "Recent searches" : "Suggestions"}
-        hidden={!expanded}
-        className="absolute inset-x-0 top-full z-50 mt-1 max-h-[70vh] overflow-y-auto rounded-lg border border-line bg-surface py-1 shadow-lg"
+        data-open={expanded ? "" : undefined}
+        className="suggest-panel absolute inset-x-0 top-full z-(--z-dropdown) mt-1.5 max-h-[70vh] overflow-y-auto rounded-lg border border-line bg-surface py-1 text-ink shadow-float"
       >
         {showingRecent && (
           <li role="presentation" className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -259,7 +263,7 @@ export function SearchBar({
               onPointerDown={(e) => e.preventDefault()}
               onClick={() => go(s)}
               onPointerMove={() => setActive(i)}
-              className={cx("flex min-h-12 cursor-pointer items-center gap-3 px-3 py-1.5", i === active && "bg-steel-soft")}
+              className={cx("flex min-h-12 cursor-pointer items-center gap-3 px-3 py-1.5 transition-colors duration-fast", i === active && "bg-steel-soft")}
             >
               <SuggestionThumbnail s={s} recent={showingRecent} />
               <span className="min-w-0 flex-1">

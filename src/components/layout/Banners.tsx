@@ -29,7 +29,7 @@ export function PhotoBanner({
 }) {
   return (
     <section className="relative isolate overflow-hidden bg-graphite text-white">
-      <PhotoFill photo={photo} sizes="100vw" priority decorative className="-z-20 animate-hero-in" />
+      <PhotoFill photo={photo} sizes="100vw" priority decorative className="-z-20 animate-settle" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgb(14_17_21/0.96)_0%,rgb(14_17_21/0.86)_45%,rgb(14_17_21/0.45)_100%)]" />
       <div className="absolute inset-0 -z-10 fins opacity-60" />
       <div className="container-page py-8 sm:py-12 lg:py-14">
@@ -121,7 +121,7 @@ export function BikeBanner({
             {children}
           </div>
           {/* Phones see the bike first; the heading stays first in reading order. */}
-          <figure className="min-w-0 max-lg:-order-1">
+          <figure className="min-w-0 animate-ride-in [animation-delay:120ms] max-lg:-order-1">
             <BikeVisual
               bikeClass={bikeClass}
               image={image}
