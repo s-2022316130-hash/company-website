@@ -6,7 +6,7 @@ import type { BrakeSpec, Cooling, FuelSystem, MotorcycleModel, VariantSpec } fro
 function NotStated() {
   return (
     <span className="text-muted" title="Not stated on the official page">
-      —<span className="sr-only">not stated</span>
+      -<span className="sr-only">not stated</span>
     </span>
   );
 }

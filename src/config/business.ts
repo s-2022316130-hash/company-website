@@ -91,7 +91,7 @@ export const business = {
   },
 
   hours: {
-    label: "Every day, 9:00 AM – 10:00 PM",
+    label: "Every day, 9:00 AM - 10:00 PM",
     opens: "09:00",
     closes: "22:00",
     days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],

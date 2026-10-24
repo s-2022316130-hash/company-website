@@ -159,7 +159,7 @@ function ActiveFilters({ basePath, params, result }: { basePath: string; params:
   add("fit", params.fitment, facets.fitment);
   if (facets.price && (params.minPrice !== undefined || params.maxPrice !== undefined)) {
     chips.push({
-      label: `৳${params.minPrice ?? facets.price.min} – ৳${params.maxPrice ?? facets.price.max}`,
+      label: `৳${params.minPrice ?? facets.price.min} - ৳${params.maxPrice ?? facets.price.max}`,
       href: listingHref(basePath, params, { min: undefined, max: undefined, page: undefined }),
     });
   }
