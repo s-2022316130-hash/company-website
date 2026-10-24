@@ -67,7 +67,7 @@ export default async function EngineOilPage(props: PageProps<"/engine-oil">) {
                       </th>
                       <td className="px-4 py-2.5 text-ink">{m.manual!.engineOil!.grade}</td>
                       <td className="px-4 py-2.5 text-ink">
-                        {m.manual!.engineOil!.serviceFillMl ? `${m.manual!.engineOil!.serviceFillMl.toLocaleString("en-US")} ml` : "—"}
+                        {m.manual!.engineOil!.serviceFillMl ? `${m.manual!.engineOil!.serviceFillMl.toLocaleString("en-US")} ml` : "-"}
                       </td>
                       <td className="px-4 py-2.5 text-ink">
                         {m.manual!.engineOil!.changeEvery ?? (

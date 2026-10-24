@@ -17,12 +17,12 @@ const discoverCommon = {
   source: `${BAJAJ_MANUALS}discover/110.pdf`,
   checked: CHECKED,
   covers: "Discover 110 and Discover 125 owner's manual",
-  sparkPlug: { types: "Champion PRZ9HC or Bosch UR4AC", count: 2, gap: "0.7–0.8 mm" },
+  sparkPlug: { types: "Champion PRZ9HC or Bosch UR4AC", count: 2, gap: "0.7-0.8 mm" },
   battery: "12 V, 5 Ah MF",
   brakeFluid: "DOT 3 or DOT 4 (front disc versions); replace every 30,000 km or 2 years",
   replaceIntervals: ["Brake shoes: every 15,000 km, or sooner if worn past the wear indicator"],
   tyrePressurePsi: { front: 25, rearSolo: 28.5, rearPillion: 32 },
-  chain: { slackMm: "25–35 mm", lubrication: "Non-sealed chain: SAE 90 oil or chain spray every 500 km" },
+  chain: { slackMm: "25-35 mm", lubrication: "Non-sealed chain: SAE 90 oil or chain spray every 500 km" },
   bulbs: [
     { label: "Headlamp", value: "12 V, 35/35 W" },
     { label: "Tail / stop lamp", value: "5/21 W bulb" },
@@ -30,7 +30,7 @@ const discoverCommon = {
     { label: "Number plate lamp", value: "12 V, 3 W" },
   ],
   fuelSystem: "carburettor",
-  serviceSchedule: "500–750 km, 4,500–5,000 km, 9,500–10,000 km, then every 5,000 km",
+  serviceSchedule: "500-750 km, 4,500-5,000 km, 9,500-10,000 km, then every 5,000 km",
 } satisfies Partial<OwnerManualFacts>;
 
 const discoverOilNote =
@@ -48,12 +48,12 @@ export const ownerManuals: Record<string, OwnerManualFacts> = {
       changeEvery: "After the first service, then every 5,000 km",
       topUpEvery: "Every 2,500 km",
     },
-    sparkPlug: { types: "Champion RG4HC", count: 2, gap: "0.7–0.8 mm" },
+    sparkPlug: { types: "Champion RG4HC", count: 2, gap: "0.7-0.8 mm" },
     battery: "12 V, 4 Ah VRLA",
     brakeFluid: "DOT 3 or DOT 4; replace every 30,000 km or 2 years",
     replaceIntervals: ["Brake shoes and pads: every 15,000 km"],
     tyrePressurePsi: { front: 25, rearSolo: 28.5, rearPillion: 32 },
-    chain: { slackMm: "25–35 mm", lubrication: "SAE 90 oil every 500 km" },
+    chain: { slackMm: "25-35 mm", lubrication: "SAE 90 oil every 500 km" },
     bulbs: [
       { label: "Headlamp", value: "35/35 W, with two 5 W pilot lamps" },
       { label: "Tail / stop lamp", value: "LED" },
@@ -61,8 +61,8 @@ export const ownerManuals: Record<string, OwnerManualFacts> = {
       { label: "Number plate lamp", value: "5 W" },
     ],
     fuelSystem: "carburettor",
-    serviceSchedule: "500–750 km, 4,500–5,000 km, 9,500–10,000 km, then every 5,000 km",
-    notes: ["The manual gives the spark plug gap as 0.7–0.8 mm in the specifications and 0.6–0.8 mm in the maintenance section."],
+    serviceSchedule: "500-750 km, 4,500-5,000 km, 9,500-10,000 km, then every 5,000 km",
+    notes: ["The manual gives the spark plug gap as 0.7-0.8 mm in the specifications and 0.6-0.8 mm in the maintenance section."],
   },
   "bajaj-discover-110": {
     ...discoverCommon,

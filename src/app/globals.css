@@ -1043,3 +1043,44 @@ dialog::backdrop {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Dealer strip under the hero: one marquee on the page. The list is long on phones, so it drifts
+ * instead of hiding behind a sideways scroll; hovering pauses it. Reduced motion: a static,
+ * scrollable row (the duplicate copy is hidden).
+ */
+.dealer-marquee {
+  display: flex;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+.dealer-marquee__track {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.875rem 0.625rem;
+  animation: dealer-marquee 38s linear infinite;
+}
+.dealer-marquee:hover .dealer-marquee__track {
+  animation-play-state: paused;
+}
+@keyframes dealer-marquee {
+  to {
+    translate: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dealer-marquee {
+    overflow-x: auto;
+    scrollbar-width: none;
+    mask-image: none;
+  }
+  .dealer-marquee__track {
+    animation: none;
+    padding-inline: 1rem;
+  }
+  .dealer-marquee__track[aria-hidden] {
+    display: none;
+  }
+}
