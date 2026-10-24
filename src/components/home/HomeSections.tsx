@@ -6,6 +6,7 @@ import { BrandShowroomCard, CategoryImageCard, ModelCard, PopularPartTile } from
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { WhatsAppButton } from "@/components/contact/ContactActions";
 import { LogoMark } from "@/components/layout/Logo";
+import { HeroShutter } from "./HeroShutter";
 import { PhotoFill } from "@/components/media/Photo";
 import { Reveal } from "@/components/motion/Reveal";
 import { ScrollRail } from "@/components/motion/ScrollRail";
@@ -18,7 +19,6 @@ import { categoryPath } from "@/lib/catalog/paths";
 import { pluralize } from "@/lib/format";
 import type { Brand, CategoryGroup, MotorcycleModel, ProductView } from "@/lib/types";
 
-const delay = (ms: number) => ({ "--delay": `${ms}ms` }) as CSSProperties;
 const step = (i: number) => ({ "--reveal-i": i }) as CSSProperties;
 
 /**
@@ -50,12 +50,12 @@ export function Hero({
       {/* Keeps the transparent header readable over the brightest part of the photo. */}
       <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-2 h-40 bg-gradient-to-b from-graphite/70 to-transparent lg:h-56 lg:from-graphite/85" />
       <div aria-hidden="true" className="fins absolute inset-0 -z-2 opacity-40" />
-      <div aria-hidden="true" className="hero-veil" />
+      <HeroShutter />
 
       <div className="container-page flex min-h-[calc(100svh-var(--header-offset)-7rem)] flex-col justify-end pb-8 pt-20 md:min-h-[calc(min(100svh,54rem)-var(--header-offset)-3.5rem)] lg:justify-center lg:py-10">
         <div className="max-w-2xl">
           <h1 id="hero-title">
-            <span className="hero-rise label-tech flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.8125rem] text-brand-bright" style={delay(100)}>
+            <span data-hero-rise className="label-tech flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.8125rem] text-brand-bright">
               <LogoMark className="h-8" />
               <span>{business.name}</span>
               <span aria-hidden="true" className="h-3.5 w-px bg-white/30" />
@@ -66,22 +66,22 @@ export function Hero({
               <span className="text-on-dark-muted">Since {business.foundedYear}</span>
             </span>
             <span className="mt-3 block font-display text-hero font-bold uppercase sm:mt-4">
-              <span className="hero-line">
-                <span style={delay(200)}>Motorcycle parts.</span>
+              <span data-hero-line className="hero-line">
+                <span>Motorcycle parts.</span>
               </span>
-              <span className="hero-line text-brand-bright">
-                <span style={delay(280)}>Built around</span>
+              <span data-hero-line className="hero-line text-brand-bright">
+                <span>Built around</span>
               </span>
-              <span className="hero-line text-brand-bright">
-                <span style={delay(360)}>your ride.</span>
+              <span data-hero-line className="hero-line text-brand-bright">
+                <span>your ride.</span>
               </span>
             </span>
           </h1>
-          <p className="hero-rise mt-4 max-w-xl text-base text-on-dark sm:text-lg" style={delay(440)}>
+          <p data-hero-rise className="mt-4 max-w-xl text-base text-on-dark sm:text-lg">
             Genuine Bajaj, TVS, Runner and Hero parts at company price, plus original Yamaha, Suzuki and Honda parts. Find
             yours by bike or part name, then order by WhatsApp or phone.
           </p>
-          <div className="hero-rise mt-5 hidden md:block" style={delay(520)}>
+          <div data-hero-rise className="mt-5 hidden md:block">
             <SearchBar size="lg" className="max-w-xl" />
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
               <span className="text-sm text-on-dark-muted">Try:</span>
@@ -92,7 +92,7 @@ export function Hero({
               ))}
             </div>
           </div>
-          <div className="hero-rise mt-5 grid gap-2.5 min-[360px]:grid-cols-2 sm:flex sm:flex-wrap sm:gap-3" style={delay(600)}>
+          <div data-hero-rise className="mt-5 grid gap-2.5 min-[360px]:grid-cols-2 sm:flex sm:flex-wrap sm:gap-3">
             <Link href="/shop" className="group btn btn-primary btn-lg max-sm:px-3">
               Shop parts
               <ArrowRight className="size-4 transition-transform duration-small ease-ui group-hover:translate-x-1" aria-hidden="true" />
@@ -103,8 +103,8 @@ export function Hero({
           </div>
           <a
             href={`tel:${business.phones.orders.e164}`}
-            className="hero-rise mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-on-dark transition-colors hover:text-white lg:hidden"
-            style={delay(680)}
+            data-hero-rise className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-on-dark transition-colors hover:text-white lg:hidden"
+           
           >
             <Phone className="size-4 text-brand-bright" aria-hidden="true" />
             Or call {business.name}: {business.phones.orders.display}
@@ -112,7 +112,7 @@ export function Hero({
         </div>
       </div>
 
-      <div className="hero-rise border-t border-white/10 bg-black/45 md:backdrop-blur-sm" style={delay(740)}>
+      <div data-hero-rise className="border-t border-white/10 bg-black/45 md:backdrop-blur-sm">
         <div className="container-page scrollbar-none flex items-center gap-x-5 overflow-x-auto py-3.5 font-display text-sm font-semibold uppercase tracking-[0.14em] text-on-dark-muted">
           <span className="inline-flex shrink-0 items-center gap-1.5 text-brand-bright">
             <ShieldCheck className="size-4" aria-hidden="true" /> Authorized dealer

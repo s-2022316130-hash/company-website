@@ -154,6 +154,17 @@ body {
 
 ::selection {
   background: rgb(242 107 33 / 0.28);
+  color: inherit;
+}
+
+html {
+  scrollbar-color: var(--color-line-strong) transparent;
+  accent-color: var(--color-brand);
+}
+
+input,
+textarea {
+  caret-color: var(--color-brand);
 }
 
 /* Browsers default fieldsets to min-width: min-content, which overflows narrow phones. */
@@ -707,22 +718,10 @@ html[data-typing] .mobile-bar {
   inset: -1.5rem 0;
   z-index: -3;
 }
-.hero-media img {
-  animation: hero-settle var(--transition-duration-cinematic) var(--ease-cinematic) both;
-}
-.hero-veil {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--color-graphite);
-  pointer-events: none;
-  animation: veil-lift 1100ms var(--ease-cinematic) both;
-  opacity: 0;
-}
-.hero-rise {
-  animation: rise var(--transition-duration-emphasis) var(--ease-cinematic) both;
-  animation-delay: var(--delay, 0ms);
-}
+/*
+ * Garage shutter (HeroShutter.tsx): slatted graphite covering the hero until GSAP rolls it up. If
+ * scripts never run, the fallback animation lifts it; with reduced motion it is never shown.
+ */
 .hero-line {
   display: block;
   overflow: clip;
@@ -731,10 +730,37 @@ html[data-typing] .mobile-bar {
 }
 .hero-line > span {
   display: block;
-  animation: line-up 760ms var(--ease-cinematic) both;
-  animation-delay: var(--delay, 0ms);
 }
-
+.hero-shutter {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 100%) 0 0 / 100% 22px,
+    linear-gradient(180deg, rgb(0 0 0 / 0.35) 0 2px, transparent 2px 100%) 0 20px / 100% 22px,
+    linear-gradient(180deg, var(--color-graphite-2), var(--color-graphite));
+  animation: shutter-fallback 700ms var(--ease-cinematic) 1.6s forwards;
+}
+.hero-shutter__light {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--color-brand-bright);
+  box-shadow: 0 6px 28px 2px rgb(242 107 33 / 0.55);
+}
+@keyframes shutter-fallback {
+  to {
+    translate: 0 -100%;
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-shutter {
+    display: none;
+  }
+}
 @keyframes hero-settle {
   from {
     scale: 1.05;

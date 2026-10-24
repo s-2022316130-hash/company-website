@@ -3,13 +3,12 @@ import type { CSSProperties } from "react";
 import { ArrowRight } from "lucide-react";
 import { cx } from "@/lib/cx";
 
-/** Reveal order inside a surrounding <Reveal>: label, then title, then description and link. */
+/** Reveal order inside a surrounding <Reveal>: title, then description and link. */
 const step = (i: number) => ({ "--reveal-i": i }) as CSSProperties;
 
 export function SectionHeader({
   title,
   description,
-  eyebrow,
   action,
   id,
   as: Heading = "h2",
@@ -18,6 +17,7 @@ export function SectionHeader({
 }: {
   title: string;
   description?: string;
+  /** Not shown: the heading carries the section on its own. Kept so call sites stay valid. */
   eyebrow?: string;
   action?: { label: string; href: string };
   id?: string;
@@ -29,12 +29,6 @@ export function SectionHeader({
   return (
     <div className={cx("mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 sm:mb-8", className)}>
       <div className="max-w-2xl">
-        {eyebrow && (
-          <p className={cx("reveal-item eyebrow mb-2 flex items-center gap-2", dark && "eyebrow-dark")} style={step(0)}>
-            <span aria-hidden="true" className="h-px w-7 bg-current" />
-            {eyebrow}
-          </p>
-        )}
         <Heading id={id} className={cx("reveal-item display text-section", dark ? "text-white" : "text-ink")} style={step(1)}>
           {title}
         </Heading>
